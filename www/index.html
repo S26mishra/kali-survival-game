@@ -88,22 +88,22 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">LEVEL: 1 (Age 5) | JUMP POWER: Normal</div>
-        <div id="hud-log">Select a timeline chapter to initialize Kali's journey.</div>
+        <div id="hud-lvl">LEVEL: 1 (Age 5)</div>
+        <div id="hud-log">Select a timeline chapter to begin.</div>
     </div>
 
     <div id="map-menu">
         <div class="menu-title">🗺️ Select Adventure Chapter</div>
         <div class="chapter-list">
-            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood. Rescue the cat!')">
+            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood. Use left/right buttons or Arrow Keys!')">
                 <div class="chapter-name">👶 Chapter 1: Kali Saves His Companion Cat</div>
                 <div class="chapter-range">LVL 1 - 20 (Normal Jump)</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London Streets. Growth jump unlocked!')">
+            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London. Jump high over bridges!')">
                 <div class="chapter-name">🏙️ Chapter 2: Defending the Streets Alone</div>
-                <div class="chapter-range">LVL 21 - 80 (Long/High Jump)</div>
+                <div class="chapter-range">LVL 21 - 80 (High/Long Jump)</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(81, 150, 'Chapter 3: Magic Awakening. Extreme flight jump!')">
+            <div class="chapter-card" onclick="launchChapter(81, 150, 'Chapter 3: Magical Flight Unleashed!')">
                 <div class="chapter-name">☕ Chapter 3: Meeting Susi Again & Magic Powers!</div>
                 <div class="chapter-range">LVL 81 - 150 (Super Flight Jump)</div>
             </div>
@@ -145,13 +145,13 @@
     let player, partnerSusi, cat, mapPlatforms, cursors, bgCity, fireEmitter;
     let moveLeft = false, moveRight = false, doJump = false;
     
-    // Dynamic stats object
     let gameState = { level: 1, age: 5, log: "", currentJumpVelocity: -520 };
 
     function preload() {
         this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         
+        // Official Sprite Grid Layout
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.spritesheet('susi_wings', 'https://labs.phaser.io/assets/sprites/baddie.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
@@ -164,25 +164,25 @@
 
         mapPlatforms = this.physics.add.staticGroup();
         
-        // Endless Street Ground Level
+        // Solid Ground Row
         for (let x = 0; x < 100000; x += 400) {
             mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
         }
 
-        // FIX: Lowered platform placement heights (from 240-280 down to 290-330) so they can be easily mounted!
+        // Bridge Platforms dropped down low for simple jumping access
         for (let p = 500; p < 30000; p += 480) {
-            let bridgeHeight = Phaser.Math.Between(290, 320); 
+            let bridgeHeight = Phaser.Math.Between(310, 330); 
             mapPlatforms.create(p, bridgeHeight, 'platform_block').setScale(0.5, 0.6).refreshBody();
         }
 
-        // Spawn Human Character layout
         player = this.physics.add.sprite(100, 350, 'hero_kali');
         player.setBounce(0.02).setCollideWorldBounds(true);
 
+        // FIX: Rebuilt animation frame sets matching the exact asset specifications
         this.anims.create({
-            key: 'walk',
+            key: 'left',
             frames: this.anims.generateFrameNumbers('hero_kali', { start: 0, end: 3 }),
-            frameRate: 12,
+            frameRate: 10,
             repeat: -1
         });
         this.anims.create({
@@ -190,8 +190,13 @@
             frames: [ { key: 'hero_kali', frame: 4 } ],
             frameRate: 20
         });
+        this.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('hero_kali', { start: 5, end: 8 }),
+            frameRate: 10,
+            repeat: -1
+        });
 
-        // Cat Asset Configuration
         cat = this.physics.add.sprite(500, 240, 'real_cat');
         cat.setCollideWorldBounds(true);
 
@@ -211,14 +216,17 @@
         this.cameras.main.setBounds(0, 0, 100000, 450);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
+        // FIX: Active keyboard layout creation link
+        cursors = this.input.keyboard.createCursorKeys();
+
         this.physics.add.overlap(player, cat, () => {
             if(gameState.level === 1) {
-                updateHUDLog("VICTORY! You caught the companion cat! Keep exploring right.");
+                updateHUDLog("VICTORY! You caught the cat companion! Keep running right.");
                 cat.setVelocityX(140);
             }
         }, null, this);
 
-        // Control Links Mapping
+        // Touch Input Action Links
         const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
@@ -236,31 +244,29 @@
 
         function castFire() {
             fireEmitter.start();
-            fireEmitter.startFollow(player, player.flipX ? -20 : 20, -10);
+            fireEmitter.startFollow(player, 20, -10);
             setTimeout(() => { fireEmitter.stop(); }, 1000);
         }
     }
 
     function update() {
-        // FIXED ORIENTATION LOGIC: Left movement sets flipX to false, right movement sets flipX to true
-        // This ensures his face tracks perfectly forward when moving straight and backward when retreating
-        if (window.moveLeft) { 
+        // FIX: Combines Keyboard inputs AND Mobile layout clicks simultaneously!
+        // Also tracks explicit frame directions ('left' vs 'right') instead of mirror flipping.
+        if (cursors.left.isDown || window.moveLeft) { 
             player.setVelocityX(-220); 
-            player.anims.play('walk', true); 
-            player.flipX = false; 
+            player.anims.play('left', true); // Runs backwards correctly
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
-        } else if (window.moveRight) { 
+        } else if (cursors.right.isDown || window.moveRight) { 
             player.setVelocityX(220); 
-            player.anims.play('walk', true); 
-            player.flipX = true; 
+            player.anims.play('right', true); // Runs straight forward correctly
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
         } else { 
             player.setVelocityX(0); 
-            player.anims.play('turn');
+            player.anims.play('turn'); // Stand face forward still
         }
 
-        // Triggers the dynamically updated jump force based on chosen chapter scaling
-        if (window.doJump && player.body.touching.down) { 
+        // Jump handler tracking keyboard Space/Up or mobile pad clicks
+        if ((cursors.up.isDown || cursors.space.isDown || window.doJump) && player.body.touching.down) { 
             player.setVelocityY(gameState.currentJumpVelocity); 
         }
 
@@ -273,17 +279,16 @@
         gameState.age = ageVal; 
         gameState.log = titleLog;
         
-        // DYNAMIC JUMP SCALE MECHANIC: Auto increases jump power as Kali grows up!
         let powerLabel = "Normal Jump";
         if (startLvl === 1) {
-            gameState.currentJumpVelocity = -520; // Perfect for lower bridges
+            gameState.currentJumpVelocity = -520; 
             powerLabel = "Normal Jump";
         } else if (startLvl === 21) {
-            gameState.currentJumpVelocity = -620; // High jump unlocked
-            powerLabel = "High / Long Jump Unlocked!";
+            gameState.currentJumpVelocity = -640; 
+            powerLabel = "High Jump Power Activated!";
         } else if (startLvl >= 81) {
-            gameState.currentJumpVelocity = -720; // Extreme flight jump power
-            powerLabel = "Super Flight Jump Active!";
+            gameState.currentJumpVelocity = -750; 
+            powerLabel = "Super Flight Jump Activated!";
         }
 
         document.getElementById('hud-lvl').innerText = `LEVEL: ${gameState.level} (Age ${gameState.age}) | ${powerLabel}`;
