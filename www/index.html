@@ -89,21 +89,21 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">LEVEL: 1 (Age 5)</div>
-        <div id="hud-log">Select a timeline chapter to begin.</div>
+        <div id="hud-log">Select a chapter to begin Kali's adventure!</div>
     </div>
 
     <div id="map-menu">
         <div class="menu-title">🗺️ Select Adventure Chapter</div>
         <div class="chapter-list">
-            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood. Use left/right buttons or Arrow Keys!')">
+            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood Years. Run right to rescue Kitty!')">
                 <div class="chapter-name">👶 Chapter 1: Kali Saves His Companion Cat</div>
                 <div class="chapter-range">LVL 1 - 20 (Normal Jump)</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London. Jump high over bridges!')">
+            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London Streets. Kitty is by your side!')">
                 <div class="chapter-name">🏙️ Chapter 2: Defending the Streets Alone</div>
                 <div class="chapter-range">LVL 21 - 80 (High/Long Jump)</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(81, 150, 'Chapter 3: Magical Flight Unleashed!')">
+            <div class="chapter-card" onclick="launchChapter(81, 150, 'Chapter 3: Magical Reunion Run!')">
                 <div class="chapter-name">☕ Chapter 3: Meeting Susi Again & Magic Powers!</div>
                 <div class="chapter-range">LVL 81 - 150 (Super Flight Jump)</div>
             </div>
@@ -142,16 +142,15 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, cat, mapPlatforms, cursors, bgCity, fireEmitter;
+    let player, partnerSusi, kittyCat, mapPlatforms, cursors, bgCity, fireEmitter;
     let moveLeft = false, moveRight = false, doJump = false;
     
-    let gameState = { level: 1, age: 5, log: "", currentJumpVelocity: -520 };
+    let gameState = { level: 1, age: 5, log: "", currentJumpVelocity: -520, isKittySaved: false };
 
     function preload() {
         this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         
-        // Official Sprite Grid Layout
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.spritesheet('susi_wings', 'https://labs.phaser.io/assets/sprites/baddie.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
@@ -164,21 +163,21 @@
 
         mapPlatforms = this.physics.add.staticGroup();
         
-        // Solid Ground Row
+        // Ground
         for (let x = 0; x < 100000; x += 400) {
             mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
         }
 
-        // Bridge Platforms dropped down low for simple jumping access
+        // Accessible Bridge Platforms
         for (let p = 500; p < 30000; p += 480) {
             let bridgeHeight = Phaser.Math.Between(310, 330); 
             mapPlatforms.create(p, bridgeHeight, 'platform_block').setScale(0.5, 0.6).refreshBody();
         }
 
+        // Player (Kali)
         player = this.physics.add.sprite(100, 350, 'hero_kali');
         player.setBounce(0.02).setCollideWorldBounds(true);
 
-        // FIX: Rebuilt animation frame sets matching the exact asset specifications
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('hero_kali', { start: 0, end: 3 }),
@@ -197,8 +196,10 @@
             repeat: -1
         });
 
-        cat = this.physics.add.sprite(500, 240, 'real_cat');
-        cat.setCollideWorldBounds(true);
+        // Kitty the Cat Setup
+        kittyCat = this.physics.add.sprite(520, 240, 'real_cat');
+        kittyCat.setCollideWorldBounds(true);
+        kittyCat.flipX = true; // Initially looking around waiting
 
         partnerSusi = this.physics.add.sprite(160, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
@@ -210,23 +211,30 @@
         fireEmitter.stop();
 
         this.physics.add.collider(player, mapPlatforms);
-        this.physics.add.collider(cat, mapPlatforms);
+        this.physics.add.collider(kittyCat, mapPlatforms);
         this.physics.add.collider(partnerSusi, mapPlatforms);
 
         this.cameras.main.setBounds(0, 0, 100000, 450);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
-        // FIX: Active keyboard layout creation link
         cursors = this.input.keyboard.createCursorKeys();
 
-        this.physics.add.overlap(player, cat, () => {
-            if(gameState.level === 1) {
-                updateHUDLog("VICTORY! You caught the cat companion! Keep running right.");
-                cat.setVelocityX(140);
+        // RESCUE LOGIC: Triggers the exact moment Kali touches Kitty
+        this.physics.add.overlap(player, kittyCat, () => {
+            if(!gameState.isKittySaved) {
+                gameState.isKittySaved = true;
+                kittyCat.flipX = false; // Turns around to follow you
+                kittyCat.setBounce(0.3); // Happy little hops!
+                updateHUDLog("😻 VICTORY! You saved Kitty! She is now your companion.");
+                
+                // Automatically brings up the menu after a 3-second celebration crawl
+                setTimeout(() => { 
+                    if(gameState.level === 1) { document.getElementById('map-menu').style.display = 'flex'; }
+                }, 3000);
             }
         }, null, this);
 
-        // Touch Input Action Links
+        // Inputs Layout Binding
         const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
@@ -250,27 +258,30 @@
     }
 
     function update() {
-        // FIX: Combines Keyboard inputs AND Mobile layout clicks simultaneously!
-        // Also tracks explicit frame directions ('left' vs 'right') instead of mirror flipping.
         if (cursors.left.isDown || window.moveLeft) { 
             player.setVelocityX(-220); 
-            player.anims.play('left', true); // Runs backwards correctly
+            player.anims.play('left', true);
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
         } else if (cursors.right.isDown || window.moveRight) { 
             player.setVelocityX(220); 
-            player.anims.play('right', true); // Runs straight forward correctly
+            player.anims.play('right', true);
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
         } else { 
             player.setVelocityX(0); 
-            player.anims.play('turn'); // Stand face forward still
+            player.anims.play('turn');
         }
 
-        // Jump handler tracking keyboard Space/Up or mobile pad clicks
         if ((cursors.up.isDown || cursors.space.isDown || window.doJump) && player.body.touching.down) { 
             player.setVelocityY(gameState.currentJumpVelocity); 
         }
 
-        if (gameState.level > 1) { cat.x = player.x - 45; cat.y = player.y + 5; }
+        // INFINITE RUNNER COMPANION MECHANIC: 
+        // Once saved, or if playing Chapter 2/3, Kitty automatically dashes right alongside Kali!
+        if (gameState.isKittySaved || gameState.level > 1) {
+            // Smoothly tracks behind Kali's position coordinates
+            let targetX = player.x - 45;
+            kittyCat.x = Phaser.Math.Linear(kittyCat.x, targetX, 0.1);
+        }
     }
 
     window.launchChapter = function(startLvl, ageVal, titleLog) {
@@ -282,13 +293,17 @@
         let powerLabel = "Normal Jump";
         if (startLvl === 1) {
             gameState.currentJumpVelocity = -520; 
+            gameState.isKittySaved = false;
+            kittyCat.x = 520; // Resets her position on the ledge
             powerLabel = "Normal Jump";
         } else if (startLvl === 21) {
             gameState.currentJumpVelocity = -640; 
-            powerLabel = "High Jump Power Activated!";
+            gameState.isKittySaved = true; // Already saved from childhood
+            powerLabel = "High Jump Active!";
         } else if (startLvl >= 81) {
             gameState.currentJumpVelocity = -750; 
-            powerLabel = "Super Flight Jump Activated!";
+            gameState.isKittySaved = true;
+            powerLabel = "Super Flight Jump Active!";
         }
 
         document.getElementById('hud-lvl').innerText = `LEVEL: ${gameState.level} (Age ${gameState.age}) | ${powerLabel}`;
