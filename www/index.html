@@ -6,7 +6,6 @@
     <title>Kali's Legend: Quest for Susi</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        /* Forces the game window to sit cleanly inside any smartphone or laptop frame */
         html, body {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
@@ -29,7 +28,7 @@
         #game-container {
             width: 100%;
             flex-grow: 1;
-            max-height: calc(100vh - 110px); /* Leaves space for mobile buttons at the bottom */
+            max-height: calc(100vh - 110px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -56,7 +55,6 @@
         .chapter-name { font-size: 12px; }
         .chapter-range { font-size: 11px; color: #00ffcc; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
         
-        /* ADJUSTED BUTTON ARCADE CONTROLS FOR ALL MOBILE SCREENS */
         .mobile-controls {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%; max-width: 600px; 
@@ -76,23 +74,37 @@
         }
         .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #ff007f; }
         .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 75px; font-size: 14px; border-radius: 12px; }
+        
+        /* Fixed overlay HUD text for score/logs so it doesn't move with camera scrolls */
+        .hud-overlay {
+            position: absolute; top: 15px; left: 15px;
+            pointer-events: none; color: white; font-family: Arial, sans-serif;
+            z-index: 4; display: flex; flex-direction: column; gap: 5px;
+        }
+        #hud-lvl { color: #00ffff; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        #hud-log { color: #ffffff; font-size: 13px; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
+    <div class="hud-overlay">
+        <div id="hud-lvl">LEVEL: 1 (Age 5)</div>
+        <div id="hud-log">Choose a timeline chapter to initialize game world.</div>
+    </div>
+
     <div id="map-menu">
         <div class="menu-title">🗺️ Select Adventure Chapter</div>
         <div class="chapter-list">
-            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood Years (Rescue Cat)')">
+            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood Years - Run right endlessly on the city street!')">
                 <div class="chapter-name">👶 Chapter 1: Kali Saves His Companion Cat</div>
                 <div class="chapter-range">LVL 1 - 20</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: Susi Moves to London')">
+            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: Susi Moves to London - Extended Dash')">
                 <div class="chapter-name">🏙️ Chapter 2: Defending the Streets Alone</div>
                 <div class="chapter-range">LVL 21 - 80</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(81, 19, 'Chapter 3: The Reunion & Cafe Proposal')">
+            <div class="chapter-card" onclick="launchChapter(81, 19, 'Chapter 3: The Reunion & Cafe Run')">
                 <div class="chapter-name">☕ Chapter 3: Meeting Susi Again & Magic Powers!</div>
                 <div class="chapter-range">LVL 81 - 150</div>
             </div>
@@ -118,27 +130,27 @@
         width: 800,
         height: 450,
         parent: 'game-container',
-        // KEY FIX: Automatically scales the graphics viewport proportionally on any display dimension
         scale: {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_BOTH
         },
         physics: {
             default: 'arcade',
-            arcade: { gravity: { y: 800 }, debug: false }
+            arcade: { gravity: { y: 900 }, debug: false }
         },
         scene: { preload: preload, create: create, update: update }
     };
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, enemy, cat, mapPlatforms, cursors, statusText, hudText, fireEmitter;
+    let player, partnerSusi, cat, mapPlatforms, cursors, bgCity, fireEmitter;
     let moveLeft = false, moveRight = false, doJump = false;
     
-    let gameState = { level: 1, age: 5, log: "Choose a timeline chapter to initialize pixel bodies." };
+    let gameState = { level: 1, age: 5, log: "" };
 
     function preload() {
-        this.load.image('bg_space', 'https://labs.phaser.io/assets/skies/space3.png');
+        // High quality repeating environment asset
+        this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
@@ -148,22 +160,33 @@
     }
 
     function create() {
-        this.add.image(400, 225, 'bg_space').setDisplaySize(800, 450);
+        // KEY MECHANIC 1: Create an endless repeating TileSprite background
+        bgCity = this.add.tileSprite(400, 225, 800, 450, 'bg_city').setScrollFactor(0);
+
+        // Set physics world bounds to be massive horizontally (100,000 pixels wide!)
+        this.physics.world.setBounds(0, 0, 100000, 450);
 
         mapPlatforms = this.physics.add.staticGroup();
-        mapPlatforms.create(400, 435, 'platform_block').setScale(2, 1).refreshBody(); 
-        mapPlatforms.create(680, 270, 'platform_block').setScale(0.5, 0.8).refreshBody(); 
+        
+        // Build an endless structural ground row spanning thousands of pixels out
+        for (let x = 0; x < 100000; x += 400) {
+            mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
+        }
 
-        hudText = this.add.text(20, 20, `LEVEL: ${gameState.level} (Age ${gameState.age})`, { font: 'bold 22px Arial', fill: '#00ffff' });
-        statusText = this.add.text(20, 55, gameState.log, { font: '15px Arial', fill: '#ffffff' });
+        // Spawn some random testing platform ledges floating down the runway
+        for (let p = 600; p < 20000; p += 500) {
+            let randHeight = Phaser.Math.Between(220, 310);
+            mapPlatforms.create(p, randHeight, 'platform_block').setScale(0.4, 0.6).refreshBody();
+        }
 
+        // Initialize Kali
         player = this.physics.add.sprite(100, 350, 'hero_kali');
-        player.setBounce(0.1).setCollideWorldBounds(true);
+        player.setBounce(0.05).setCollideWorldBounds(true);
 
         this.anims.create({
             key: 'walk',
             frames: this.anims.generateFrameNumbers('hero_kali', { start: 0, end: 3 }),
-            frameRate: 10,
+            frameRate: 12,
             repeat: -1
         });
         this.anims.create({
@@ -172,34 +195,41 @@
             frameRate: 20
         });
 
+        // Initialize Companion Cat
         cat = this.physics.add.sprite(680, 200, 'real_cat');
         cat.setCollideWorldBounds(true);
 
+        // Initialize Susi
         partnerSusi = this.physics.add.sprite(160, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
         partnerSusi.setVisible(false);
 
+        // Setup magic aura particle systems
         fireEmitter = this.add.particles(0, 0, 'fire_particle', {
             speed: 200, scale: { start: 0.4, end: 0 }, blendMode: 'ADD', lifespan: 400
         });
         fireEmitter.stop();
 
+        // Connect Physics rule systems
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(cat, mapPlatforms);
         this.physics.add.collider(partnerSusi, mapPlatforms);
 
+        // KEY MECHANIC 2: Tell main camera frame to follow Kali's X/Y vector points automatically!
+        this.cameras.main.setBounds(0, 0, 100000, 450);
+        this.cameras.main.startFollow(player, true, 0.1, 0.1);
+
         this.physics.add.overlap(player, cat, () => {
             if(gameState.level === 1) {
-                statusText.setText("VICTORY! You caught the cat's leg from the balcony!");
-                cat.setVelocityX(-50);
-                setTimeout(() => { document.getElementById('map-menu').style.display = 'flex'; }, 3000);
+                updateHUDLog("VICTORY! You caught the cat! Keep running right to view the infinite world!");
+                cat.setVelocityX(100);
             }
         }, null, this);
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Universal Event Triggers supporting both touch and mouse clicks
-        const bindButton = (id, startProp, endProp) => {
+        // Touch Input Action Wrappers
+        const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
             el.addEventListener('touchend', () => window[startProp] = false);
@@ -223,26 +253,34 @@
 
     function update() {
         if (cursors.left.isDown || window.moveLeft) { 
-            player.setVelocityX(-160); player.anims.play('walk', true); player.flipX = true;
+            player.setVelocityX(-220); player.anims.play('walk', true); player.flipX = true;
         } else if (cursors.right.isDown || window.moveRight) { 
-            player.setVelocityX(160); player.anims.play('walk', true); player.flipX = false;
+            player.setVelocityX(220); player.anims.play('walk', true); player.flipX = false;
+            
+            // KEY MECHANIC 3: Shift the background texture offset back based on camera focus to create endless looping movement!
+            bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
         } else { 
             player.setVelocityX(0); player.anims.play('turn');
         }
 
-        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) { player.setVelocityY(-430); }
+        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) { player.setVelocityY(-460); }
 
-        if (gameState.level > 1) { cat.x = player.x - 35; cat.y = player.y + 5; }
+        // Dynamic companion tracking layout
+        if (gameState.level > 1) { cat.x = player.x - 45; cat.y = player.y + 5; }
     }
 
     window.launchChapter = function(startLvl, ageVal, titleLog) {
         document.getElementById('map-menu').style.display = 'none';
         gameState.level = startLvl; gameState.age = ageVal; gameState.log = titleLog;
-        if(hudText && statusText) {
-            hudText.setText(`LEVEL: ${gameState.level} (Age ${gameState.age})`);
-            statusText.setText(gameState.log);
-        }
+        
+        document.getElementById('hud-lvl').innerText = `LEVEL: ${gameState.level} (Age ${gameState.age})`;
+        document.getElementById('hud-log').innerText = gameState.log;
+        
         partnerSusi.setVisible(startLvl >= 81);
+    }
+
+    function updateHUDLog(msg) {
+        document.getElementById('hud-log').innerText = msg;
     }
 </script>
 </body>
