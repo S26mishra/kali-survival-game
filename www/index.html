@@ -2,316 +2,123 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kali's RPG Quest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kali's Legend: Quest for Susi</title>
+    <!-- Importing high performance Phaser Game framework engine -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         body {
-            background: radial-gradient(circle, #150a21 0%, #05020a 100%);
-            color: #ffffff;
-            font-family: 'Impact', 'Arial Black', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #05020a;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            user-select: none;
+            height: 100vh;
             overflow: hidden;
+            font-family: sans-serif;
         }
-        .game-cabinet {
-            background: #11071e;
-            border: 4px solid #00ffff;
-            border-radius: 20px;
-            box-shadow: 0 0 30px #00ffff, inset 0 0 15px rgba(0, 255, 255, 0.2);
-            width: 95%;
-            max-width: 430px;
-            padding: 15px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        h1 {
-            font-size: 26px;
-            color: #ff007f;
-            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
-            margin: 0 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .char-selector {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        .char-card {
-            flex: 1;
-            background: #1b0d2f;
-            border: 2px solid #3d1c63;
-            border-radius: 10px;
-            padding: 8px 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .char-card.active {
-            border-color: #ff007f;
-            background: #34125c;
-            box-shadow: 0 0 10px #ff007f;
-        }
-        .char-sprite-large { font-size: 24px; margin-bottom: 2px; }
-        .char-name { font-size: 11px; color: #fff; text-transform: uppercase; }
-        
-        /* THE GAME ENGINE SCREEN CANVAS */
-        #gameCanvas {
-            background: linear-gradient(to bottom, #1f103c, #0d061a);
-            border: 3px solid #ff007f;
-            border-radius: 12px;
-            display: block;
-            margin: 0 auto 12px auto;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+        #game-container {
             width: 100%;
-            max-width: 380px;
-            height: 180px;
-        }
-
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .stat-box {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 6px;
-            text-align: center;
-        }
-        .stat-label { font-size: 10px; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 2px; }
-        .stat-val { font-size: 16px; color: #fff; }
-        .gold-color { color: #ffcc00; font-weight: bold; }
-
-        .action-pad {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .game-btn {
-            font-family: inherit;
-            font-size: 16px;
-            text-transform: uppercase;
-            padding: 12px;
-            border: none;
+            max-width: 800px;
+            height: 100%;
+            max-height: 450px;
+            border: 4px solid #ff007f;
             border-radius: 12px;
-            cursor: pointer;
-            color: white;
-            box-shadow: 0 4px 0 #000;
-        }
-        .game-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #000;
-        }
-        .btn-quest { background: linear-gradient(180deg, #00e676 0%, #00c853 100%); }
-        .btn-battle { background: linear-gradient(180deg, #ff1744 0%, #d50000 100%); }
-        
-        .battle-log {
-            background: #000;
-            border: 1px solid #222;
-            color: #00ffcc;
-            font-family: 'Courier New', monospace;
-            padding: 8px;
-            border-radius: 6px;
-            text-align: left;
-            font-size: 11px;
-            min-height: 28px;
+            box-shadow: 0 0 30px #00ffff;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
 
-<div class="game-cabinet">
-    <h1>Kali's World</h1>
-
-    <div class="char-selector">
-        <div class="char-card active" onclick="selectHero('Kali', '🧑‍🎤')">
-            <div class="char-sprite-large">🧑‍🎤</div>
-            <div class="char-name">Kali</div>
-        </div>
-        <div class="char-card" onclick="selectHero('Susi', '👩‍🚀')">
-            <div class="char-sprite-large">👩‍🚀</div>
-            <div class="char-name">Susi</div>
-        </div>
-        <div class="char-card" onclick="selectHero('Cat', '🐱')">
-            <div class="char-sprite-large">🐱</div>
-            <div class="char-name">Cat</div>
-        </div>
-    </div>
-
-    <!-- PIXEL ANIMATION DISPLAY VIEW -->
-    <canvas id="gameCanvas" width="400" height="180"></canvas>
-
-    <div class="status-grid">
-        <div class="stat-box">
-            <span class="stat-label">🛡️ Level</span>
-            <span id="level" class="stat-val">1</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">⚔️ Power</span>
-            <span id="power" class="stat-val">10</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">💰 Gold</span>
-            <span id="gold" class="stat-val gold-color">0g</span>
-        </div>
-    </div>
-
-    <div class="action-pad">
-        <button class="game-btn btn-quest" onclick="triggerAction('complete')">🏃 Go Quest</button>
-        <button class="game-btn btn-battle" onclick="triggerAction('battle')">⚔️ Fight</button>
-    </div>
-
-    <div id="log" class="battle-log">Tap a button to animate your hero action!</div>
-</div>
+<div id="game-container"></div>
 
 <script>
-    const API_URL = 'https://kali-survival-game.onrender.com/api/game';
-    let currentHeroName = "Kali";
-    let heroEmoji = "🧑‍🎤";
-
-    // Dynamic 2D Animation Setup
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    let heroX = 50;
-    let heroY = 120;
-    let targetX = 50;
-    let isJumping = false;
-    let jumpFrame = 0;
-    let particles = [];
-
-    function selectHero(name, sprite) {
-        currentHeroName = name;
-        heroEmoji = sprite;
-        document.querySelectorAll('.char-card').forEach(card => card.classList.remove('active'));
-        event.currentTarget.classList.add('active');
-        document.getElementById('log').innerText = `${name} is ready for action!`;
-    }
-
-    // Canvas Draw Frame Loop
-    function drawGame() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Ground line
-        ctx.strokeStyle = '#ff007f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 150);
-        ctx.lineTo(canvas.width, 150);
-        ctx.stroke();
-
-        // Simple environment grid lines for speed feeling
-        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-        for (let i = 0; i < canvas.width; i += 40) {
-            ctx.beginPath();
-            ctx.moveTo(i, 150);
-            ctx.lineTo(i - 20, 180);
-            ctx.stroke();
-        }
-
-        // Handle Quest/Run Animation movement
-        if (heroX < targetX) {
-            heroX += 4;
-            if (Math.random() > 0.4) createParticle(heroX, heroY + 10, '#00ffff');
-        } else if (heroX > 50 && targetX === 50) {
-            heroX -= 4;
-        }
-
-        // Handle Jump/Combat Animation movement
-        if (isJumping) {
-            jumpFrame += 0.15;
-            heroY = 120 - Math.sin(jumpFrame) * 50;
-            if (jumpFrame >= Math.PI) {
-                isJumping = false;
-                heroY = 120;
-                targetX = 50; // Return home
+    // Phase 2 Engine Setup and configuration
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 450,
+        parent: 'game-container',
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 600 },
+                debug: false
             }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    // Global variable trackers for our story states
+    let player;
+    let partnerSusi;
+    let heroCat;
+    let cursors;
+    let firePowerButton;
+    let mapPlatforms;
+    let gameState = {
+        level: 1,
+        heroAge: 5,
+        storyLog: "Age 5: Save the falling cat from the room balcony!"
+    };
+
+    // STEP 1: ASSET MANAGER LOADING SCREEN
+    function preload() {
+        // Placeholder primitives used until customized game sprites are ready
+        this.load.image('sky', 'https://labs.phaser.io/assets/skies/space3.png');
+        this.load.image('ground', 'https://labs.phaser.io/assets/sprites/platform.png');
+    }
+
+    // STEP 2: SCENE GENERATOR & PLACEMENTMAP 
+    function create() {
+        // Add deep space game background
+        this.add.image(400, 225, 'sky');
+
+        // Create the level collision platform map
+        mapPlatforms = this.physics.add.staticGroup();
+        mapPlatforms.create(400, 430, 'ground').setScale(2).refreshBody(); // Main floor
+        mapPlatforms.create(600, 300, 'ground'); // Balcony/Roof ledge structure
+
+        // Spawn Hero Kali (Represented by custom graphics block)
+        player = this.physics.add.sprite(100, 300, 'kali_hero');
+        player.setBounce(0.1);
+        player.setCollideWorldBounds(true);
+
+        // Physics interactions rules
+        this.physics.add.collider(player, mapPlatforms);
+
+        // Setup controller input streams
+        cursors = this.input.keyboard.createCursorKeys();
+
+        // Screen HUD Text tracking story progress
+        this.add.text(16, 16, `LEVEL: ${gameState.level} (Age: ${gameState.heroAge})`, { fontSize: '20px', fill: '#00ffff', fontFamily: 'Impact' });
+        this.add.text(16, 45, gameState.storyLog, { fontSize: '14px', fill: '#fff' });
+    }
+
+    // STEP 3: REAL-TIME CONTROLLER ENGINE LOOP
+    function update() {
+        // Horizontal walk logic mechanics
+        if (cursors.left.isDown) {
+            player.setVelocityX(-160);
+        } else if (cursors.right.isDown) {
+            player.setVelocityX(160);
+        } else {
+            player.setVelocityX(0);
         }
 
-        // Update & Render action particles
-        particles.forEach((p, i) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.alpha -= 0.04;
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.alpha;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            if (p.alpha <= 0) particles.splice(i, 1);
-        });
-        ctx.globalAlpha = 1.0;
-
-        // Render Hero Character Sprite onto Canvas
-        ctx.font = "34px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(heroEmoji, heroX, heroY);
-
-        requestAnimationFrame(drawGame);
-    }
-
-    function createParticle(x, y, color) {
-        particles.push({
-            x: x, y: y,
-            vx: -2 - Math.random() * 2,
-            vy: (Math.random() - 0.5) * 2,
-            size: 3 + Math.random() * 3,
-            color: color,
-            alpha: 1.0
-        });
-    }
-
-    async function fetchGameState() {
-        try {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            updateUI(data);
-        } catch (err) {
-            document.getElementById('log').innerText = "Connecting to cloud server...";
+        // Jump physics action logic
+        if (cursors.up.isDown && player.body.touching.down) {
+            player.setVelocityY(-350);
         }
     }
-
-    async function triggerAction(actionType) {
-        // Trigger visual animations instantly on screen
-        if (actionType === 'complete') {
-            targetX = 250; // Dash forward
-        } else if (actionType === 'battle') {
-            isJumping = true;
-            jumpFrame = 0;
-            for(let i=0; i<8; i++) createParticle(heroX + 20, heroY, '#ff007f');
-        }
-
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: actionType, hero: currentHeroName })
-            });
-            const data = await res.json();
-            updateUI(data);
-            
-            let msg = data.logMessage.replace("Hero", currentHeroName).replace("hero", currentHeroName);
-            document.getElementById('log').innerText = msg;
-        } catch (err) {
-            document.getElementById('log').innerText = "Combat Action Synced Locally!";
-        }
-    }
-
-    function updateUI(data) {
-        document.getElementById('level').innerText = data.level;
-        document.getElementById('power').innerText = data.combatPower;
-        document.getElementById('gold').innerText = data.gold + 'g';
-    }
-
-    // Start Engine Loop
-    fetchGameState();
-    drawGame();
 </script>
 </body>
 </html>
