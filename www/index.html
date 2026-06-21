@@ -95,11 +95,11 @@
     <div id="map-menu">
         <div class="menu-title">🗺️ Select Adventure Chapter</div>
         <div class="chapter-list">
-            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1: Childhood Years. Run right to rescue Kitty!')">
-                <div class="chapter-name">👶 Chapter 1: Kali Saves His Companion Cat</div>
-                <div class="chapter-range">LVL 1 - 20 (Normal Jump)</div>
+            <div class="chapter-card" onclick="launchChapter(1, 5, 'Chapter 1 Complete! Kitty rescued instantly! Proceeding to the main city.')">
+                <div class="chapter-name">👶 Chapter 1: Quick Rescue (Start Journey)</div>
+                <div class="chapter-range">LVL 1 - 20 (Intro Scene)</div>
             </div>
-            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London Streets. Kitty is by your side!')">
+            <div class="chapter-card" onclick="launchChapter(21, 12, 'Chapter 2: London Streets. Defend the city with Kitty!')">
                 <div class="chapter-name">🏙️ Chapter 2: Defending the Streets Alone</div>
                 <div class="chapter-range">LVL 21 - 80 (High/Long Jump)</div>
             </div>
@@ -150,7 +150,6 @@
     function preload() {
         this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
-        
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.spritesheet('susi_wings', 'https://labs.phaser.io/assets/sprites/baddie.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
@@ -163,18 +162,15 @@
 
         mapPlatforms = this.physics.add.staticGroup();
         
-        // Ground
         for (let x = 0; x < 100000; x += 400) {
             mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
         }
 
-        // Accessible Bridge Platforms
         for (let p = 500; p < 30000; p += 480) {
             let bridgeHeight = Phaser.Math.Between(310, 330); 
             mapPlatforms.create(p, bridgeHeight, 'platform_block').setScale(0.5, 0.6).refreshBody();
         }
 
-        // Player (Kali)
         player = this.physics.add.sprite(100, 350, 'hero_kali');
         player.setBounce(0.02).setCollideWorldBounds(true);
 
@@ -196,12 +192,11 @@
             repeat: -1
         });
 
-        // Kitty the Cat Setup
-        kittyCat = this.physics.add.sprite(520, 240, 'real_cat');
+        // FIX: Kitty spawned right in front of Kali (X=160 instead of 520) for instant collection!
+        kittyCat = this.physics.add.sprite(160, 350, 'real_cat');
         kittyCat.setCollideWorldBounds(true);
-        kittyCat.flipX = true; // Initially looking around waiting
 
-        partnerSusi = this.physics.add.sprite(160, 350, 'susi_wings');
+        partnerSusi = this.physics.add.sprite(220, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
         partnerSusi.setVisible(false);
 
@@ -219,22 +214,20 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // RESCUE LOGIC: Triggers the exact moment Kali touches Kitty
+        // Overlap logic triggers instantly when the level starts because they spawn touching!
         this.physics.add.overlap(player, kittyCat, () => {
             if(!gameState.isKittySaved) {
                 gameState.isKittySaved = true;
-                kittyCat.flipX = false; // Turns around to follow you
-                kittyCat.setBounce(0.3); // Happy little hops!
-                updateHUDLog("😻 VICTORY! You saved Kitty! She is now your companion.");
+                kittyCat.setBounce(0.35); // Joyful bounce!
+                updateHUDLog("😻 VICTORY! Kitty saved instantly! Chapter 1 Complete.");
                 
-                // Automatically brings up the menu after a 3-second celebration crawl
+                // Instantly re-opens menu so user can jump right into the actual Chapter 2 gameplay
                 setTimeout(() => { 
                     if(gameState.level === 1) { document.getElementById('map-menu').style.display = 'flex'; }
-                }, 3000);
+                }, 2000);
             }
         }, null, this);
 
-        // Inputs Layout Binding
         const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
@@ -275,12 +268,9 @@
             player.setVelocityY(gameState.currentJumpVelocity); 
         }
 
-        // INFINITE RUNNER COMPANION MECHANIC: 
-        // Once saved, or if playing Chapter 2/3, Kitty automatically dashes right alongside Kali!
         if (gameState.isKittySaved || gameState.level > 1) {
-            // Smoothly tracks behind Kali's position coordinates
             let targetX = player.x - 45;
-            kittyCat.x = Phaser.Math.Linear(kittyCat.x, targetX, 0.1);
+            kittyCat.x = Phaser.Math.Linear(kittyCat.x, targetX, 0.12);
         }
     }
 
@@ -294,11 +284,11 @@
         if (startLvl === 1) {
             gameState.currentJumpVelocity = -520; 
             gameState.isKittySaved = false;
-            kittyCat.x = 520; // Resets her position on the ledge
-            powerLabel = "Normal Jump";
+            kittyCat.x = 160; // Spawns directly beside you
+            powerLabel = "Intro Scene";
         } else if (startLvl === 21) {
             gameState.currentJumpVelocity = -640; 
-            gameState.isKittySaved = true; // Already saved from childhood
+            gameState.isKittySaved = true; 
             powerLabel = "High Jump Active!";
         } else if (startLvl >= 81) {
             gameState.currentJumpVelocity = -750; 
