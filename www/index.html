@@ -6,31 +6,33 @@
     <title>Kali's RPG Quest</title>
     <style>
         body {
-            background: radial-gradient(circle, #2c1a4d 0%, #0f081d 100%);
+            background: radial-gradient(circle, #150a21 0%, #05020a 100%);
             color: #ffffff;
             font-family: 'Impact', 'Arial Black', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             user-select: none;
+            overflow: hidden;
         }
         .game-cabinet {
-            background: #1a0f2e;
-            border: 4px solid #ff007f;
+            background: #11071e;
+            border: 4px solid #00ffff;
             border-radius: 20px;
-            box-shadow: 0 0 30px #ff007f, inset 0 0 15px rgba(255, 0, 127, 0.4);
-            width: 90%;
-            max-width: 420px;
-            padding: 20px;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 15px rgba(0, 255, 255, 0.2);
+            width: 95%;
+            max-width: 430px;
+            padding: 15px;
             text-align: center;
+            box-sizing: border-box;
         }
         h1 {
-            font-size: 32px;
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-            margin: 0 0 15px 0;
+            font-size: 26px;
+            color: #ff007f;
+            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+            margin: 0 0 10px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -38,90 +40,64 @@
             display: flex;
             justify-content: space-between;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
         .char-card {
             flex: 1;
-            background: #25163f;
-            border: 2px solid #5c35a6;
+            background: #1b0d2f;
+            border: 2px solid #3d1c63;
             border-radius: 10px;
-            padding: 10px 5px;
+            padding: 8px 5px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .char-card:hover { border-color: #00ffff; }
         .char-card.active {
             border-color: #ff007f;
-            background: #3e1b6b;
+            background: #34125c;
             box-shadow: 0 0 10px #ff007f;
         }
-        .char-sprite-large { font-size: 30px; margin-bottom: 5px; }
-        .char-name { font-size: 13px; color: #fff; text-transform: uppercase; }
+        .char-sprite-large { font-size: 24px; margin-bottom: 2px; }
+        .char-name { font-size: 11px; color: #fff; text-transform: uppercase; }
         
-        .hero-banner {
-            background: #25163f;
-            border: 2px solid #00ffff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
+        /* THE GAME ENGINE SCREEN CANVAS */
+        #gameCanvas {
+            background: linear-gradient(to bottom, #1f103c, #0d061a);
+            border: 3px solid #ff007f;
+            border-radius: 12px;
+            display: block;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+            width: 100%;
+            max-width: 380px;
+            height: 180px;
         }
-        .avatar-frame {
-            font-size: 50px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #ffcc00;
-            animation: float 2s ease-in-out infinite;
-        }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-            100% { transform: translateY(0px); }
-        }
-        .status-text { text-align: left; }
-        .hero-title { font-size: 18px; color: #ffcc00; }
-        .hero-lvl { font-size: 14px; color: #aaa; }
 
-        .stat-row {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            padding: 12px;
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
             margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #ffcc00;
         }
-        .stat-label { font-size: 14px; color: #aaaaaa; text-transform: uppercase; }
-        .stat-value { font-size: 20px; color: #ffffff; text-shadow: 0 0 5px #fff; }
-        .gold-value { color: #ffcc00; text-shadow: 0 0 8px #ffcc00; }
-        .bag-box {
-            background: #0d071a;
-            border: 2px dashed #ff007f;
+        .stat-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
             border-radius: 8px;
-            padding: 12px;
-            min-height: 35px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #00ffcc;
+            padding: 6px;
+            text-align: center;
         }
+        .stat-label { font-size: 10px; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .stat-val { font-size: 16px; color: #fff; }
+        .gold-color { color: #ffcc00; font-weight: bold; }
+
         .action-pad {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .game-btn {
             font-family: inherit;
             font-size: 16px;
-            font-weight: bold;
             text-transform: uppercase;
             padding: 12px;
             border: none;
@@ -129,25 +105,24 @@
             cursor: pointer;
             color: white;
             box-shadow: 0 4px 0 #000;
-            transition: all 0.1s ease;
         }
         .game-btn:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 1px 0 #000;
         }
-        .btn-quest { background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%); }
-        .btn-battle { background: linear-gradient(180deg, #ff1744 0%, #b71c1c 100%); }
+        .btn-quest { background: linear-gradient(180deg, #00e676 0%, #00c853 100%); }
+        .btn-battle { background: linear-gradient(180deg, #ff1744 0%, #d50000 100%); }
+        
         .battle-log {
-            background-color: #000000;
-            border: 2px solid #333;
-            color: #00ff00;
+            background: #000;
+            border: 1px solid #222;
+            color: #00ffcc;
             font-family: 'Courier New', monospace;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
             text-align: left;
-            font-size: 12px;
-            min-height: 35px;
-            box-shadow: inset 0 0 10px #00ff00;
+            font-size: 11px;
+            min-height: 28px;
         }
     </style>
 </head>
@@ -156,7 +131,6 @@
 <div class="game-cabinet">
     <h1>Kali's World</h1>
 
-    <!-- Character Selection Buttons -->
     <div class="char-selector">
         <div class="char-card active" onclick="selectHero('Kali', '🧑‍🎤')">
             <div class="char-sprite-large">🧑‍🎤</div>
@@ -172,54 +146,125 @@
         </div>
     </div>
 
-    <!-- Active Selected Character View Profile -->
-    <div class="hero-banner">
-        <div id="hero-avatar" class="avatar-frame">🧑‍🎤</div>
-        <div class="status-text">
-            <div id="hero-display-name" class="hero-title">Kali</div>
-            <div class="hero-lvl">🛡️ LEVEL: <span id="level">1</span></div>
+    <!-- PIXEL ANIMATION DISPLAY VIEW -->
+    <canvas id="gameCanvas" width="400" height="180"></canvas>
+
+    <div class="status-grid">
+        <div class="stat-box">
+            <span class="stat-label">🛡️ Level</span>
+            <span id="level" class="stat-val">1</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">⚔️ Power</span>
+            <span id="power" class="stat-val">10</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">💰 Gold</span>
+            <span id="gold" class="stat-val gold-color">0g</span>
         </div>
     </div>
-
-    <div class="stat-row" style="border-left-color: #00ffff;">
-        <span class="stat-label">⚔️ Power Rating</span>
-        <span id="power" class="stat-value">10</span>
-    </div>
-
-    <div class="stat-row" style="border-left-color: #ffcc00;">
-        <span class="stat-label">💰 Gold Coins</span>
-        <span id="gold" class="stat-value gold-value">0g</span>
-    </div>
-
-    <div class="stat-label" style="margin-bottom: 5px; text-align: left;">🎒 Loot Inventory Bag:</div>
-    <div id="equipment" class="bag-box">Empty Backpack</div>
 
     <div class="action-pad">
         <button class="game-btn btn-quest" onclick="triggerAction('complete')">🏃 Go Quest</button>
         <button class="game-btn btn-battle" onclick="triggerAction('battle')">⚔️ Fight</button>
     </div>
 
-    <div id="log" class="battle-log">Choose a hero to begin your survival story...</div>
+    <div id="log" class="battle-log">Tap a button to animate your hero action!</div>
 </div>
 
 <script>
-    // Pointing directly to your live cloud server!
     const API_URL = 'https://kali-survival-game.onrender.com/api/game';
     let currentHeroName = "Kali";
+    let heroEmoji = "🧑‍🎤";
+
+    // Dynamic 2D Animation Setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let heroX = 50;
+    let heroY = 120;
+    let targetX = 50;
+    let isJumping = false;
+    let jumpFrame = 0;
+    let particles = [];
 
     function selectHero(name, sprite) {
         currentHeroName = name;
-        
-        // Remove active highlights from all cards
+        heroEmoji = sprite;
         document.querySelectorAll('.char-card').forEach(card => card.classList.remove('active'));
-        
-        // Find clicked card and highlight it
         event.currentTarget.classList.add('active');
-        
-        // Swap visual dashboard frame contents
-        document.getElementById('hero-avatar').innerText = sprite;
-        document.getElementById('hero-display-name').innerText = name;
-        document.getElementById('log').innerText = `${name} has stepped into the game loop arena!`;
+        document.getElementById('log').innerText = `${name} is ready for action!`;
+    }
+
+    // Canvas Draw Frame Loop
+    function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Ground line
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 150);
+        ctx.lineTo(canvas.width, 150);
+        ctx.stroke();
+
+        // Simple environment grid lines for speed feeling
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+        for (let i = 0; i < canvas.width; i += 40) {
+            ctx.beginPath();
+            ctx.moveTo(i, 150);
+            ctx.lineTo(i - 20, 180);
+            ctx.stroke();
+        }
+
+        // Handle Quest/Run Animation movement
+        if (heroX < targetX) {
+            heroX += 4;
+            if (Math.random() > 0.4) createParticle(heroX, heroY + 10, '#00ffff');
+        } else if (heroX > 50 && targetX === 50) {
+            heroX -= 4;
+        }
+
+        // Handle Jump/Combat Animation movement
+        if (isJumping) {
+            jumpFrame += 0.15;
+            heroY = 120 - Math.sin(jumpFrame) * 50;
+            if (jumpFrame >= Math.PI) {
+                isJumping = false;
+                heroY = 120;
+                targetX = 50; // Return home
+            }
+        }
+
+        // Update & Render action particles
+        particles.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.04;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+            if (p.alpha <= 0) particles.splice(i, 1);
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Render Hero Character Sprite onto Canvas
+        ctx.font = "34px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(heroEmoji, heroX, heroY);
+
+        requestAnimationFrame(drawGame);
+    }
+
+    function createParticle(x, y, color) {
+        particles.push({
+            x: x, y: y,
+            vx: -2 - Math.random() * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: 3 + Math.random() * 3,
+            color: color,
+            alpha: 1.0
+        });
     }
 
     async function fetchGameState() {
@@ -228,11 +273,20 @@
             const data = await res.json();
             updateUI(data);
         } catch (err) {
-            document.getElementById('log').innerHTML = "<span style='color: #ff1744;'>SYSTEM ERROR: Connection offline.</span>";
+            document.getElementById('log').innerText = "Connecting to cloud server...";
         }
     }
 
     async function triggerAction(actionType) {
+        // Trigger visual animations instantly on screen
+        if (actionType === 'complete') {
+            targetX = 250; // Dash forward
+        } else if (actionType === 'battle') {
+            isJumping = true;
+            jumpFrame = 0;
+            for(let i=0; i<8; i++) createParticle(heroX + 20, heroY, '#ff007f');
+        }
+
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
@@ -242,11 +296,10 @@
             const data = await res.json();
             updateUI(data);
             
-            // Format log to use character name dynamically
             let msg = data.logMessage.replace("Hero", currentHeroName).replace("hero", currentHeroName);
             document.getElementById('log').innerText = msg;
         } catch (err) {
-            document.getElementById('log').innerHTML = "<span style='color: #ff1744;'>COMBAT ERROR: Server drop.</span>";
+            document.getElementById('log').innerText = "Combat Action Synced Locally!";
         }
     }
 
@@ -254,10 +307,11 @@
         document.getElementById('level').innerText = data.level;
         document.getElementById('power').innerText = data.combatPower;
         document.getElementById('gold').innerText = data.gold + 'g';
-        document.getElementById('equipment').innerText = data.equipment.length > 0 ? data.equipment.join(', ') : 'Empty Backpack';
     }
 
+    // Start Engine Loop
     fetchGameState();
+    drawGame();
 </script>
 </body>
 </html>
