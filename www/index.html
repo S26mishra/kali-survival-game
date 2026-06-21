@@ -75,7 +75,6 @@
         .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #ff007f; }
         .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 75px; font-size: 14px; border-radius: 12px; }
         
-        /* Fixed overlay HUD text for score/logs so it doesn't move with camera scrolls */
         .hud-overlay {
             position: absolute; top: 15px; left: 15px;
             pointer-events: none; color: white; font-family: Arial, sans-serif;
@@ -90,7 +89,7 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">LEVEL: 1 (Age 5)</div>
-        <div id="hud-log">Choose a timeline chapter to initialize game world.</div>
+        <div id="hud-log">Choose a chapter to begin!</div>
     </div>
 
     <div id="map-menu">
@@ -136,7 +135,7 @@
         },
         physics: {
             default: 'arcade',
-            arcade: { gravity: { y: 900 }, debug: false }
+            arcade: { gravity: { y: 1000 }, debug: false } // Smooth gravity pull
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -149,7 +148,6 @@
     let gameState = { level: 1, age: 5, log: "" };
 
     function preload() {
-        // High quality repeating environment asset
         this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         
@@ -160,28 +158,25 @@
     }
 
     function create() {
-        // KEY MECHANIC 1: Create an endless repeating TileSprite background
         bgCity = this.add.tileSprite(400, 225, 800, 450, 'bg_city').setScrollFactor(0);
-
-        // Set physics world bounds to be massive horizontally (100,000 pixels wide!)
         this.physics.world.setBounds(0, 0, 100000, 450);
 
         mapPlatforms = this.physics.add.staticGroup();
         
-        // Build an endless structural ground row spanning thousands of pixels out
+        // Ground Row
         for (let x = 0; x < 100000; x += 400) {
             mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
         }
 
-        // Spawn some random testing platform ledges floating down the runway
-        for (let p = 600; p < 20000; p += 500) {
-            let randHeight = Phaser.Math.Between(220, 310);
-            mapPlatforms.create(p, randHeight, 'platform_block').setScale(0.4, 0.6).refreshBody();
+        // Bridge Platforms - Adjusted spacing and heights so they are easily reachable
+        for (let p = 550; p < 20000; p += 450) {
+            let randHeight = Phaser.Math.Between(240, 280); 
+            mapPlatforms.create(p, randHeight, 'platform_block').setScale(0.5, 0.6).refreshBody();
         }
 
-        // Initialize Kali
+        // Kali Setup
         player = this.physics.add.sprite(100, 350, 'hero_kali');
-        player.setBounce(0.05).setCollideWorldBounds(true);
+        player.setBounce(0.02).setCollideWorldBounds(true);
 
         this.anims.create({
             key: 'walk',
@@ -195,40 +190,33 @@
             frameRate: 20
         });
 
-        // Initialize Companion Cat
-        cat = this.physics.add.sprite(680, 200, 'real_cat');
+        cat = this.physics.add.sprite(550, 200, 'real_cat'); // Placed closer on the first platform
         cat.setCollideWorldBounds(true);
 
-        // Initialize Susi
         partnerSusi = this.physics.add.sprite(160, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
         partnerSusi.setVisible(false);
 
-        // Setup magic aura particle systems
         fireEmitter = this.add.particles(0, 0, 'fire_particle', {
             speed: 200, scale: { start: 0.4, end: 0 }, blendMode: 'ADD', lifespan: 400
         });
         fireEmitter.stop();
 
-        // Connect Physics rule systems
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(cat, mapPlatforms);
         this.physics.add.collider(partnerSusi, mapPlatforms);
 
-        // KEY MECHANIC 2: Tell main camera frame to follow Kali's X/Y vector points automatically!
         this.cameras.main.setBounds(0, 0, 100000, 450);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         this.physics.add.overlap(player, cat, () => {
             if(gameState.level === 1) {
-                updateHUDLog("VICTORY! You caught the cat! Keep running right to view the infinite world!");
-                cat.setVelocityX(100);
+                updateHUDLog("VICTORY! You rescued the cat! Keep exploring the infinite world.");
+                cat.setVelocityX(140);
             }
         }, null, this);
 
-        cursors = this.input.keyboard.createCursorKeys();
-
-        // Touch Input Action Wrappers
+        // Input Bindings
         const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
@@ -246,36 +234,36 @@
 
         function castFire() {
             fireEmitter.start();
-            fireEmitter.startFollow(player, 20, -10);
+            fireEmitter.startFollow(player, player.flipX ? -20 : 20, -10);
             setTimeout(() => { fireEmitter.stop(); }, 1000);
         }
     }
 
     function update() {
-        if (cursors.left.isDown || window.moveLeft) { 
-            player.setVelocityX(-220); player.anims.play('walk', true); player.flipX = true;
-        } else if (cursors.right.isDown || window.moveRight) { 
-            player.setVelocityX(220); player.anims.play('walk', true); player.flipX = false;
-            
-            // KEY MECHANIC 3: Shift the background texture offset back based on camera focus to create endless looping movement!
+        // KEY FIX: Reversed flipX properties so tracking aligns perfectly with movement directions
+        if (window.moveLeft) { 
+            player.setVelocityX(-220); player.anims.play('walk', true); player.flipX = true; // Faces Left
+            bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
+        } else if (window.moveRight) { 
+            player.setVelocityX(220); player.anims.play('walk', true); player.flipX = false; // Faces Right
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
         } else { 
             player.setVelocityX(0); player.anims.play('turn');
         }
 
-        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) { player.setVelocityY(-460); }
+        // KEY FIX: Increased Jump force to -540 so he hops onto bridges with ease
+        if (window.doJump && player.body.touching.down) { 
+            player.setVelocityY(-540); 
+        }
 
-        // Dynamic companion tracking layout
         if (gameState.level > 1) { cat.x = player.x - 45; cat.y = player.y + 5; }
     }
 
     window.launchChapter = function(startLvl, ageVal, titleLog) {
         document.getElementById('map-menu').style.display = 'none';
         gameState.level = startLvl; gameState.age = ageVal; gameState.log = titleLog;
-        
         document.getElementById('hud-lvl').innerText = `LEVEL: ${gameState.level} (Age ${gameState.age})`;
         document.getElementById('hud-log').innerText = gameState.log;
-        
         partnerSusi.setVisible(startLvl >= 81);
     }
 
