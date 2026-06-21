@@ -2,58 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>Kali's Legend: Quest for Susi</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        body {
+        /* Forces the game window to sit cleanly inside any smartphone or laptop frame */
+        html, body {
             margin: 0; padding: 0;
+            width: 100%; height: 100%;
             background-color: #05020a;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            height: 100vh; overflow: hidden;
+            overflow: hidden;
             font-family: 'Arial Black', sans-serif;
         }
         #game-wrapper {
-            position: relative; width: 100%; max-width: 800px; height: 60%; max-height: 450px;
+            position: relative; 
+            width: 100vw; 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
         }
         #game-container {
-            width: 100%; height: 100%;
-            border: 4px solid #ff007f; border-radius: 12px;
-            box-shadow: 0 0 30px #00ffff; background: #000;
+            width: 100%;
+            flex-grow: 1;
+            max-height: calc(100vh - 110px); /* Leaves space for mobile buttons at the bottom */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #game-container canvas {
+            border: 3px solid #ff007f;
+            border-radius: 8px;
+            box-shadow: 0 0 20px #00ffff;
         }
         #map-menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 8, 29, 0.95); border-radius: 12px;
+            background: rgba(15, 8, 29, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; box-sizing: border-box; padding: 20px;
+            z-index: 10; box-sizing: border-box; padding: 15px;
         }
-        .menu-title { color: #00ffff; font-size: 24px; text-shadow: 0 0 10px #00ffff; margin-bottom: 20px; text-transform: uppercase; }
-        .chapter-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; }
+        .menu-title { color: #00ffff; font-size: 20px; text-shadow: 0 0 10px #00ffff; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
+        .chapter-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 450px; }
         .chapter-card {
             background: #251442; border: 2px solid #ff007f; border-radius: 8px;
-            padding: 10px 15px; color: white; cursor: pointer;
+            padding: 8px 12px; color: white; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
         }
         .chapter-card:hover { box-shadow: 0 0 15px #ff007f; background: #361d5e; }
-        .chapter-name { font-size: 14px; }
-        .chapter-range { font-size: 12px; color: #00ffcc; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; }
+        .chapter-name { font-size: 12px; }
+        .chapter-range { font-size: 11px; color: #00ffcc; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
         
+        /* ADJUSTED BUTTON ARCADE CONTROLS FOR ALL MOBILE SCREENS */
         .mobile-controls {
             display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 800px; padding: 15px; box-sizing: border-box;
+            width: 100%; max-width: 600px; 
+            height: 90px;
+            padding: 10px 20px; box-sizing: border-box;
             background: #110724; border-top: 3px solid #ff007f;
+            z-index: 5;
         }
-        .dir-pad, .action-pad { display: flex; gap: 15px; }
+        .dir-pad, .action-pad { display: flex; gap: 20px; }
         .ctrl-btn {
-            width: 65px; height: 65px;
+            width: 55px; height: 55px;
             background: linear-gradient(180deg, #3a1c6e 0%, #1a0b36 100%);
             border: 2px solid #00ffff; border-radius: 50%;
-            color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center;
+            color: #fff; font-size: 22px; display: flex; justify-content: center; align-items: center;
             cursor: pointer; box-shadow: 0 4px 0 #000; user-select: none;
+            -webkit-user-select: none;
         }
         .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #ff007f; }
-        .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 80px; font-size: 18px; }
+        .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 75px; font-size: 14px; border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -77,16 +99,16 @@
         </div>
     </div>
     <div id="game-container"></div>
-</div>
-
-<div class="mobile-controls">
-    <div class="dir-pad">
-        <div class="ctrl-btn" id="btn-left">◀</div>
-        <div class="ctrl-btn" id="btn-right">▶</div>
-    </div>
-    <div class="action-pad">
-        <div class="ctrl-btn" id="btn-jump">▲</div>
-        <div class="ctrl-btn btn-power" id="btn-fire">FIRE</div>
+    
+    <div class="mobile-controls">
+        <div class="dir-pad">
+            <div class="ctrl-btn" id="btn-left">◀</div>
+            <div class="ctrl-btn" id="btn-right">▶</div>
+        </div>
+        <div class="action-pad">
+            <div class="ctrl-btn" id="btn-jump">▲</div>
+            <div class="ctrl-btn btn-power" id="btn-fire">FIRE</div>
+        </div>
     </div>
 </div>
 
@@ -94,8 +116,13 @@
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 400,
+        height: 450,
         parent: 'game-container',
+        // KEY FIX: Automatically scales the graphics viewport proportionally on any display dimension
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
         physics: {
             default: 'arcade',
             arcade: { gravity: { y: 800 }, debug: false }
@@ -105,41 +132,34 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, enemy, cat, mapPlatforms, cursors, statusText, hudText, fireEmitter, windEmitter;
+    let player, partnerSusi, enemy, cat, mapPlatforms, cursors, statusText, hudText, fireEmitter;
     let moveLeft = false, moveRight = false, doJump = false;
     
-    let gameState = { level: 1, age: 5, log: "Choose a timeline chapter to initialize visual bodies." };
+    let gameState = { level: 1, age: 5, log: "Choose a timeline chapter to initialize pixel bodies." };
 
     function preload() {
-        // High quality textures & environments
         this.load.image('bg_space', 'https://labs.phaser.io/assets/skies/space3.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         
-        // Load Real Human Sprite Grids
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.spritesheet('susi_wings', 'https://labs.phaser.io/assets/sprites/baddie.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
-        
-        // High quality magical effects assets
         this.load.image('fire_particle', 'https://labs.phaser.io/assets/particles/muzzleflash3.png');
-        this.load.image('wind_particle', 'https://labs.phaser.io/assets/particles/blue.png');
     }
 
     function create() {
-        this.add.image(400, 200, 'bg_space').setDisplaySize(800, 400);
+        this.add.image(400, 225, 'bg_space').setDisplaySize(800, 450);
 
         mapPlatforms = this.physics.add.staticGroup();
-        mapPlatforms.create(400, 385, 'platform_block').setScale(2, 1).refreshBody(); 
-        mapPlatforms.create(650, 220, 'platform_block').setScale(0.5, 0.8).refreshBody(); 
+        mapPlatforms.create(400, 435, 'platform_block').setScale(2, 1).refreshBody(); 
+        mapPlatforms.create(680, 270, 'platform_block').setScale(0.5, 0.8).refreshBody(); 
 
         hudText = this.add.text(20, 20, `LEVEL: ${gameState.level} (Age ${gameState.age})`, { font: 'bold 22px Arial', fill: '#00ffff' });
-        statusText = this.add.text(20, 50, gameState.log, { font: '15px Arial', fill: '#ffffff' });
+        statusText = this.add.text(20, 55, gameState.log, { font: '15px Arial', fill: '#ffffff' });
 
-        // 1. KALI (Real Human Frame Asset Setup)
-        player = this.physics.add.sprite(100, 300, 'hero_kali');
+        player = this.physics.add.sprite(100, 350, 'hero_kali');
         player.setBounce(0.1).setCollideWorldBounds(true);
 
-        // Kali Walk Animations Generation
         this.anims.create({
             key: 'walk',
             frames: this.anims.generateFrameNumbers('hero_kali', { start: 0, end: 3 }),
@@ -152,35 +172,25 @@
             frameRate: 20
         });
 
-        // 2. REAL companion CAT (Spawns on balcony ledge)
-        cat = this.physics.add.sprite(650, 150, 'real_cat');
+        cat = this.physics.add.sprite(680, 200, 'real_cat');
         cat.setCollideWorldBounds(true);
 
-        // 3. SUSI (Spawns next to him in older levels)
-        partnerSusi = this.physics.add.sprite(160, 300, 'susi_wings');
+        partnerSusi = this.physics.add.sprite(160, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
-        partnerSusi.setVisible(false); // Hidden during childhood levels
+        partnerSusi.setVisible(false);
 
-        // 4. POWER ENG_FX: Real-time particle fire generators
         fireEmitter = this.add.particles(0, 0, 'fire_particle', {
-            speed: 200,
-            scale: { start: 0.4, end: 0 },
-            blendMode: 'ADD',
-            lifespan: 400,
-            extra: { visible: false }
+            speed: 200, scale: { start: 0.4, end: 0 }, blendMode: 'ADD', lifespan: 400
         });
         fireEmitter.stop();
 
-        // Physics mappings
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(cat, mapPlatforms);
         this.physics.add.collider(partnerSusi, mapPlatforms);
 
-        // Quest Mission Victory check
         this.physics.add.overlap(player, cat, () => {
             if(gameState.level === 1) {
-                statusText.setText("VICTORY! You caught the cat's leg from the balcony! Cat is now your companion.");
-                // Cat runs to follow Kali
+                statusText.setText("VICTORY! You caught the cat's leg from the balcony!");
                 cat.setVelocityX(-50);
                 setTimeout(() => { document.getElementById('map-menu').style.display = 'flex'; }, 3000);
             }
@@ -188,66 +198,51 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Mobile Interface links
-        document.getElementById('btn-left').addEventListener('touchstart', () => moveLeft = true);
-        document.getElementById('btn-left').addEventListener('touchend', () => moveLeft = false);
-        document.getElementById('btn-right').addEventListener('touchstart', () => moveRight = true);
-        document.getElementById('btn-right').addEventListener('touchend', () => moveRight = false);
-        document.getElementById('btn-jump').addEventListener('touchstart', () => doJump = true);
-        document.getElementById('btn-jump').addEventListener('touchend', () => doJump = false);
+        // Universal Event Triggers supporting both touch and mouse clicks
+        const bindButton = (id, startProp, endProp) => {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
+            el.addEventListener('touchend', () => window[startProp] = false);
+            el.addEventListener('mousedown', () => window[startProp] = true);
+            el.addEventListener('mouseup', () => window[startProp] = false);
+        };
+
+        bindButton('btn-left', 'moveLeft');
+        bindButton('btn-right', 'moveRight');
+        bindButton('btn-jump', 'doJump');
         
-        // Launch Fire Stream Power
-        document.getElementById('btn-fire').addEventListener('touchstart', () => {
+        document.getElementById('btn-fire').addEventListener('click', castFire);
+        document.getElementById('btn-fire').addEventListener('touchstart', (e) => { e.preventDefault(); castFire(); });
+
+        function castFire() {
             fireEmitter.start();
             fireEmitter.startFollow(player, 20, -10);
-            statusText.setText("Kali activates Fire & Light aura!");
-            
-            setTimeout(() => { fireEmitter.stop(); }, 1200);
-        });
+            setTimeout(() => { fireEmitter.stop(); }, 1000);
+        }
     }
 
     function update() {
-        if (cursors.left.isDown || moveLeft) { 
-            player.setVelocityX(-160);
-            player.anims.play('walk', true);
-            player.flipX = true;
-        } else if (cursors.right.isDown || moveRight) { 
-            player.setVelocityX(160);
-            player.anims.play('walk', true);
-            player.flipX = false;
+        if (cursors.left.isDown || window.moveLeft) { 
+            player.setVelocityX(-160); player.anims.play('walk', true); player.flipX = true;
+        } else if (cursors.right.isDown || window.moveRight) { 
+            player.setVelocityX(160); player.anims.play('walk', true); player.flipX = false;
         } else { 
-            player.setVelocityX(0);
-            player.anims.play('turn');
+            player.setVelocityX(0); player.anims.play('turn');
         }
 
-        if ((cursors.up.isDown || doJump) && player.body.touching.down) { 
-            player.setVelocityY(-400); 
-        }
+        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) { player.setVelocityY(-430); }
 
-        // Make the real cat naturally follow Kali's coordinates once rescued
-        if (gameState.level > 1) {
-            cat.x = player.x - 35;
-            cat.y = player.y + 5;
-        }
+        if (gameState.level > 1) { cat.x = player.x - 35; cat.y = player.y + 5; }
     }
 
     window.launchChapter = function(startLvl, ageVal, titleLog) {
         document.getElementById('map-menu').style.display = 'none';
-        gameState.level = startLvl;
-        gameState.age = ageVal;
-        gameState.log = titleLog;
-        
+        gameState.level = startLvl; gameState.age = ageVal; gameState.log = titleLog;
         if(hudText && statusText) {
             hudText.setText(`LEVEL: ${gameState.level} (Age ${gameState.age})`);
             statusText.setText(gameState.log);
         }
-
-        if(startLvl >= 81) {
-            partnerSusi.setVisible(true); // Susi joins the level at age 19!
-            statusText.setText("Chapter 3: Susi joins with Water/Wind powers & hidden wings!");
-        } else {
-            partnerSusi.setVisible(false);
-        }
+        partnerSusi.setVisible(startLvl >= 81);
     }
 </script>
 </body>
