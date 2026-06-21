@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kali's Legend: Quest for Susi</title>
-    <!-- Importing high performance Phaser Game framework engine -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         body {
@@ -12,21 +11,71 @@
             padding: 0;
             background-color: #05020a;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            font-family: sans-serif;
+            font-family: 'Arial Black', sans-serif;
         }
         #game-container {
             width: 100%;
             max-width: 800px;
-            height: 100%;
+            height: 60%;
             max-height: 450px;
             border: 4px solid #ff007f;
             border-radius: 12px;
             box-shadow: 0 0 30px #00ffff;
-            overflow: hidden;
+            background: #000;
+        }
+        /* MOBILE CONTROL PAD OVERLAY */
+        .mobile-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            padding: 15px;
+            box-sizing: border-box;
+            background: #110724;
+            border-top: 3px solid #ff007f;
+        }
+        .dir-pad {
+            display: flex;
+            gap: 15px;
+        }
+        .action-pad {
+            display: flex;
+            gap: 15px;
+        }
+        .ctrl-btn {
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(180deg, #3a1c6e 0%, #1a0b36 100%);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #000;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .ctrl-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #000;
+            background: #ff007f;
+            border-color: #fff;
+        }
+        .btn-power {
+            background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%);
+            border-color: #ffcc00;
+            border-radius: 12px;
+            width: 80px;
         }
     </style>
 </head>
@@ -34,89 +83,134 @@
 
 <div id="game-container"></div>
 
+<!-- Touch Controller Interface for All Phones/Tablets -->
+<div class="mobile-controls">
+    <div class="dir-pad">
+        <div class="ctrl-btn" id="btn-left">◀</div>
+        <div class="ctrl-btn" id="btn-right">▶</div>
+    </div>
+    <div class="action-pad">
+        <div class="ctrl-btn" id="btn-jump">▲</div>
+        <div class="ctrl-btn btn-power" id="btn-fire">🔥</div>
+    </div>
+</div>
+
 <script>
-    // Phase 2 Engine Setup and configuration
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 450,
+        height: 400,
         parent: 'game-container',
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 600 },
+                gravity: { y: 700 },
                 debug: false
             }
         },
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
-        }
+        scene: { preload: preload, create: create, update: update }
     };
 
     const game = new Phaser.Game(config);
 
-    // Global variable trackers for our story states
-    let player;
-    let partnerSusi;
-    let heroCat;
-    let cursors;
-    let firePowerButton;
-    let mapPlatforms;
+    let player, enemy, cat, mapPlatforms, cursors;
+    let moveLeft = false, moveRight = false, doJump = false;
+    
     let gameState = {
         level: 1,
-        heroAge: 5,
-        storyLog: "Age 5: Save the falling cat from the room balcony!"
+        age: 5,
+        score: 0,
+        log: "LEVEL 1: Move Kali right, jump onto the balcony, and touch the Cat to rescue it!"
     };
 
-    // STEP 1: ASSET MANAGER LOADING SCREEN
     function preload() {
-        // Placeholder primitives used until customized game sprites are ready
-        this.load.image('sky', 'https://labs.phaser.io/assets/skies/space3.png');
-        this.load.image('ground', 'https://labs.phaser.io/assets/sprites/platform.png');
+        this.load.image('bg_space', 'https://labs.phaser.io/assets/skies/space3.png');
+        this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
     }
 
-    // STEP 2: SCENE GENERATOR & PLACEMENTMAP 
     function create() {
-        // Add deep space game background
-        this.add.image(400, 225, 'sky');
+        // Space Background
+        this.add.image(400, 200, 'bg_space').setDisplaySize(800, 400);
 
-        // Create the level collision platform map
+        // Platform Ledge Map System
         mapPlatforms = this.physics.add.staticGroup();
-        mapPlatforms.create(400, 430, 'ground').setScale(2).refreshBody(); // Main floor
-        mapPlatforms.create(600, 300, 'ground'); // Balcony/Roof ledge structure
+        mapPlatforms.create(400, 385, 'platform_block').setScale(2, 1).refreshBody(); // Floor
+        mapPlatforms.create(650, 240, 'platform_block').setScale(0.5, 0.8).refreshBody(); // Balcony Ledge
 
-        // Spawn Hero Kali (Represented by custom graphics block)
-        player = this.physics.add.sprite(100, 300, 'kali_hero');
-        player.setBounce(0.1);
-        player.setCollideWorldBounds(true);
+        // Text HUD Interfaces
+        this.add.text(20, 20, `LEVEL: ${gameState.level} (Age ${gameState.age})`, { font: 'bold 22px Arial', fill: '#00ffff' });
+        let statusText = this.add.text(20, 50, gameState.log, { font: '15px Arial', fill: '#ffffff' });
 
-        // Physics interactions rules
+        // Generate Character Game Sprites using Emojis directly on Canvas
+        player = this.add.container(100, 300);
+        let playerTxt = this.add.text(0, -20, '🧑‍🎤', { font: '38px Arial' }).setOrigin(0.5);
+        player.add(playerTxt);
+        this.physics.add.existing(player);
+        player.body.setCollideWorldBounds(true);
+
+        // Spawn Companion Cat on Balcony Ledge
+        cat = this.add.container(650, 180);
+        let catTxt = this.add.text(0, 0, '🐱', { font: '32px Arial' }).setOrigin(0.5);
+        cat.add(catTxt);
+        this.physics.add.existing(cat);
+
+        // Spawn Level 1 Enemy
+        enemy = this.add.container(400, 300);
+        let enemyTxt = this.add.text(0, -20, '😈', { font: '36px Arial' }).setOrigin(0.5);
+        enemy.add(enemyTxt);
+        this.physics.add.existing(enemy);
+        enemy.body.setCollideWorldBounds(true);
+
+        // Physics Colliders Rules
         this.physics.add.collider(player, mapPlatforms);
+        this.physics.add.collider(cat, mapPlatforms);
+        this.physics.add.collider(enemy, mapPlatforms);
 
-        // Setup controller input streams
+        // Level Objective Collision Rules
+        this.physics.add.overlap(player, cat, () => {
+            catTxt.setText('😻❤️');
+            statusText.setText("VICTORY! You saved the cat! Preparing Level 2...");
+            player.body.setVelocity(0, 0);
+        }, null, this);
+
+        // Setup Keyboard Controls
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Screen HUD Text tracking story progress
-        this.add.text(16, 16, `LEVEL: ${gameState.level} (Age: ${gameState.heroAge})`, { fontSize: '20px', fill: '#00ffff', fontFamily: 'Impact' });
-        this.add.text(16, 45, gameState.storyLog, { fontSize: '14px', fill: '#fff' });
+        // Setup HTML Mobile Button Event Hooks
+        document.getElementById('btn-left').addEventListener('touchstart', () => moveLeft = true);
+        document.getElementById('btn-left').addEventListener('touchend', () => moveLeft = false);
+        document.getElementById('btn-right').addEventListener('touchstart', () => moveRight = true);
+        document.getElementById('btn-right').addEventListener('touchend', () => moveRight = false);
+        document.getElementById('btn-jump').addEventListener('touchstart', () => doJump = true);
+        document.getElementById('btn-jump').addEventListener('touchend', () => doJump = false);
+        
+        // Fire burst effect
+        document.getElementById('btn-fire').addEventListener('touchstart', () => {
+            let fire = this.add.text(player.x + 30, player.y - 20, '💥🔥', { font: '30px Arial' });
+            this.physics.add.existing(fire);
+            fire.body.allowGravity = false;
+            fire.body.setVelocityX(300);
+            this.physics.add.overlap(fire, enemy, () => {
+                enemy.destroy();
+                fire.destroy();
+                statusText.setText("Enemy defeated with Fire Burst! Now go save the Cat!");
+            });
+        });
     }
 
-    // STEP 3: REAL-TIME CONTROLLER ENGINE LOOP
     function update() {
-        // Horizontal walk logic mechanics
-        if (cursors.left.isDown) {
-            player.setVelocityX(-160);
-        } else if (cursors.right.isDown) {
-            player.setVelocityX(160);
+        // Left/Right Movements Engine Hook (Combines keyboard + Mobile buttons)
+        if (cursors.left.isDown || moveLeft) {
+            player.body.setVelocityX(-180);
+        } else if (cursors.right.isDown || moveRight) {
+            player.body.setVelocityX(180);
         } else {
-            player.setVelocityX(0);
+            player.body.setVelocityX(0);
         }
 
-        // Jump physics action logic
-        if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-350);
+        // Jump Engine Hook
+        if ((cursors.up.isDown || doJump) && player.body.touching.down) {
+            player.body.setVelocityY(-420);
         }
     }
 </script>
