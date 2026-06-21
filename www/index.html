@@ -45,7 +45,7 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10; box-sizing: border-box; padding: 15px; color: white;
         }
-        .menu-title { color: #00ffff; font-size: 22px; text-shadow: 0 0 10px #00ffff; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
+        .menu-title { color: #00ffff; font-size: 22px; text-shadow: 0 0 10px #00ffff; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
         
         .btn-action {
             background: linear-gradient(180deg, #ff007f 0%, #b30059 100%);
@@ -55,6 +55,23 @@
         }
         .btn-action:hover { transform: scale(1.05); }
         .btn-secondary { background: linear-gradient(180deg, #555 0%, #222 100%); border-color: #aaa; box-shadow: none; }
+
+        /* ROADMAP STYLING */
+        .roadmap-container {
+            display: flex; align-items: center; justify-content: center;
+            margin: 20px 0; gap: 10px; width: 80%; max-width: 400px;
+        }
+        .roadmap-node {
+            width: 40px; height: 40px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; border: 2px solid #fff;
+            background: #222; color: #aaa; position: relative;
+        }
+        .roadmap-node.cleared { background: #00ffcc; color: #000; border-color: #00ffcc; box-shadow: 0 0 10px #00ffcc; }
+        .roadmap-node.active { background: #ff007f; color: #fff; border-color: #fff; box-shadow: 0 0 10px #ff007f; }
+        .roadmap-line { flex-grow: 1; height: 40px; background: #444; position: relative; }
+        .roadmap-line.filled { background: #00ffcc; }
+        .roadmap-status-text { font-size: 14px; color: #00ffcc; margin-bottom: 10px; }
 
         #ad-screen { background: #111; display: none; text-align: center; }
         .wednesday-dance-box {
@@ -96,10 +113,22 @@
         <div id="hud-log">Welcome to Kali's Legend! Tap below to start.</div>
     </div>
 
-    <!-- Main Dynamic Intro & Intermission Screen -->
+    <!-- Main Dynamic Intro, Roadmap & Intermission Screen -->
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title">⚔️ Kali's Legend: Quest for Susi ⚔️</div>
-        <p id="menu-desc" style="text-align:center; max-width:400px; font-size:13px; line-height:1.4;">Fight for what is good. Defeat the enemies to rescue his friend Susi! Watch promotional musical clips to keep going if you fall.</p>
+        <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Quest for Susi ⚔️</div>
+        
+        <p id="menu-desc" style="text-align:center; max-width:400px; font-size:13px; line-height:1.4;">Fight for what is good. Defeat the enemies to rescue his friend Susi!</p>
+        
+        <!-- Visual Roadmap Component -->
+        <div id="roadmap-box" class="roadmap-container" style="display: none;">
+            <div id="node-1" class="roadmap-node">1</div>
+            <div id="line-1" class="roadmap-line"></div>
+            <div id="node-2" class="roadmap-node">2</div>
+            <div id="line-2" class="roadmap-line"></div>
+            <div id="node-3" class="roadmap-node">3</div>
+        </div>
+        <div id="roadmap-status" class="roadmap-status-text" style="display: none;"></div>
+
         <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START GAME</button>
     </div>
 
@@ -108,7 +137,7 @@
         <div class="menu-title" style="color: #ff0055; text-shadow: 0 0 10px #ff0055;">💥 DEFEATED 💥</div>
         <p>The enemies won this round! Watch a short clip to recover.</p>
         <button class="btn-action" onclick="watchWednesdaySongAd()">WATCH AD (10s Wednesday Song)</button>
-        <button class="btn-action btn-secondary" onclick="skipAdRestart()">SKIP AD (Restart From Safe Point)</button>
+        <button class="btn-action btn-secondary" onclick="skipAdRestart()">SKIP AD (Restart Segment)</button>
     </div>
 
     <!-- Wednesday Song Video Screen -->
@@ -152,6 +181,7 @@
     let player, partnerSusi, kittyCat, mapPlatforms, cursors, bgCity, fireEmitter, enemiesGroup, projectilesGroup;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
+    let lastSpawnX = 0;
     
     let gameState = { 
         levelIndex: 1, age: 5, currentJumpVelocity: -520, isKittySaved: false,
@@ -180,17 +210,10 @@
             mapPlatforms.create(x, 435, 'platform_block').setScale(2, 1).refreshBody();
         }
 
+        // Setup baseline structural floating elements
         for (let p = 600; p < 15000; p += 460) {
             let bridgeHeight = Phaser.Math.Between(300, 330); 
             mapPlatforms.create(p, bridgeHeight, 'platform_block').setScale(0.5, 0.6).refreshBody();
-            
-            if (p > 700) {
-                let monster = enemiesGroup.create(p + 60, bridgeHeight - 40, 'hero_kali');
-                monster.setTint(0xcc0000); 
-                monster.setCollideWorldBounds(true);
-                monster.setVelocityX(-130);
-                monster.health = 2;
-            }
         }
 
         this.goalPointX1 = 4000;
@@ -231,12 +254,12 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Sequence 1 Overlap Handler
+        // Sequence 1 Clear Condition
         this.physics.add.overlap(player, kittyCat, () => {
             if(gameState.levelIndex === 1 && !gameState.isKittySaved) {
                 gameState.isKittySaved = true;
                 kittyCat.setBounce(0.35);
-                showLevelClearScreen("😻 Companion Rescue Clear! Ready to start the next battle segment?", 2);
+                showLevelClearScreen("😻 Companion Rescue Clear! Ready to progress?", 2);
             }
         }, null, this);
 
@@ -305,6 +328,21 @@
         } else if (cursors.right.isDown || window.moveRight) { 
             player.setVelocityX(220); player.anims.play('right', true); facingDirection = 'right';
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
+            
+            // DYNAMIC UPSIDE & BACKSIDE SPARKING OF ENEMIES ON THE MOVE
+            if (gameState.levelIndex > 1 && Math.abs(player.x - lastSpawnX) > 400) {
+                lastSpawnX = player.x;
+                
+                // 1. Upside Spawning (Falling down from above Kali)
+                let upEnemy = enemiesGroup.create(player.x + Phaser.Math.Between(100, 300), 20, 'hero_kali');
+                upEnemy.setTint(0xff3333).setCollideWorldBounds(true).setVelocityX(-100);
+                upEnemy.health = 1;
+
+                // 2. Backside Spawning (Chasing from behind Kali)
+                let backEnemy = enemiesGroup.create(player.x - Phaser.Math.Between(200, 350), 350, 'hero_kali');
+                backEnemy.setTint(0x990000).setCollideWorldBounds(true).setVelocityX(160);
+                backEnemy.health = 2;
+            }
         } else { 
             player.setVelocityX(0); player.anims.play('turn');
         }
@@ -326,25 +364,41 @@
             if (enemy.body.blocked.right) enemy.setVelocityX(-130);
         });
 
-        // FIXED VICTORY INTERMISSION OVERLAYS (PROMPTS INTERACTION WITHOUT STICKING)
+        // TRACK VICTORY PARAMETERS WITHOUT COMPILING RUNTIME ERROR LOCKS
         if (gameState.levelIndex === 2 && player.x >= this.goalPointX1) {
-            showLevelClearScreen("🏆 Area Cleared! Kali won the fight. Ready to advance?", 3);
+            showLevelClearScreen("🏆 Area Cleared! Kali won the fight.", 3);
         } else if (gameState.levelIndex === 3 && player.x >= this.goalPointX2) {
-            showLevelClearScreen("🎉 MISSION ACCOMPLISHED! His friend Susi has been rescued safely. Reset campaign?", 1);
+            showLevelClearScreen("🎉 MISSION ACCOMPLISHED! His friend Susi has been rescued safely.", 1);
         }
     }
 
-    // Displays clear window prompt dynamically instead of letting physics pause lock up the view
+    // RENDERS INTERACTIVE MAP INTERMISSIONS AND TOTAL TRACK RECORD
     function showLevelClearScreen(message, nextLevelTarget) {
         gameState.isChangingStage = true;
         player.setVelocity(0,0);
         game.scene.scenes[0].physics.pause();
 
+        document.getElementById('menu-header').innerText = "🏆 CLEAR ZONE 🏆";
         document.getElementById('menu-desc').innerText = message;
         document.getElementById('main-menu-btn').innerText = "START THE NEW STAGE";
+
+        // Setup visual road nodes
+        let currentCleared = nextLevelTarget === 1 ? 3 : nextLevelTarget - 1;
+        let leftToClear = 3 - currentCleared;
+
+        document.getElementById('roadmap-status').innerText = `Segments Cleared: ${currentCleared} | Remaining: ${leftToClear}`;
         
-        // Target pointer reassignment
+        // Render nodes graphics
+        updateRoadmapGraphics(currentCleared);
+
+        document.getElementById('roadmap-box').style.display = 'flex';
+        document.getElementById('roadmap-status').style.display = 'block';
+        
         document.getElementById('main-menu-btn').onclick = function() {
+            document.getElementById('roadmap-box').style.display = 'none';
+            document.getElementById('roadmap-status').style.display = 'none';
+            document.getElementById('menu-header').innerText = "⚔️ Kali's Legend: Quest for Susi ⚔️";
+            
             gameState.levelIndex = nextLevelTarget;
             gameState.isChangingStage = false;
             if (nextLevelTarget === 1) {
@@ -356,6 +410,28 @@
         document.getElementById('start-menu').style.display = 'flex';
     }
 
+    function updateRoadmapGraphics(clearedCount) {
+        // Reset classes
+        for(let i=1; i<=3; i++) {
+            let node = document.getElementById(`node-${i}`);
+            node.className = "roadmap-node";
+            if(i < 3) document.getElementById(`line-${i}`).className = "roadmap-line";
+        }
+
+        // Apply progress states
+        for(let i=1; i<=3; i++) {
+            let node = document.getElementById(`node-${i}`);
+            if (i <= clearedCount) {
+                node.classList.add('cleared');
+                if (i < clearedCount) {
+                    document.getElementById(`line-${i}`).classList.add('filled');
+                }
+            } else if (i === clearedCount + 1) {
+                node.classList.add('active');
+            }
+        }
+    }
+
     function triggerGameOverState() {
         gameState.savedX = player.x;
         gameState.savedY = player.y;
@@ -363,7 +439,6 @@
         document.getElementById('gameover-menu').style.display = 'flex';
     }
 
-    // Plays a 10-second stylized Wednesday Song clip component
     window.watchWednesdaySongAd = function() {
         document.getElementById('gameover-menu').style.display = 'none';
         document.getElementById('ad-screen').style.display = 'flex';
@@ -379,14 +454,13 @@
                 clearInterval(interval);
                 document.getElementById('ad-screen').style.display = 'none';
                 
-                // Returns the player precisely right where they left the fight
                 gameState.kaliShield = 100;
                 player.x = gameState.savedX;
                 player.y = gameState.savedY - 30; 
                 refreshHUDBars();
                 
                 game.scene.scenes[0].physics.resume();
-                updateHUDLog("🔥 Revived! You have a second chance to win and save his friend Susi!");
+                updateHUDLog("🔥 Revived! Get back to the fight to rescue his friend Susi!");
             }
         }, 1000);
     }
@@ -404,10 +478,17 @@
     window.resetStageEntirely = function() {
         player.x = 100;
         player.y = 350;
-        // Re-inject regular action configurations
         document.getElementById('start-menu').innerHTML = `
-            <div class="menu-title">⚔️ Kali's Legend: Quest for Susi ⚔️</div>
+            <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Quest for Susi ⚔️</div>
             <p id="menu-desc" style="text-align:center; max-width:400px; font-size:13px; line-height:1.4;">Fight for what is good. Defeat the enemies to rescue his friend Susi!</p>
+            <div id="roadmap-box" class="roadmap-container" style="display: none;">
+                <div id="node-1" class="roadmap-node">1</div>
+                <div id="line-1" class="roadmap-line"></div>
+                <div id="node-2" class="roadmap-node">2</div>
+                <div id="line-2" class="roadmap-line"></div>
+                <div id="node-3" class="roadmap-node">3</div>
+            </div>
+            <div id="roadmap-status" class="roadmap-status-text" style="display: none;"></div>
             <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START GAME</button>
         `;
         startCurrentStage();
@@ -430,12 +511,12 @@
             gameState.age = 12; gameState.currentJumpVelocity = -650; gameState.isKittySaved = true;
             partnerSusi.setVisible(false);
             player.x = 100; player.y = 350;
-            desc = "Objective: Defeat hostile combatants! Head to X=4000.";
+            desc = "Objective: Defeat hostile elements! Watch out for backside ambushers. Head to X=4000.";
         } else if (gameState.levelIndex === 3) {
             gameState.age = 24; gameState.currentJumpVelocity = -760; gameState.isKittySaved = true;
             partnerSusi.setVisible(true); partnerSusi.x = player.x - 60;
             player.x = 100; player.y = 350;
-            desc = "Objective: Reunion sequence active! Travel to X=8000 to save his friend Susi.";
+            desc = "Objective: Air Support active! Dodge threats from above and travel to X=8000 to save his friend Susi.";
         }
 
         refreshHUDBars();
