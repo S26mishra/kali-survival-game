@@ -79,17 +79,15 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 3 | Level: 3 (Global: 11/350) | Shield: 100%</div>
-        <div id="hud-log">System Ready. Run right to locate the Node element.</div>
+        <div id="hud-log">System Ready. Run right to locate Kitty.</div>
     </div>
 
-    <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss milestones attached. Dynamic properties shuffling active.</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss milestones attached. Susi drone armed for early defense!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Screen 1: You Lost Game Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 YOU LOST THE GAME 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Your shield core was completely vaporized.</p>
@@ -97,12 +95,10 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Dynamic YouTube Video Embed Layout Mode -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
         <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Please watch the video: 20s remaining</p>
         
-        <!-- Embedded Iframe containing dynamic content channels -->
         <div class="youtube-video-frame-container">
             <iframe id="ad-youtube-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
@@ -158,7 +154,6 @@
         runtimeActive: false
     };
 
-    // REFRESHED POOL: Replaced all faulty links with rock-solid, fully public embeddable videos.
     const dynamicAdPool = [
         { title: "🎵 MUSIC & DANCE: SYNTHWAVE CHILL STREAM", embedId: "dQw4w9WgXcQ" },
         { title: "🎬 OPEN SOURCE ANIMATION: BIG BUCK BUNNY", embedId: "aqz-KE-bpKQ" },
@@ -184,10 +179,30 @@
             ctx.fillStyle = '#ffffff'; ctx.fillRect(9, 44, 6, 4); ctx.fillRect(17, 44, 6, 4);
         });
 
-        generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 32, 32);
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
-            ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
+        // UPDATED: Dynamic canvas configuration giving Kitty a realistic pixelated cat model
+        generateVectorGraphic('kitty_node', 36, 32, (ctx) => {
+            ctx.fillStyle = '#ff9933'; // Orange cat body
+            ctx.fillRect(8, 12, 20, 12); // Main body Torso
+            ctx.fillRect(22, 4, 8, 10);   // Cat Head
+            
+            // Pointy Ears
+            ctx.beginPath(); ctx.moveTo(22, 4); ctx.lineTo(24, 0); ctx.lineTo(26, 4); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(27, 4); ctx.lineTo(29, 0); ctx.lineTo(31, 4); ctx.fill();
+            
+            ctx.fillStyle = '#ffffff'; // White chest fluff and whiskers
+            ctx.fillRect(26, 14, 4, 6);
+            
+            ctx.fillStyle = '#00ff00'; // Sparkling green eyes
+            ctx.fillRect(24, 6, 2, 2); ctx.fillRect(28, 6, 2, 2);
+            
+            ctx.fillStyle = '#cc6600'; // Darker orange paws & legs
+            ctx.fillRect(9, 24, 3, 8); ctx.fillRect(14, 24, 3, 8);
+            ctx.fillRect(21, 24, 3, 8); ctx.fillRect(25, 24, 3, 8);
+            
+            // Cat Tail wrapping upwards
+            ctx.fillStyle = '#ff9933';
+            ctx.fillRect(4, 8, 4, 10);
+            ctx.fillRect(6, 6, 4, 4);
         });
 
         generateVectorGraphic('susi_drone', 24, 24, (ctx) => {
@@ -242,7 +257,9 @@
         }
 
         player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
-        partnerSusi = this.physics.add.sprite(70, 260, 'susi_drone').setCollideWorldBounds(true);
+        
+        // FIXED: Susi is initialized immediate next to Kali right at the startup setup
+        partnerSusi = this.physics.add.sprite(65, 270, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
         targetKitty = this.physics.add.sprite(300, 350, 'kitty_node').setCollideWorldBounds(true);
@@ -261,7 +278,7 @@
             if (sysProgress.runtimeActive) {
                 let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
                 if (currentGlobal % 4 === 0 && currentBossInstance && currentBossInstance.active) {
-                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Element Boss to open the Gate!";
+                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Element Boss to rescue Kitty!";
                 } else {
                     advanceNextMatrixSegment();
                 }
@@ -280,7 +297,7 @@
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
-                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Access gate unsealed!";
+                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Road safely cleared!";
             } else {
                 document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% [Power: ${currentBossType.toUpperCase()}]`;
             }
@@ -348,7 +365,6 @@
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
         
-        // Randomly grab a verified, highly stable embed link from the pool
         let randomChoice = dynamicAdPool[Math.floor(Math.random() * dynamicAdPool.length)];
         
         document.getElementById('ad-player-title').innerText = randomChoice.title;
@@ -425,8 +441,13 @@
         if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
         currentBossInstance = null;
 
+        // Reset player coordinates
         player.x = 100; player.y = 350;
         player.setVelocity(0, 0);
+
+        // FIXED: Instantly snap Susi drone closely to player's initial spawning vectors right at start
+        partnerSusi.x = 65; partnerSusi.y = 325;
+        partnerSusi.setVelocity(0,0);
         
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
@@ -435,7 +456,7 @@
             enemiesGroup.clear(true, true);
             bossGroup.clear(true, true);
             bossLasers.clear(true, true);
-            document.getElementById('hud-log').innerText = "Stage 1 | Level 1: Run right to start!";
+            document.getElementById('hud-log').innerText = "Stage 1 | Level 1: Susi deployed early! Move right!";
         } else {
             targetKitty.x = 1200 + (sysProgress.level * 550);
             if (targetKitty.x > 3900) targetKitty.x = 3900;
@@ -467,9 +488,9 @@
                 if (currentBossType === 'light wing') currentBossInstance.setTint(0xffff99);
                 if (currentBossType === 'water') currentBossInstance.setTint(0x00aaff);
 
-                document.getElementById('hud-log').innerText = `⚠️ MONSTER ENCOUNTER! [POWER: ${currentBossType.toUpperCase()}]`;
+                document.getElementById('hud-log').innerText = `⚠️ MONSTER ENCOUNTER! Susi and Kali, attack together!`;
             } else {
-                document.getElementById('hud-log').innerText = `Defend the route and cross!`;
+                document.getElementById('hud-log').innerText = `Defend the sector together and save Kitty the Cat!`;
             }
 
             globalAmbushTimer = game.scene.scenes[0].time.addEvent({
