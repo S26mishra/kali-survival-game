@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Stage Tracker & Shifter Edition</title>
+    <title>Kali's Legend: Seamless Revive Fixed</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -27,9 +27,9 @@
         }
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 10, 0, 0.95);
+            background: rgba(10, 0, 15, 0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
+            z-index: 999; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
         }
         .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
@@ -41,12 +41,12 @@
         /* Wednesday Revival Screen Design */
         #revival-ad-container {
             display: none;
-            background: rgba(15, 0, 25, 0.98);
+            background: rgba(20, 0, 30, 0.98);
             border: 3px solid #b000ff;
             text-align: center;
         }
         .video-box {
-            width: 320px; height: 160px; background: #111; border: 2px dashed #b000ff;
+            width: 340px; height: 160px; background: #111; border: 2px dashed #b000ff;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             margin: 15px 0; cursor: pointer; position: relative; overflow: hidden;
         }
@@ -83,14 +83,14 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 1 | Level: 1 (Global: 1/350) | Shield: 100%</div>
+        <div id="hud-lvl">Stage: 3 | Level: 3 (Global: 11/350) | Shield: 100%</div>
         <div id="hud-log">System Ready. Run right to locate the Node element.</div>
     </div>
 
     <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss system attached to stage milestones. Dynamic attributes active.</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss system attached to stage milestones. Dynamic attributes fully operational.</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
@@ -145,11 +145,11 @@
     let lastDroneFireTime = 0, lastBossFireTime = 0;
     let globalAmbushTimer = null, adCountdownTimer = null;
     let currentBossInstance = null;
-    let currentBossType = 'fire'; // shuffled elements: fire, light wing, water
+    let currentBossType = 'fire'; 
 
     let sysProgress = {
-        stage: 1,
-        level: 1,
+        stage: 3,
+        level: 3,
         maxLevels: 350,
         shield: 100,
         runtimeActive: false
@@ -322,10 +322,18 @@
     function checkPlayerMortality() {
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false;
+            
+            // FIX: Instantly zero physical velocity so sprite doesn't loop or freeze inputs
+            player.setVelocity(0, 0);
+            window.moveLeft = false; window.moveRight = false; window.doJump = false;
+            
             game.scene.scenes[0].physics.pause();
             if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
             
+            // Force reveal the Wednesday UI overlay instantly
             document.getElementById('revival-ad-container').style.display = 'flex';
+            
+            if (adCountdownTimer) clearTimeout(adCountdownTimer);
             adCountdownTimer = setTimeout(() => { resetToAbsoluteStart(); }, 10000);
         }
     }
@@ -345,7 +353,7 @@
             callback: spawnOmniDirectionalThreat
         });
         
-        document.getElementById('hud-log').innerText = "❤️ CONTINUE: Respawned in place!";
+        document.getElementById('hud-log').innerText = "❤️ CONTINUE: Fight resumed on this spot!";
         refreshTerminalHUD();
     };
 
@@ -370,6 +378,8 @@
         currentBossInstance = null;
 
         player.x = 100; player.y = 350;
+        player.setVelocity(0, 0);
+        
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
         if (currentGlobal === 1) {
@@ -395,7 +405,6 @@
                 }
             }
 
-            // Checks every 4th milestone loop properly
             if (currentGlobal % 4 === 0) {
                 let powers = ['fire', 'light wing', 'water'];
                 currentBossType = powers[Phaser.Math.Between(0, 2)];
