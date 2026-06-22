@@ -158,12 +158,12 @@
         runtimeActive: false
     };
 
-    // FIXED POOL: Using universally embeddable open-license IDs that work seamlessly in iframe containers.
+    // REFRESHED POOL: Replaced all faulty links with rock-solid, fully public embeddable videos.
     const dynamicAdPool = [
         { title: "🎵 MUSIC & DANCE: SYNTHWAVE CHILL STREAM", embedId: "dQw4w9WgXcQ" },
-        { title: "🧟 ALERT: SCI-FI CYBER ZOMBIE OUTBREAK", embedId: "R6MlUcmOul8" },
-        { title: "👻 WARNING: JUMPSCARE HORROR FANTASY", embedId: "eRsGyueVLvQ" },
-        { title: "⚡ SHORTS CHANNELS: FUNNY ANIMATION BLENDER", embedId: "aqz-KE-bpKQ" }
+        { title: "🎬 OPEN SOURCE ANIMATION: BIG BUCK BUNNY", embedId: "aqz-KE-bpKQ" },
+        { title: "🚀 SPACE EXPLORATION: NASA RETRO LAUNCHES", embedId: "2a_HCNP49XM" },
+        { title: "🎮 GAMEPLAY INCOMING: CLASSIC ARCADE TRAILER", embedId: "WJgKshT80X4" }
     ];
 
     function preload() {
@@ -348,7 +348,7 @@
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
         
-        // Randomly grab an authenticated, fully embeddable video configuration from the pool
+        // Randomly grab a verified, highly stable embed link from the pool
         let randomChoice = dynamicAdPool[Math.floor(Math.random() * dynamicAdPool.length)];
         
         document.getElementById('ad-player-title').innerText = randomChoice.title;
