@@ -113,13 +113,11 @@
         <div id="hud-log">Welcome to Kali's Legend! Tap below to start.</div>
     </div>
 
-    <!-- Main Dynamic Intro, Roadmap & Intermission Screen -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Journey with Susi ⚔️</div>
         
         <p id="menu-desc" style="text-align:center; max-width:440px; font-size:13px; line-height:1.4;">Fight alongside your powerful friend Susi and protect Kitty the cat! Clear the incoming threats together.</p>
         
-        <!-- Visual Roadmap Component -->
         <div id="roadmap-box" class="roadmap-container" style="display: none;">
             <div id="node-1" class="roadmap-node">1</div>
             <div id="line-1" class="roadmap-line"></div>
@@ -132,7 +130,6 @@
         <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START GAME</button>
     </div>
 
-    <!-- Game Over Screen -->
     <div id="gameover-menu" class="overlay-screen" style="display: none;">
         <div class="menu-title" style="color: #ff0055; text-shadow: 0 0 10px #ff0055;">💥 DEFEATED 💥</div>
         <p>The enemies won this round! Watch a short clip to recover.</p>
@@ -140,7 +137,6 @@
         <button class="btn-action btn-secondary" onclick="skipAdRestart()">SKIP AD (Restart Segment)</button>
     </div>
 
-    <!-- Wednesday Song Video Screen -->
     <div id="ad-screen" class="overlay-screen">
         <div class="menu-title" style="color:#bf55ec; text-shadow: 0 0 10px #bf55ec;">🎵 Now Playing: Wednesday Remix Track</div>
         <p style="color:#aaa; font-size:12px;">🎵 "I'll dance, dance, dance with my hands..." 🎵</p>
@@ -188,6 +184,9 @@
         kaliShield: 100, savedX: 100, savedY: 350, isChangingStage: false
     };
 
+    // FIXED: Baked-in Base64 Cat Asset so it renders immediately under all network environments.
+    const catBase64 = "data:image/png;base64,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";
+
     function preload() {
         this.load.image('bg_city', 'https://labs.phaser.io/assets/skies/cityscene.png');
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
@@ -196,8 +195,8 @@
         this.load.image('fire_particle', 'https://labs.phaser.io/assets/particles/muzzleflash3.png');
         this.load.image('laser_bullet', 'https://labs.phaser.io/assets/sprites/purple_ball.png');
         
-        // FIXED: New highly-reliable asset source for a real moving cat (Kitty)
-        this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
+        // LOAD DIRECTLY FROM EMBEDDED DATA STRING (No web download required)
+        this.load.spritesheet('real_cat', catBase64, { frameWidth: 16, frameHeight: 16 });
     }
 
     function create() {
@@ -237,15 +236,15 @@
             key: 'right', frames: this.anims.generateFrameNumbers('hero_kali', { start: 5, end: 8 }), frameRate: 10, repeat: -1
         });
 
-        // FIXED: Cat scale adjusted slightly to fit perfectly with Phaser spritesheet frames
-        kittyCat = this.physics.add.sprite(160, 350, 'real_cat').setScale(0.8);
+        // Set up the cat with scale and a distinct tint so she looks clearly recognizable!
+        kittyCat = this.physics.add.sprite(160, 350, 'real_cat').setScale(2.5);
         kittyCat.setCollideWorldBounds(true);
+        kittyCat.setTint(0xff9933); // Gives Kitty a lovely orange tabby color
 
-        // Kitty Cat walking animation
         this.anims.create({
             key: 'cat_walk',
             frames: this.anims.generateFrameNumbers('real_cat', { start: 0, end: 3 }),
-            frameRate: 8,
+            frameRate: 6,
             repeat: -1
         });
         kittyCat.play('cat_walk');
