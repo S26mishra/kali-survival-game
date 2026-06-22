@@ -102,7 +102,7 @@
 
 <script>
     const config = {
-        type: Phaser.CANVAS, // Bypasses local & GitHub Pages WebGL restrictions
+        type: Phaser.CANVAS, // Fixes local & live server rendering bugs completely
         width: 800,
         height: 450,
         parent: 'game-container',
@@ -126,11 +126,11 @@
     };
 
     function preload() {
-        // No external visual assets loaded here to prevent CORS loading hangs.
+        // Purposely empty to block external web dependencies
     }
 
     function create() {
-        // 1. Generate procedural texture for Platforms (Green Blocks)
+        // 1. Draw Green Brick Platforms dynamically
         let platAnim = this.make.graphics({x: 0, y: 0, add: false});
         platAnim.fillStyle(0x2d5a27, 1);
         platAnim.fillRect(0, 0, 32, 32);
@@ -138,29 +138,29 @@
         platAnim.strokeRect(0, 0, 32, 32);
         platAnim.generateTexture('platform_tile', 32, 32);
 
-        // 2. Generate Hero Texture (Purple Capsule)
+        // 2. Draw Hero Kali capsule texture
         let heroGfx = this.make.graphics({x: 0, y: 0, add: false});
         heroGfx.fillStyle(0xa040fa, 1);
         heroGfx.fillRoundedRect(0, 0, 32, 48, 8);
-        heroGfx.fillStyle(0xffff00, 1); // Eyes
+        heroGfx.fillStyle(0xffff00, 1); 
         heroGfx.fillRect(20, 10, 6, 6);
         heroGfx.generateTexture('hero_sprite', 32, 48);
 
-        // 3. Generate Cat Texture (Orange/Yellow Block)
+        // 3. Draw Kitty Cat model texture
         let catGfx = this.make.graphics({x: 0, y: 0, add: false});
         catGfx.fillStyle(0xffa500, 1);
         catGfx.fillRect(0, 8, 24, 16);
-        catGfx.fillStyle(0xffd700, 1); // Head
+        catGfx.fillStyle(0xffd700, 1); 
         catGfx.fillRect(14, 0, 12, 12);
         catGfx.generateTexture('cat_sprite', 26, 24);
 
-        // 4. Generate Susi Texture (Cyan Magic Orb)
+        // 4. Draw Susi helper magic glow orb
         let susiGfx = this.make.graphics({x: 0, y: 0, add: false});
         susiGfx.fillStyle(0x00ffff, 1);
         susiGfx.fillCircle(16, 16, 14);
         susiGfx.generateTexture('susi_sprite', 32, 32);
 
-        // 5. Generate Enemy Texture (Red Threat Demon)
+        // 5. Draw Red Shadow Enemy block
         let enGfx = this.make.graphics({x: 0, y: 0, add: false});
         enGfx.fillStyle(0xff3333, 1);
         enGfx.fillRect(0, 0, 32, 32);
@@ -168,30 +168,29 @@
         enGfx.fillRect(4, 8, 6, 6); enGfx.fillRect(22, 8, 6, 6);
         enGfx.generateTexture('enemy_sprite', 32, 32);
 
-        // 6. Generate Projectile Texture (Pink Laser Ball)
+        // 6. Draw Magic Fireball projectile
         let projGfx = this.make.graphics({x: 0, y: 0, add: false});
         projGfx.fillStyle(0xff00ff, 1);
         projGfx.fillCircle(8, 8, 8);
         projGfx.generateTexture('laser_sprite', 16, 16);
 
-        // Draw static starry sky background directly into the scene
+        // Generate custom cosmic star background
         let skyBkg = this.add.graphics();
         skyBkg.fillGradientStyle(0x05020a, 0x05020a, 0x110724, 0x110724, 1);
         skyBkg.fillRect(0, 0, 20000, 450).setScrollFactor(0.2);
 
-        // Set World Bounds
         this.physics.world.setBounds(0, 0, 12000, 450);
 
         mapPlatforms = this.physics.add.staticGroup();
         enemiesGroup = this.physics.add.group();
         projectilesGroup = this.physics.add.group();
         
-        // Build floors
+        // Ground tiles
         for (let x = 0; x < 12000; x += 32) {
             mapPlatforms.create(x, 435, 'platform_tile').setOrigin(0, 0).refreshBody();
         }
 
-        // Floating platforms
+        // Mid-air platforms
         for (let p = 500; p < 11000; p += 400) {
             let h = Phaser.Math.Between(260, 320);
             for(let block = 0; block < 4; block++) {
@@ -206,11 +205,10 @@
             fontSize: '18px', fill: '#00ffff', backgroundColor: '#1a0b36', padding: { x: 8, y: 4 } 
         }).setOrigin(0.5);
 
-        // Instantiate Entities
         player = this.physics.add.sprite(100, 350, 'hero_sprite');
         player.setCollideWorldBounds(true);
 
-        kittyCat = this.physics.add.sprite(250, 350, 'cat_sprite');
+        kittyCat = this.physics.add.sprite(400, 350, 'cat_sprite');
         kittyCat.setCollideWorldBounds(true);
 
         partnerSusi = this.physics.add.sprite(100, 350, 'susi_sprite');
@@ -218,7 +216,6 @@
         partnerSusi.body.allowGravity = false;
         partnerSusi.setVisible(false);
 
-        // Colliders
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(kittyCat, mapPlatforms);
         this.physics.add.collider(enemiesGroup, mapPlatforms);
@@ -228,7 +225,6 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Level 1 Cat rescue handler
         this.physics.add.overlap(player, kittyCat, () => {
             if(gameState.levelIndex === 1 && !gameState.isKittySaved) {
                 gameState.isKittySaved = true;
@@ -236,14 +232,12 @@
             }
         }, null, this);
 
-        // Projectile hit enemy
         this.physics.add.overlap(projectilesGroup, enemiesGroup, (bullet, enemy) => {
             bullet.destroy();
             enemy.destroy();
             updateHUDLog("⚡ Enemy Cleansed!");
         }, null, this);
 
-        // Enemy hits player
         this.physics.add.collider(player, enemiesGroup, (pl, enemy) => {
             if (gameState.levelIndex === 1 || gameState.isChangingStage) return;
             gameState.kaliShield -= 20;
@@ -255,7 +249,6 @@
             }
         }, null, this);
 
-        // UI Button Mapping
         const bindButton = (id, startProp) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
@@ -292,7 +285,6 @@
         } else if (cursors.right.isDown || window.moveRight) { 
             player.setVelocityX(200); facingDirection = 'right';
             
-            // Spawn dynamic block enemies on higher stages
             if (gameState.levelIndex > 1 && Math.abs(player.x - lastSpawnX) > 500) {
                 lastSpawnX = player.x;
                 let enemy = enemiesGroup.create(player.x + 400, 300, 'enemy_sprite');
@@ -306,7 +298,6 @@
             player.setVelocityY(gameState.currentJumpVelocity); 
         }
 
-        // Companion following logics
         if (gameState.isKittySaved || gameState.levelIndex > 1) {
             kittyCat.x = Phaser.Math.Linear(kittyCat.x, player.x - 40, 0.1);
         }
@@ -315,7 +306,6 @@
             partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 30, 0.1);
         }
 
-        // Target Milestones
         if (gameState.levelIndex === 2 && player.x >= this.goalPointX1) {
             showLevelClearScreen("☕ You reached the Café and grouped up with Susi!", 3);
         } else if (gameState.levelIndex === 3 && player.x >= this.goalPointX2) {
@@ -360,7 +350,7 @@
             gameState.age = 24; gameState.currentJumpVelocity = -580;
             partnerSusi.setVisible(true); partnerSusi.x = player.x - 50;
             player.x = 100; player.y = 350;
-            desc = "Susi joined forces with you! Press Space or FIRE to destroy threats. Clear X=6000!";
+            desc = "Susi joined forces with you! Press SPACE or click FIRE to shoot threat blocks. Travel to X=6000!";
         }
 
         refreshHUDBars();
