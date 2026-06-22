@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Locked Combat Framework</title>
+    <title>Kali's Legend: Fire & Light Boss Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -63,14 +63,14 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Level: 1 / 350 | Age: 5 | Shield: 100%</div>
-        <div id="hud-log">Tutorial Sync Active. Step right to clear Level 1 instantly!</div>
+        <div id="hud-log">Tutorial Sync Active. Jump high and clear Level 1!</div>
     </div>
 
     <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title" id="menu-header">🟩 HUMAN RESISTANCE LOCK 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Humanoid sprite configured. Warning: From Level 2 onward, threats will engage from all coordinates (Left, Right, Above, Below).</p>
-        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START INTERFACE</button>
+        <div class="menu-title" id="menu-header">🟩 FIRE & LIGHT MATRIX UPDATE 🟩</div>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Kali super jump physics calibrated. Fire element projectile initialized. Boss matrices locked to Level 4 cycles.</p>
+        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">ENGAGE PROTOCOL</button>
     </div>
 
     <div id="game-container"></div>
@@ -102,11 +102,12 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, kaliLasers, susiLasers;
+    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, susiLasers;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0;
     let globalAmbushTimer = null;
+    let currentBossInstance = null;
 
     let sysProgress = {
         stage: 1,
@@ -157,7 +158,25 @@
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(1, 1, 30, 30);
         });
 
-        generateVectorGraphic('laser_green', 14, 6, (ctx) => { ctx.fillStyle = '#33ff33'; ctx.fillRect(0, 0, 14, 6); });
+        // Massive Stage End Big Boss Monster Sprite
+        generateVectorGraphic('boss_monster', 96, 96, (ctx) => {
+            ctx.fillStyle = '#550000'; ctx.fillRect(0, 0, 96, 96);
+            ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 4; ctx.strokeRect(4, 4, 88, 88);
+            // Core Light Core
+            ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(48, 48, 20, 0, Math.PI * 2); ctx.fill();
+            // Angry Boss Eyes
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(20, 20, 16, 8); ctx.fillRect(60, 20, 16, 8);
+            ctx.fillStyle = '#ff0000'; ctx.fillRect(26, 22, 6, 6); ctx.fillRect(60, 22, 6, 6);
+        });
+
+        // Fire & Light Element Laser Blast
+        generateVectorGraphic('laser_fire', 24, 10, (ctx) => { 
+            // Core White Light
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
+            // Outer Fire Border
+            ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
+        });
+        
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
     }
 
@@ -170,6 +189,7 @@
         this.physics.world.setBounds(0, 0, 4000, 450);
         mapPlatforms = this.physics.add.staticGroup();
         enemiesGroup = this.physics.add.group();
+        bossGroup = this.physics.add.group();
         kaliLasers = this.physics.add.group();
         susiLasers = this.physics.add.group();
 
@@ -186,24 +206,57 @@
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(targetKitty, mapPlatforms);
         this.physics.add.collider(enemiesGroup, mapPlatforms);
+        this.physics.add.collider(bossGroup, mapPlatforms);
 
         this.cameras.main.setBounds(0, 0, 4000, 450);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         cursors = this.input.keyboard.createCursorKeys();
 
+        // Level Transition Guard (Requires boss defeat on Level 4)
         this.physics.add.overlap(player, targetKitty, () => {
-            if (sysProgress.runtimeActive) advanceNextMatrixSegment();
+            if (sysProgress.runtimeActive) {
+                if (sysProgress.level === 4 && currentBossInstance && currentBossInstance.active) {
+                    document.getElementById('hud-log').innerText = "🛑 ERROR: Clear the Stage Boss Monster to unseal the terminal!";
+                } else {
+                    advanceNextMatrixSegment();
+                }
+            }
         }, null, this);
 
-        this.physics.add.overlap([kaliLasers, susiLasers], enemiesGroup, (projectile, enemy) => {
+        // Weapon damage handlers
+        this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
+        this.physics.add.overlap(susiLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
+
+        // Fire Laser Damage to Boss
+        this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
-            enemy.destroy();
+            boss.health -= 15;
+            boss.setTint(0xffffff); // Flash impact highlight
+            game.scene.scenes[0].time.delayedCall(60, () => boss.clearTint());
+            
+            if (boss.health <= 0) {
+                boss.destroy();
+                currentBossInstance = null;
+                document.getElementById('hud-log').innerText = "🏆 BOSS MONSTER CRUSHED! Escape path unsealed!";
+            } else {
+                document.getElementById('hud-log').innerText = `Boss Shield: ${boss.health}%`;
+            }
         });
 
-        this.physics.add.collider(player, enemiesGroup, (pl, enemy) => {
-            enemy.destroy();
-            sysProgress.shield -= 20;
+        this.physics.add.overlap(susiLasers, bossGroup, (projectile, boss) => {
+            projectile.destroy();
+            boss.health -= 5;
+            if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; }
+        });
+
+        this.physics.add.collider(player, [enemiesGroup, bossGroup], (pl, enemy) => {
+            if(enemy.texture.key === 'boss_monster') {
+                sysProgress.shield -= 40; // Heavy boss damage
+            } else {
+                enemy.destroy();
+                sysProgress.shield -= 20;
+            }
             refreshTerminalHUD();
             if (sysProgress.shield <= 0) {
                 sysProgress.shield = 100;
@@ -232,9 +285,9 @@
     function triggerKaliLaser() {
         if (!sysProgress.runtimeActive) return;
         let offset = facingDirection === 'right' ? 20 : -20;
-        let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_green');
+        let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_fire');
         shot.body.allowGravity = false;
-        shot.setVelocityX(facingDirection === 'right' ? 700 : -700);
+        shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
     }
 
     function initRuntimeLevel() {
@@ -243,40 +296,51 @@
         sysProgress.runtimeActive = true;
 
         if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+        currentBossInstance = null;
 
         player.x = 100; player.y = 350;
         let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
-        // Level 1 Shortening Logic
         if (currentTotalLevel === 1) {
-            targetKitty.x = 450; // Super close target
+            targetKitty.x = 450;
             enemiesGroup.clear(true, true);
-            document.getElementById('hud-log').innerText = "Level 1: Safe Zone. Run right to start the actual war!";
+            bossGroup.clear(true, true);
+            document.getElementById('hud-log').innerText = "Level 1: Safe Zone. Test your Super Jump and run right!";
         } else {
-            // Standard progressive distance maps
-            targetKitty.x = 1000 + (sysProgress.level * 600);
+            targetKitty.x = 1200 + (sysProgress.level * 550);
             if (targetKitty.x > 3900) targetKitty.x = 3900;
             
             enemiesGroup.clear(true, true);
+            bossGroup.clear(true, true);
 
-            // Base platform procedural geometry structures
-            let platformCount = 4 + sysProgress.level;
+            // Platform architecture layout
+            let platformCount = 5 + sysProgress.level;
             for (let i = 0; i < platformCount; i++) {
-                let platX = 400 + (i * 400) + Phaser.Math.Between(-30, 30);
-                let platY = Phaser.Math.Between(220, 320);
+                let platX = 400 + (i * 380) + Phaser.Math.Between(-20, 20);
+                let platY = Phaser.Math.Between(180, 300); // Higher platform variance
                 for (let block = 0; block < 4; block++) {
                     mapPlatforms.create(platX + (block * 32), platY, 'matrix_floor').setOrigin(0,0).refreshBody();
                 }
             }
 
-            // LEVEL 2+ SPATIAL 4-WAY AMBUSH ENGINE ENGINE
+            // LEVEL 4 STAGE BOSS SPAWN MATRIX
+            if (sysProgress.level === 4) {
+                currentBossInstance = bossGroup.create(targetKitty.x - 100, 300, 'boss_monster');
+                currentBossInstance.health = 100 + (sysProgress.stage * 15); // Scales durability each stage
+                currentBossInstance.setCollideWorldBounds(true);
+                currentBossInstance.setVelocityX(-80);
+                currentBossInstance.setBounce(1, 0);
+                document.getElementById('hud-log').innerText = `⚠️ STAGE ${sysProgress.stage} BOSS DETECTED! Use Fire powers!`;
+            } else {
+                document.getElementById('hud-log').innerText = `Combat active. Watch all directions!`;
+            }
+
+            // Omni-directional spatial danger spawns
             globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-                delay: Math.max(1200 - (currentTotalLevel * 5), 500), 
+                delay: Math.max(1100 - (currentTotalLevel * 4), 450), 
                 loop: true,
                 callback: spawnOmniDirectionalThreat
             });
-
-            document.getElementById('hud-log').innerText = `COMBAT SYSTEM ACTIVE! Watch all 4 directions!`;
         }
         
         targetKitty.body.updateFromObj();
@@ -286,39 +350,25 @@
     function spawnOmniDirectionalThreat() {
         if (!sysProgress.runtimeActive) return;
 
-        let spawnDir = Phaser.Math.Between(0, 3); // 0=Top, 1=Bottom, 2=Left, 3=Right
+        let spawnDir = Phaser.Math.Between(0, 3);
         let spawnX, spawnY, velX = 0, velY = 0;
-        let speed = 150 + (sysProgress.stage * 4);
+        let speed = 160 + (sysProgress.stage * 5);
 
         switch(spawnDir) {
-            case 0: // From Above
-                spawnX = Phaser.Math.Between(player.x - 300, player.x + 300);
-                spawnY = player.y - 250;
-                velY = speed;
-                break;
-            case 1: // From Below
-                spawnX = Phaser.Math.Between(player.x - 200, player.x + 200);
-                spawnY = 410;
-                velY = -speed;
-                break;
-            case 2: // From the Left Side
-                spawnX = player.x - 400;
-                spawnY = Phaser.Math.Between(150, 380);
-                velX = speed;
-                break;
-            case 3: // From the Right Side
-                spawnX = player.x + 400;
-                spawnY = Phaser.Math.Between(150, 380);
-                velX = -speed;
-                break;
+            case 0: // Above
+                spawnX = Phaser.Math.Between(player.x - 300, player.x + 300); spawnY = player.y - 250; velY = speed; break;
+            case 1: // Below
+                spawnX = Phaser.Math.Between(player.x - 200, player.x + 200); spawnY = 410; velY = -speed; break;
+            case 2: // Left
+                spawnX = player.x - 400; spawnY = Phaser.Math.Between(120, 380); velX = speed; break;
+            case 3: // Right
+                spawnX = player.x + 400; spawnY = Phaser.Math.Between(120, 380); velX = -speed; break;
         }
 
-        // Restrict bounds checking
-        if (spawnX < 0) spawnX = 10;
-        if (spawnX > 4000) spawnX = 3900;
+        if (spawnX < 0) spawnX = 10; if (spawnX > 4000) spawnX = 3900;
 
         let hazard = enemiesGroup.create(spawnX, spawnY, 'virus_hazard');
-        hazard.body.allowGravity = false; // Allows accurate up/down floating tracking
+        hazard.body.allowGravity = false;
         hazard.setVelocity(velX, velY);
     }
 
@@ -329,25 +379,26 @@
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 25, 0.1);
 
         if (cursors.left.isDown || window.moveLeft) {
-            player.setVelocityX(-240); facingDirection = 'left';
+            player.setVelocityX(-250); facingDirection = 'left';
         } else if (cursors.right.isDown || window.moveRight) {
-            player.setVelocityX(240); facingDirection = 'right';
+            player.setVelocityX(250); facingDirection = 'right';
         } else {
             player.setVelocityX(0);
         }
 
+        // UPGRADED JUMP ELEVATION CONTROLS (-640 velocity gives huge high jump)
         if ((cursors.up.isDown || window.doJump) && player.body.touching.down) {
-            player.setVelocityY(-480);
+            player.setVelocityY(-640);
         }
 
-        // Auto Susi target engagement systems logic
-        if (time > lastDroneFireTime + 800) { // Susi speed buffed to support your fights!
-            let nearestEnemy = enemiesGroup.getFirstAlive();
+        // Susi combat targeting loops
+        if (time > lastDroneFireTime + 750) {
+            let nearestEnemy = enemiesGroup.getFirstAlive() || bossGroup.getFirstAlive();
             if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 400) {
                 lastDroneFireTime = time;
                 let plasma = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
                 plasma.body.allowGravity = false;
-                this.physics.moveToObject(plasma, nearestEnemy, 450);
+                this.physics.moveToObject(plasma, nearestEnemy, 480);
             }
         }
     }
@@ -361,7 +412,7 @@
 
         if (currentTotalLevel >= sysProgress.maxLevels) {
             document.getElementById('menu-header').innerText = "⚡ ABSOLUTE MASTER ⚡";
-            document.getElementById('menu-desc').innerText = "350 Levels Cleared! You survived the complete omni-directional combat array!";
+            document.getElementById('menu-desc').innerText = "350 Levels Cleared! The fire element has purged the core structure frameworks!";
             document.getElementById('main-menu-btn').style.display = 'none';
             document.getElementById('start-menu').style.display = 'flex';
             return;
@@ -376,9 +427,9 @@
 
         let nextTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
-        document.getElementById('menu-header').innerText = `🟩 STAGE UNLOCKED 🟩`;
-        document.getElementById('menu-desc').innerText = `Level ${currentTotalLevel} Defeated. Syncing grid data configurations for Level ${nextTotalLevel} / 350...`;
-        document.getElementById('main-menu-btn').innerText = `ENGAGE ZONE`;
+        document.getElementById('menu-header').innerText = `🟩 SECTOR INTEGRATED 🟩`;
+        document.getElementById('menu-desc').innerText = `Level ${currentTotalLevel} Cleared. Preparing data configurations for Level ${nextTotalLevel} / 350...`;
+        document.getElementById('main-menu-btn').innerText = `NEXT CHALLENGE`;
         
         document.getElementById('main-menu-btn').onclick = initRuntimeLevel;
         document.getElementById('start-menu').style.display = 'flex';
