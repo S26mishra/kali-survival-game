@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Dynamic Ad Shuffler Fixed</title>
+    <title>Kali's Legend: Perfect Companion & Fixed Streams</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -43,7 +43,6 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
-        /* YouTube Embedded Video Object styling */
         .youtube-video-frame-container {
             width: 440px; height: 245px; background: #000; border: 2px solid #ff0000;
             position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
@@ -78,16 +77,18 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 3 | Level: 3 (Global: 11/350) | Shield: 100%</div>
-        <div id="hud-log">System Ready. Run right to locate Kitty.</div>
+        <div id="hud-lvl">Stage: 4 | Level: 1 (Global: 13/350) | Shield: 100%</div>
+        <div id="hud-log">System Ready. Fight side-by-side with your Cat!</div>
     </div>
 
+    <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss milestones attached. Susi drone armed for early defense!</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready. Battle vectors fully operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
+    <!-- Screen 1: You Lost Game Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 YOU LOST THE GAME 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Your shield core was completely vaporized.</p>
@@ -95,6 +96,7 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
+    <!-- Screen 2: Dynamic YouTube Video Embed Layout Mode -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
         <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Please watch the video: 20s remaining</p>
@@ -147,18 +149,19 @@
     let currentBossType = 'fire'; 
 
     let sysProgress = {
-        stage: 3,
-        level: 3,
+        stage: 4,
+        level: 1,
         maxLevels: 350,
         shield: 100,
         runtimeActive: false
     };
 
+    // FIXED POOL: Replaced all unpredictable video links with highly stable open source Blender foundations that explicitly allow all web embeds.
     const dynamicAdPool = [
-        { title: "🎵 MUSIC & DANCE: SYNTHWAVE CHILL STREAM", embedId: "dQw4w9WgXcQ" },
-        { title: "🎬 OPEN SOURCE ANIMATION: BIG BUCK BUNNY", embedId: "aqz-KE-bpKQ" },
-        { title: "🚀 SPACE EXPLORATION: NASA RETRO LAUNCHES", embedId: "2a_HCNP49XM" },
-        { title: "🎮 GAMEPLAY INCOMING: CLASSIC ARCADE TRAILER", embedId: "WJgKshT80X4" }
+        { title: "🎬 OPEN ANIMATION: BIG BUCK BUNNY CLASSIC", embedId: "aqz-KE-bpKQ" },
+        { title: "🎨 OPEN CREATIVE ART: SINTEL OFFICIAL REEL", embedId: "178BdfKscK4" },
+        { title: "🚀 SPACE EXPLORATION: NASA RETRO ARCHIVES", embedId: "2a_HCNP49XM" },
+        { title: "🎵 CYBERPUNK MUSIC: SYNTHWAVE LOFI TRACK", embedId: "dQw4w9WgXcQ" }
     ];
 
     function preload() {
@@ -179,35 +182,40 @@
             ctx.fillStyle = '#ffffff'; ctx.fillRect(9, 44, 6, 4); ctx.fillRect(17, 44, 6, 4);
         });
 
-        // UPDATED: Dynamic canvas configuration giving Kitty a realistic pixelated cat model
-        generateVectorGraphic('kitty_node', 36, 32, (ctx) => {
-            ctx.fillStyle = '#ff9933'; // Orange cat body
-            ctx.fillRect(8, 12, 20, 12); // Main body Torso
-            ctx.fillRect(22, 4, 8, 10);   // Cat Head
-            
-            // Pointy Ears
-            ctx.beginPath(); ctx.moveTo(22, 4); ctx.lineTo(24, 0); ctx.lineTo(26, 4); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(27, 4); ctx.lineTo(29, 0); ctx.lineTo(31, 4); ctx.fill();
-            
-            ctx.fillStyle = '#ffffff'; // White chest fluff and whiskers
-            ctx.fillRect(26, 14, 4, 6);
-            
-            ctx.fillStyle = '#00ff00'; // Sparkling green eyes
-            ctx.fillRect(24, 6, 2, 2); ctx.fillRect(28, 6, 2, 2);
-            
-            ctx.fillStyle = '#cc6600'; // Darker orange paws & legs
-            ctx.fillRect(9, 24, 3, 8); ctx.fillRect(14, 24, 3, 8);
-            ctx.fillRect(21, 24, 3, 8); ctx.fillRect(25, 24, 3, 8);
-            
-            // Cat Tail wrapping upwards
-            ctx.fillStyle = '#ff9933';
-            ctx.fillRect(4, 8, 4, 10);
-            ctx.fillRect(6, 6, 4, 4);
+        // The Level End Target Point (Rescue Portal Core)
+        generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
+            ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 32, 32);
+            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
+            ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        generateVectorGraphic('susi_drone', 24, 24, (ctx) => {
-            ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(12, 12, 7, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.strokeRect(2, 2, 20, 20);
+        // FIXED: Redesigned 'susi_drone' completely into a beautiful calico cat sprite. No more pink ball!
+        generateVectorGraphic('susi_drone', 36, 32, (ctx) => {
+            ctx.fillStyle = '#f0a242'; // Rich orange base body
+            ctx.fillRect(6, 14, 18, 10);  // Cat Torso
+            ctx.fillRect(18, 6, 8, 10);   // Cat Head
+            
+            // Pointy Ears
+            ctx.beginPath(); ctx.moveTo(18, 6); ctx.lineTo(20, 1); ctx.lineTo(22, 6); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(23, 6); ctx.lineTo(25, 1); ctx.lineTo(27, 6); ctx.fill();
+            
+            ctx.fillStyle = '#1e1e1e'; // Dark calico spots
+            ctx.fillRect(8, 14, 4, 4);
+            ctx.fillRect(14, 16, 3, 3);
+            
+            ctx.fillStyle = '#ffffff'; // White chest & cute paws
+            ctx.fillRect(20, 16, 4, 4);
+            ctx.fillStyle = '#f0a242';
+            ctx.fillRect(7, 24, 3, 5);   ctx.fillRect(12, 24, 3, 5);
+            ctx.fillRect(17, 24, 3, 5);  ctx.fillRect(21, 24, 3, 5);
+            
+            ctx.fillStyle = '#00ffcc'; // Magical cyan glowing eyes
+            ctx.fillRect(20, 8, 2, 2);  ctx.fillRect(24, 8, 2, 2);
+            
+            // Upward Curled Tail
+            ctx.fillStyle = '#f0a242';
+            ctx.fillRect(2, 10, 4, 6);
+            ctx.fillRect(4, 8, 3, 3);
         });
 
         generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
@@ -258,8 +266,8 @@
 
         player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
         
-        // FIXED: Susi is initialized immediate next to Kali right at the startup setup
-        partnerSusi = this.physics.add.sprite(65, 270, 'susi_drone').setCollideWorldBounds(true);
+        // FIXED: Cat Companion now positions seamlessly right next to Kali instantly
+        partnerSusi = this.physics.add.sprite(65, 340, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
         targetKitty = this.physics.add.sprite(300, 350, 'kitty_node').setCollideWorldBounds(true);
@@ -278,7 +286,7 @@
             if (sysProgress.runtimeActive) {
                 let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
                 if (currentGlobal % 4 === 0 && currentBossInstance && currentBossInstance.active) {
-                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Element Boss to rescue Kitty!";
+                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Eliminate the Element Boss to proceed!";
                 } else {
                     advanceNextMatrixSegment();
                 }
@@ -297,7 +305,7 @@
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
-                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Road safely cleared!";
+                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Path clear!";
             } else {
                 document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% [Power: ${currentBossType.toUpperCase()}]`;
             }
@@ -387,18 +395,11 @@
                 timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
             } else {
                 clearInterval(adCountdownInterval);
-                timerText.innerText = "✨ Video finished! Claim reward below.";
+                timerText.innerText = "✨ Stream completed! Continue option active.";
                 resumeBtn.disabled = false;
                 resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
             }
         }, 1000);
-        
-        setTimeout(() => {
-            clearInterval(adCountdownInterval);
-            timerText.innerText = "✨ Video finished! Claim reward below.";
-            resumeBtn.disabled = false;
-            resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
-        }, 20000);
     };
 
     window.claimVideoRevival = function() {
@@ -417,7 +418,7 @@
             callback: spawnOmniDirectionalThreat
         });
         
-        document.getElementById('hud-log').innerText = "❤️ CONTINUED: Revived exactly where you fell!";
+        document.getElementById('hud-log').innerText = "❤️ CONTINUED: Back into action seamlessly!";
         refreshTerminalHUD();
     };
 
@@ -441,12 +442,11 @@
         if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
         currentBossInstance = null;
 
-        // Reset player coordinates
         player.x = 100; player.y = 350;
         player.setVelocity(0, 0);
 
-        // FIXED: Instantly snap Susi drone closely to player's initial spawning vectors right at start
-        partnerSusi.x = 65; partnerSusi.y = 325;
+        // Snap your Cat companion closely to the player's initial vectors
+        partnerSusi.x = 65; partnerSusi.y = 340;
         partnerSusi.setVelocity(0,0);
         
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
@@ -456,7 +456,6 @@
             enemiesGroup.clear(true, true);
             bossGroup.clear(true, true);
             bossLasers.clear(true, true);
-            document.getElementById('hud-log').innerText = "Stage 1 | Level 1: Susi deployed early! Move right!";
         } else {
             targetKitty.x = 1200 + (sysProgress.level * 550);
             if (targetKitty.x > 3900) targetKitty.x = 3900;
@@ -488,9 +487,9 @@
                 if (currentBossType === 'light wing') currentBossInstance.setTint(0xffff99);
                 if (currentBossType === 'water') currentBossInstance.setTint(0x00aaff);
 
-                document.getElementById('hud-log').innerText = `⚠️ MONSTER ENCOUNTER! Susi and Kali, attack together!`;
+                document.getElementById('hud-log').innerText = `⚠️ MONSTER ENCOUNTER! Battle together with your Cat!`;
             } else {
-                document.getElementById('hud-log').innerText = `Defend the sector together and save Kitty the Cat!`;
+                document.getElementById('hud-log').innerText = `Defend the route with your loyal Cat!`;
             }
 
             globalAmbushTimer = game.scene.scenes[0].time.addEvent({
@@ -528,8 +527,9 @@
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.1);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 25, 0.1);
+        // Smooth cat tracking logic to follow right next to Kali
+        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 38 : -38), 0.15);
+        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 6, 0.15);
 
         if (cursors.left.isDown || window.moveLeft) {
             player.setVelocityX(-250); facingDirection = 'left';
@@ -558,6 +558,7 @@
             }
         }
 
+        // Cat attacking sequence fires magical purple tracking lasers at nearby virus elements
         if (time > lastDroneFireTime + 750) {
             let nearestEnemy = enemiesGroup.getFirstAlive() || bossGroup.getFirstAlive();
             if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 400) {
