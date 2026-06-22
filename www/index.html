@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Humanoid Combat Matrix</title>
+    <title>Kali's Legend: Locked Combat Framework</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -62,15 +62,15 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage 1 - Level 1 | Age: 5 | Shield: 100%</div>
-        <div id="hud-log">System Initialized. Clear virus vectors and push forward!</div>
+        <div id="hud-lvl">Level: 1 / 350 | Age: 5 | Shield: 100%</div>
+        <div id="hud-log">Tutorial Sync Active. Step right to clear Level 1 instantly!</div>
     </div>
 
     <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title" id="menu-header">🟩 KALI HUMAN COMBAT ONLINE 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Humanoid interface sync stable. Fight side-by-side with Susi through 350 tactical levels.</p>
-        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">INITIALIZE MISSION</button>
+        <div class="menu-title" id="menu-header">🟩 HUMAN RESISTANCE LOCK 🟩</div>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Humanoid sprite configured. Warning: From Level 2 onward, threats will engage from all coordinates (Left, Right, Above, Below).</p>
+        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START INTERFACE</button>
     </div>
 
     <div id="game-container"></div>
@@ -106,6 +106,7 @@
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0;
+    let globalAmbushTimer = null;
 
     let sysProgress = {
         stage: 1,
@@ -125,56 +126,37 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Humanoid Figure Canvas Blueprint (Head, Torso, Arms, Legs)
+        // Preserved Humanoid Character Model
         generateVectorGraphic('kali_humanoid', 32, 48, (ctx) => {
-            // Head / Skin Tone
-            ctx.fillStyle = '#ffdbac';
-            ctx.beginPath(); ctx.arc(16, 8, 6, 0, Math.PI * 2); ctx.fill();
-            // Tactical Visor / Eyes
+            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 8, 6, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#00ffff'; ctx.fillRect(13, 6, 7, 2);
-            // Torso / Human Shirt Jacket
             ctx.fillStyle = '#3366cc'; ctx.fillRect(10, 14, 12, 16);
-            // Human Arms
-            ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(6, 15, 4, 12);  // Left arm
-            ctx.fillRect(22, 15, 4, 12); // Right arm
-            // Legs / Trousers
-            ctx.fillStyle = '#222222';
-            ctx.fillRect(10, 30, 5, 14);  // Left leg
-            ctx.fillRect(17, 30, 5, 14);  // Right leg
-            // Shoes
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(9, 44, 6, 4);
-            ctx.fillRect(17, 44, 6, 4);
+            ctx.fillStyle = '#ffdbac'; ctx.fillRect(6, 15, 4, 12); ctx.fillRect(22, 15, 4, 12);
+            ctx.fillStyle = '#222222'; ctx.fillRect(10, 30, 5, 14); ctx.fillRect(17, 30, 5, 14);
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(9, 44, 6, 4); ctx.fillRect(17, 44, 6, 4);
         });
 
-        // Target Kitty Block Node
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
             ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 32, 32);
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
             ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        // Susi Companion - Active Flying Ally Fighter
         generateVectorGraphic('susi_drone', 24, 24, (ctx) => {
-            ctx.fillStyle = '#ff00ff';
-            ctx.beginPath(); ctx.arc(12, 12, 7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(12, 12, 7, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.strokeRect(2, 2, 20, 20);
         });
 
-        // Matrix Grid Platform Floor
         generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
             ctx.fillStyle = '#0d260d'; ctx.fillRect(0, 0, 32, 32);
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
         });
 
-        // Threat Elements
         generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
             ctx.fillStyle = '#ee2222'; ctx.fillRect(4, 4, 24, 24);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(1, 1, 30, 30);
         });
 
-        // Laser rounds
         generateVectorGraphic('laser_green', 14, 6, (ctx) => { ctx.fillStyle = '#33ff33'; ctx.fillRect(0, 0, 14, 6); });
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
     }
@@ -184,11 +166,6 @@
         grid.lineStyle(1, 0x114411, 0.7);
         for (let x = 0; x <= 4000; x += 30) { grid.lineBetween(x, 0, x, 450); }
         for (let y = 0; y <= 450; y += 30) { grid.lineBetween(0, y, 4000, y); }
-        
-        grid.lineStyle(0.5, 0x051a05, 0.4);
-        for (let x = 0; x < 4000; x += 30) {
-            for (let y = 0; y < 450; y += 30) { grid.lineBetween(x, y, x + 30, y + 30); }
-        }
 
         this.physics.world.setBounds(0, 0, 4000, 450);
         mapPlatforms = this.physics.add.staticGroup();
@@ -204,7 +181,7 @@
         partnerSusi = this.physics.add.sprite(70, 260, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
-        targetKitty = this.physics.add.sprite(3800, 350, 'kitty_node').setCollideWorldBounds(true);
+        targetKitty = this.physics.add.sprite(300, 350, 'kitty_node').setCollideWorldBounds(true);
 
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(targetKitty, mapPlatforms);
@@ -226,7 +203,7 @@
 
         this.physics.add.collider(player, enemiesGroup, (pl, enemy) => {
             enemy.destroy();
-            sysProgress.shield -= 25;
+            sysProgress.shield -= 20;
             refreshTerminalHUD();
             if (sysProgress.shield <= 0) {
                 sysProgress.shield = 100;
@@ -257,7 +234,7 @@
         let offset = facingDirection === 'right' ? 20 : -20;
         let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_green');
         shot.body.allowGravity = false;
-        shot.setVelocityX(facingDirection === 'right' ? 650 : -650);
+        shot.setVelocityX(facingDirection === 'right' ? 700 : -700);
     }
 
     function initRuntimeLevel() {
@@ -265,39 +242,89 @@
         game.scene.scenes[0].physics.resume();
         sysProgress.runtimeActive = true;
 
+        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+
         player.x = 100; player.y = 350;
         let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        
-        targetKitty.x = 800 + (sysProgress.level * 650); 
-        if (targetKitty.x > 3900) targetKitty.x = 3900;
-        targetKitty.body.updateFromObj();
 
-        enemiesGroup.clear(true, true);
-
-        let platformCount = 3 + sysProgress.level;
-        for (let i = 0; i < platformCount; i++) {
-            let platX = 350 + (i * 450) + Phaser.Math.Between(-40, 40);
-            let platY = Phaser.Math.Between(220, 310);
+        // Level 1 Shortening Logic
+        if (currentTotalLevel === 1) {
+            targetKitty.x = 450; // Super close target
+            enemiesGroup.clear(true, true);
+            document.getElementById('hud-log').innerText = "Level 1: Safe Zone. Run right to start the actual war!";
+        } else {
+            // Standard progressive distance maps
+            targetKitty.x = 1000 + (sysProgress.level * 600);
+            if (targetKitty.x > 3900) targetKitty.x = 3900;
             
-            for (let block = 0; block < 4; block++) {
-                mapPlatforms.create(platX + (block * 32), platY, 'matrix_floor').setOrigin(0,0).refreshBody();
+            enemiesGroup.clear(true, true);
+
+            // Base platform procedural geometry structures
+            let platformCount = 4 + sysProgress.level;
+            for (let i = 0; i < platformCount; i++) {
+                let platX = 400 + (i * 400) + Phaser.Math.Between(-30, 30);
+                let platY = Phaser.Math.Between(220, 320);
+                for (let block = 0; block < 4; block++) {
+                    mapPlatforms.create(platX + (block * 32), platY, 'matrix_floor').setOrigin(0,0).refreshBody();
+                }
             }
 
-            if (i > 0) {
-                let hazard = enemiesGroup.create(platX + 48, platY - 40, 'virus_hazard');
-                hazard.setVelocityX(Phaser.Math.Between(-60, -160) - (sysProgress.stage * 2));
-                hazard.setBounce(1, 0).setCollideWorldBounds(true);
-            }
+            // LEVEL 2+ SPATIAL 4-WAY AMBUSH ENGINE ENGINE
+            globalAmbushTimer = game.scene.scenes[0].time.addEvent({
+                delay: Math.max(1200 - (currentTotalLevel * 5), 500), 
+                loop: true,
+                callback: spawnOmniDirectionalThreat
+            });
+
+            document.getElementById('hud-log').innerText = `COMBAT SYSTEM ACTIVE! Watch all 4 directions!`;
+        }
+        
+        targetKitty.body.updateFromObj();
+        refreshTerminalHUD();
+    }
+
+    function spawnOmniDirectionalThreat() {
+        if (!sysProgress.runtimeActive) return;
+
+        let spawnDir = Phaser.Math.Between(0, 3); // 0=Top, 1=Bottom, 2=Left, 3=Right
+        let spawnX, spawnY, velX = 0, velY = 0;
+        let speed = 150 + (sysProgress.stage * 4);
+
+        switch(spawnDir) {
+            case 0: // From Above
+                spawnX = Phaser.Math.Between(player.x - 300, player.x + 300);
+                spawnY = player.y - 250;
+                velY = speed;
+                break;
+            case 1: // From Below
+                spawnX = Phaser.Math.Between(player.x - 200, player.x + 200);
+                spawnY = 410;
+                velY = -speed;
+                break;
+            case 2: // From the Left Side
+                spawnX = player.x - 400;
+                spawnY = Phaser.Math.Between(150, 380);
+                velX = speed;
+                break;
+            case 3: // From the Right Side
+                spawnX = player.x + 400;
+                spawnY = Phaser.Math.Between(150, 380);
+                velX = -speed;
+                break;
         }
 
-        refreshTerminalHUD();
-        document.getElementById('hud-log').innerText = `Level ${currentTotalLevel} of ${sysProgress.maxLevels} | Head right and clear threats with Susi!`;
+        // Restrict bounds checking
+        if (spawnX < 0) spawnX = 10;
+        if (spawnX > 4000) spawnX = 3900;
+
+        let hazard = enemiesGroup.create(spawnX, spawnY, 'virus_hazard');
+        hazard.body.allowGravity = false; // Allows accurate up/down floating tracking
+        hazard.setVelocity(velX, velY);
     }
 
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        // Ally Follow Offset
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.1);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 25, 0.1);
 
@@ -313,14 +340,14 @@
             player.setVelocityY(-480);
         }
 
-        // Susi Automatic Combat Targeting
-        if (time > lastDroneFireTime + 1100) {
+        // Auto Susi target engagement systems logic
+        if (time > lastDroneFireTime + 800) { // Susi speed buffed to support your fights!
             let nearestEnemy = enemiesGroup.getFirstAlive();
             if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 400) {
                 lastDroneFireTime = time;
                 let plasma = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
                 plasma.body.allowGravity = false;
-                this.physics.moveToObject(plasma, nearestEnemy, 420);
+                this.physics.moveToObject(plasma, nearestEnemy, 450);
             }
         }
     }
@@ -328,12 +355,13 @@
     function advanceNextMatrixSegment() {
         sysProgress.runtimeActive = false;
         game.scene.scenes[0].physics.pause();
+        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
 
         let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
         if (currentTotalLevel >= sysProgress.maxLevels) {
-            document.getElementById('menu-header').innerText = "⚡ FREEDOM RECLAIMED ⚡";
-            document.getElementById('menu-desc').innerText = "Incredible! You completed all 350 customized combat levels with your Humanoid Avatar and Susi!";
+            document.getElementById('menu-header').innerText = "⚡ ABSOLUTE MASTER ⚡";
+            document.getElementById('menu-desc').innerText = "350 Levels Cleared! You survived the complete omni-directional combat array!";
             document.getElementById('main-menu-btn').style.display = 'none';
             document.getElementById('start-menu').style.display = 'flex';
             return;
@@ -349,8 +377,8 @@
         let nextTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
         document.getElementById('menu-header').innerText = `🟩 STAGE UNLOCKED 🟩`;
-        document.getElementById('menu-desc').innerText = `Level ${currentTotalLevel} Clear. Prepared interface calibrations for Level ${nextTotalLevel} / 350.`;
-        document.getElementById('main-menu-btn').innerText = `LOAD NEXT ZONE`;
+        document.getElementById('menu-desc').innerText = `Level ${currentTotalLevel} Defeated. Syncing grid data configurations for Level ${nextTotalLevel} / 350...`;
+        document.getElementById('main-menu-btn').innerText = `ENGAGE ZONE`;
         
         document.getElementById('main-menu-btn').onclick = initRuntimeLevel;
         document.getElementById('start-menu').style.display = 'flex';
