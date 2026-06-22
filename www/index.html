@@ -10,12 +10,8 @@
 
     <style>
         body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
-        
-        /* Game Container with your original green border */
         #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; background: #000; }
-        
-        /* Chat UI Overlay */
-        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; }
+        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; pointer-events: auto; }
         #chat-box { height: 150px; overflow-y: scroll; border: 1px solid #00ff00; margin-bottom: 5px; font-size: 12px; }
     </style>
 </head>
@@ -31,7 +27,6 @@
     </div>
 
     <script>
-        // --- 1. Multiplayer Logic ---
         const socket = io("http://localhost:3000");
         const myName = "Player_" + Math.floor(Math.random() * 1000);
 
@@ -51,31 +46,19 @@
 
         function joinGameRoom(roomName) {
             socket.emit("joinRoom", roomName);
-            alert("Joined: " + roomName);
         }
 
-        // --- 2. Your Original Game Logic ---
         const config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            parent: 'game-wrapper',
-            scene: {
-                preload: preload,
-                create: create
-            }
+            type: Phaser.AUTO, width: 800, height: 600, parent: 'game-wrapper',
+            scene: { create: create }
         };
-
         const game = new Phaser.Game(config);
 
-        function preload() {
-            // If you have your original image loading, add it here
-            // Example: this.load.image('player', 'assets/player.png');
-        }
-
         function create() {
-            // Put your original drawing code back in here
-            // This is the area where you drew the grid, player, and bars
+            // --- YOUR ORIGINAL CODE GOES HERE ---
+            // If you have your player sprite code, paste it below:
+            // this.add.sprite(x, y, 'playerKey');
+            // this.add.grid(400, 300, 800, 600, 40, 40, 0x000000, 0, 0x00FF00, 0.5);
             console.log("Game Scene Initialized");
         }
     </script>
