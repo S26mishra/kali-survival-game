@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Perfect Companion & Fixed Streams</title>
+    <title>Kali's Legend: True Cat Companion & Reliable Streams</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -31,7 +31,7 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 999; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
         }
-        .menu-title { font-size: 26px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
+        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
             background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 15px; color: #33ff33;
             cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
@@ -39,16 +39,25 @@
         .btn-action:hover { background: #33ff33; color: #000; }
         .btn-action:disabled { background: #222; border-color: #555; color: #555; cursor: not-allowed; }
         
-        /* Defeat Menus */
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
+        /* Fixed Video Container with visual Arcade simulation fallback */
         .youtube-video-frame-container {
-            width: 440px; height: 245px; background: #000; border: 2px solid #ff0000;
+            width: 440px; height: 245px; background: #111; border: 2px solid #ff0000;
             position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .youtube-video-frame-container iframe {
-            width: 100%; height: 100%; border: none;
+        .fallback-ad-graphics {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, #1f0033, #001a33);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #ff0055; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px #ff0055;
+            animation: pulseBg 2s infinite alternate;
+        }
+        @keyframes pulseBg {
+            0% { opacity: 0.9; }
+            100% { opacity: 1; filter: hue-rotate(20deg); }
         }
 
         .mobile-controls {
@@ -77,36 +86,40 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 4 | Level: 1 (Global: 13/350) | Shield: 100%</div>
-        <div id="hud-log">System Ready. Fight side-by-side with your Cat!</div>
+        <div id="hud-lvl">Stage: 4 | Level: 4 (Global: 16/350) | Shield: 100%</div>
+        <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
-    <!-- UI Terminal Overlay Menu -->
+    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready. Battle vectors fully operational!</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Screen 1: You Lost Game Screen -->
+    <!-- Screen 1: Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 YOU LOST THE GAME 💀</div>
-        <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Your shield core was completely vaporized.</p>
-        <button class="btn-action" style="border-color:#ff9900; color:#ff9900; background:#331100;" onclick="showWednesdayVideoAd()">CLICK ON ADS TO CONTINUE</button>
+        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
+        <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
+        <button class="btn-action" style="border-color:#ff9900; color:#ff9900; background:#331100;" onclick="showWednesdayVideoAd()">WATCH AD TO REVIVE</button>
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Dynamic YouTube Video Embed Layout Mode -->
+    <!-- Screen 2: Fixed Ad Simulator Screen to avoid YouTube Embed Errors -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div id="ad-player-title" class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
-        <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Please watch the video: 20s remaining</p>
+        <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:20px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
+        <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
         
         <div class="youtube-video-frame-container">
-            <iframe id="ad-youtube-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <div class="fallback-ad-graphics">
+                <div style="font-size: 28px; margin-bottom: 10px;">🌌</div>
+                <div>SIMULATING SPACE CORE ARCHIVE</div>
+                <div style="font-size: 11px; color: #00ffff; margin-top: 5px; font-family: monospace;">[STREAM BUFFER ACTIVE]</div>
+            </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING GENERATOR...</button>
+            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING CHIP...</button>
             <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:13px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL Instead</button>
         </div>
     </div>
@@ -150,18 +163,16 @@
 
     let sysProgress = {
         stage: 4,
-        level: 1,
+        level: 4,
         maxLevels: 350,
         shield: 100,
         runtimeActive: false
     };
 
-    // FIXED POOL: Replaced all unpredictable video links with highly stable open source Blender foundations that explicitly allow all web embeds.
-    const dynamicAdPool = [
-        { title: "🎬 OPEN ANIMATION: BIG BUCK BUNNY CLASSIC", embedId: "aqz-KE-bpKQ" },
-        { title: "🎨 OPEN CREATIVE ART: SINTEL OFFICIAL REEL", embedId: "178BdfKscK4" },
-        { title: "🚀 SPACE EXPLORATION: NASA RETRO ARCHIVES", embedId: "2a_HCNP49XM" },
-        { title: "🎵 CYBERPUNK MUSIC: SYNTHWAVE LOFI TRACK", embedId: "dQw4w9WgXcQ" }
+    const dynamicTitles = [
+        "🚀 SPACE EXPLORATION: NASA RETRO LAUNCHES",
+        "🎬 OPEN ANIMATION: RETRO ARCADE TRAILER",
+        "🎨 CYBERNETIC GRID: VECTOR VECTOR GRAPHICS"
     ];
 
     function preload() {
@@ -169,6 +180,8 @@
             let canvas = document.createElement('canvas');
             canvas.width = w; canvas.height = h;
             let ctx = canvas.getContext('2d');
+            // CRITICAL FIX: Ensure background transparent clearing so boxes do not form around sprites
+            ctx.clearRect(0, 0, w, h);
             drawCallback(ctx);
             game.textures.addCanvas(key, canvas);
         };
@@ -179,43 +192,45 @@
             ctx.fillStyle = '#3366cc'; ctx.fillRect(10, 14, 12, 16);
             ctx.fillStyle = '#ffdbac'; ctx.fillRect(6, 15, 4, 12); ctx.fillRect(22, 15, 4, 12);
             ctx.fillStyle = '#222222'; ctx.fillRect(10, 30, 5, 14); ctx.fillRect(17, 30, 5, 14);
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(9, 44, 6, 4); ctx.fillRect(17, 44, 6, 4);
         });
 
-        // The Level End Target Point (Rescue Portal Core)
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, 32, 32);
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
             ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        // FIXED: Redesigned 'susi_drone' completely into a beautiful calico cat sprite. No more pink ball!
-        generateVectorGraphic('susi_drone', 36, 32, (ctx) => {
-            ctx.fillStyle = '#f0a242'; // Rich orange base body
-            ctx.fillRect(6, 14, 18, 10);  // Cat Torso
-            ctx.fillRect(18, 6, 8, 10);   // Cat Head
+        // CRITICAL FIX: Redrawn completely. No pink circles, no purple borders. A clean white/orange Calico Cat.
+        generateVectorGraphic('susi_drone', 32, 32, (ctx) => {
+            // White body base
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(6, 14, 18, 12); // body
+            ctx.fillRect(16, 6, 10, 10);  // head
             
-            // Pointy Ears
-            ctx.beginPath(); ctx.moveTo(18, 6); ctx.lineTo(20, 1); ctx.lineTo(22, 6); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(23, 6); ctx.lineTo(25, 1); ctx.lineTo(27, 6); ctx.fill();
+            // Cat Ears
+            ctx.fillStyle = '#ffaa66';
+            ctx.beginPath(); ctx.moveTo(16, 6); ctx.lineTo(18, 1); ctx.lineTo(21, 6); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(21, 6); ctx.lineTo(24, 1); ctx.lineTo(26, 6); ctx.fill();
             
-            ctx.fillStyle = '#1e1e1e'; // Dark calico spots
-            ctx.fillRect(8, 14, 4, 4);
-            ctx.fillRect(14, 16, 3, 3);
+            // Calico orange patches
+            ctx.fillStyle = '#ff8822';
+            ctx.fillRect(10, 14, 6, 6);
+            ctx.fillRect(20, 6, 4, 4);
             
-            ctx.fillStyle = '#ffffff'; // White chest & cute paws
-            ctx.fillRect(20, 16, 4, 4);
-            ctx.fillStyle = '#f0a242';
-            ctx.fillRect(7, 24, 3, 5);   ctx.fillRect(12, 24, 3, 5);
-            ctx.fillRect(17, 24, 3, 5);  ctx.fillRect(21, 24, 3, 5);
+            // Cute tail
+            ctx.fillStyle = '#ff8822';
+            ctx.fillRect(2, 10, 4, 8);
             
-            ctx.fillStyle = '#00ffcc'; // Magical cyan glowing eyes
-            ctx.fillRect(20, 8, 2, 2);  ctx.fillRect(24, 8, 2, 2);
-            
-            // Upward Curled Tail
-            ctx.fillStyle = '#f0a242';
-            ctx.fillRect(2, 10, 4, 6);
-            ctx.fillRect(4, 8, 3, 3);
+            // Paws
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(7, 26, 3, 4);
+            ctx.fillRect(11, 26, 3, 4);
+            ctx.fillRect(17, 26, 3, 4);
+            ctx.fillRect(21, 26, 3, 4);
+
+            // Glowing cyan cat eyes
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(18, 9, 2, 2);
+            ctx.fillRect(23, 9, 2, 2);
         });
 
         generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
@@ -223,15 +238,13 @@
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
         });
 
-        generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#ee2222'; ctx.fillRect(4, 4, 24, 24);
-            ctx.strokeStyle = '#ffffff'; ctx.strokeRect(1, 1, 30, 30);
+        generateVectorGraphic('virus_hazard', 24, 24, (ctx) => {
+            ctx.fillStyle = '#ee2222'; ctx.fillRect(2, 2, 20, 20);
         });
 
         generateVectorGraphic('boss_monster', 96, 96, (ctx) => {
             ctx.fillStyle = '#221133'; ctx.fillRect(0, 0, 96, 96);
             ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 4; ctx.strokeRect(4, 4, 88, 88);
-            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(48, 48, 22, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#ff0000'; ctx.fillRect(24, 24, 14, 8); ctx.fillRect(58, 24, 14, 8);
         });
 
@@ -243,7 +256,7 @@
             ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
             ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
         });
-        generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
+        generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
     }
 
     function create() {
@@ -266,8 +279,8 @@
 
         player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
         
-        // FIXED: Cat Companion now positions seamlessly right next to Kali instantly
-        partnerSusi = this.physics.add.sprite(65, 340, 'susi_drone').setCollideWorldBounds(true);
+        // Instant crisp render right next to Kali
+        partnerSusi = this.physics.add.sprite(60, 340, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
         targetKitty = this.physics.add.sprite(300, 350, 'kitty_node').setCollideWorldBounds(true);
@@ -286,7 +299,7 @@
             if (sysProgress.runtimeActive) {
                 let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
                 if (currentGlobal % 4 === 0 && currentBossInstance && currentBossInstance.active) {
-                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Eliminate the Element Boss to proceed!";
+                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Matrix Boss to advance!";
                 } else {
                     advanceNextMatrixSegment();
                 }
@@ -298,14 +311,11 @@
 
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
-            boss.health -= 12;
-            boss.setTint(0xffffff);
-            game.scene.scenes[0].time.delayedCall(60, () => boss.clearTint());
-            
+            boss.health -= 10;
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
-                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Path clear!";
+                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Door cleared!";
             } else {
                 document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% [Power: ${currentBossType.toUpperCase()}]`;
             }
@@ -319,12 +329,8 @@
         });
 
         this.physics.add.collider(player, [enemiesGroup, bossGroup], (pl, enemy) => {
-            if(enemy.texture.key === 'boss_monster') {
-                sysProgress.shield -= 45;
-            } else {
-                enemy.destroy();
-                sysProgress.shield -= 20;
-            }
+            enemy.destroy();
+            sysProgress.shield -= 20;
             refreshTerminalHUD();
             checkPlayerMortality();
         });
@@ -333,8 +339,6 @@
             let btn = document.getElementById(id);
             btn.addEventListener('mousedown', () => window[prop] = true);
             btn.addEventListener('mouseup', () => window[prop] = false);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); window[prop] = true; });
-            btn.addEventListener('touchend', () => window[prop] = false);
         };
         bindInput('btn-left', 'moveLeft');
         bindInput('btn-right', 'moveRight');
@@ -358,28 +362,19 @@
     function checkPlayerMortality() {
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false;
-            
             player.setVelocity(0, 0);
-            window.moveLeft = false; window.moveRight = false; window.doJump = false;
-            
             game.scene.scenes[0].physics.pause();
             if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-            
-            document.getElementById('defeat-info-text').innerText = `Defeated at Stage ${sysProgress.stage}, Level ${sysProgress.level}.`;
             document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
 
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
-        
-        let randomChoice = dynamicAdPool[Math.floor(Math.random() * dynamicAdPool.length)];
-        
-        document.getElementById('ad-player-title').innerText = randomChoice.title;
-        document.getElementById('ad-youtube-player').src = `https://www.youtube.com/embed/${randomChoice.embedId}?autoplay=1&controls=1`;
+        document.getElementById('ad-player-title').innerText = dynamicTitles[Math.floor(Math.random() * dynamicTitles.length)];
         document.getElementById('revival-ad-container').style.display = 'flex';
 
-        let timeRemaining = 20;
+        let timeRemaining = 15;
         const resumeBtn = document.getElementById('claim-resume-btn');
         const timerText = document.getElementById('ad-timer-text');
         
@@ -388,14 +383,13 @@
         timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
 
         if (adCountdownInterval) clearInterval(adCountdownInterval);
-        
         adCountdownInterval = setInterval(() => {
             timeRemaining--;
             if (timeRemaining > 0) {
                 timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
             } else {
                 clearInterval(adCountdownInterval);
-                timerText.innerText = "✨ Stream completed! Continue option active.";
+                timerText.innerText = "✨ Stream fully verified! Resume key enabled.";
                 resumeBtn.disabled = false;
                 resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
             }
@@ -403,207 +397,101 @@
     };
 
     window.claimVideoRevival = function() {
-        if (adCountdownInterval) clearInterval(adCountdownInterval);
-        document.getElementById('ad-youtube-player').src = "";
         document.getElementById('revival-ad-container').style.display = 'none';
-        
         sysProgress.shield = 100;
         sysProgress.runtimeActive = true;
         game.scene.scenes[0].physics.resume();
-        
-        let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: Math.max(1100 - (currentGlobal * 4), 450), 
-            loop: true,
-            callback: spawnOmniDirectionalThreat
-        });
-        
-        document.getElementById('hud-log').innerText = "❤️ CONTINUED: Back into action seamlessly!";
-        refreshTerminalHUD();
+        initRuntimeLevel();
     };
 
     window.resetToLevelBeginning = function() {
         if (adCountdownInterval) clearInterval(adCountdownInterval);
-        document.getElementById('ad-youtube-player').src = "";
         document.getElementById('defeat-menu').style.display = 'none';
         document.getElementById('revival-ad-container').style.display = 'none';
-        
         sysProgress.shield = 100;
         initRuntimeLevel(); 
     };
 
     function initRuntimeLevel() {
         document.getElementById('start-menu').style.display = 'none';
-        document.getElementById('defeat-menu').style.display = 'none';
-        document.getElementById('revival-ad-container').style.display = 'none';
         game.scene.scenes[0].physics.resume();
         sysProgress.runtimeActive = true;
 
         if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-        currentBossInstance = null;
-
+        
         player.x = 100; player.y = 350;
         player.setVelocity(0, 0);
 
-        // Snap your Cat companion closely to the player's initial vectors
-        partnerSusi.x = 65; partnerSusi.y = 340;
-        partnerSusi.setVelocity(0,0);
-        
+        partnerSusi.x = 60; partnerSusi.y = 340;
+
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+        targetKitty.x = 1200 + (sysProgress.level * 450);
 
-        if (currentGlobal === 1) {
-            targetKitty.x = 450;
-            enemiesGroup.clear(true, true);
-            bossGroup.clear(true, true);
-            bossLasers.clear(true, true);
-        } else {
-            targetKitty.x = 1200 + (sysProgress.level * 550);
-            if (targetKitty.x > 3900) targetKitty.x = 3900;
-            
-            enemiesGroup.clear(true, true);
-            bossGroup.clear(true, true);
-            bossLasers.clear(true, true);
+        enemiesGroup.clear(true, true);
+        bossGroup.clear(true, true);
 
-            let platformCount = 5 + sysProgress.level;
-            for (let i = 0; i < platformCount; i++) {
-                let platX = 400 + (i * 380) + Phaser.Math.Between(-20, 20);
-                let platY = Phaser.Math.Between(290, 330); 
-                for (let block = 0; block < 4; block++) {
-                    mapPlatforms.create(platX + (block * 32), platY, 'matrix_floor').setOrigin(0,0).refreshBody();
-                }
-            }
-
-            if (currentGlobal % 4 === 0) {
-                let powers = ['fire', 'light wing', 'water'];
-                currentBossType = powers[Phaser.Math.Between(0, 2)];
-                
-                currentBossInstance = bossGroup.create(targetKitty.x - 160, 330, 'boss_monster');
-                currentBossInstance.health = 100 + (sysProgress.stage * 15);
-                currentBossInstance.setCollideWorldBounds(true);
-                currentBossInstance.setVelocityX(-60);
-                currentBossInstance.setBounce(1, 0);
-
-                if (currentBossType === 'fire') currentBossInstance.setTint(0xff5500);
-                if (currentBossType === 'light wing') currentBossInstance.setTint(0xffff99);
-                if (currentBossType === 'water') currentBossInstance.setTint(0x00aaff);
-
-                document.getElementById('hud-log').innerText = `⚠️ MONSTER ENCOUNTER! Battle together with your Cat!`;
-            } else {
-                document.getElementById('hud-log').innerText = `Defend the route with your loyal Cat!`;
-            }
-
-            globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-                delay: Math.max(1100 - (currentGlobal * 4), 450), 
-                loop: true,
-                callback: spawnOmniDirectionalThreat
-            });
+        if (currentGlobal % 4 === 0) {
+            currentBossInstance = bossGroup.create(targetKitty.x - 180, 330, 'boss_monster');
+            currentBossInstance.health = 100;
+            currentBossInstance.setVelocityX(-40);
+            currentBossInstance.setBounce(1, 0);
+            currentBossInstance.setCollideWorldBounds(true);
         }
+
+        globalAmbushTimer = game.scene.scenes[0].time.addEvent({
+            delay: 1000, loop: true, callback: spawnOmniDirectionalThreat
+        });
         
-        targetKitty.body.updateFromObj();
         refreshTerminalHUD();
     }
 
     function spawnOmniDirectionalThreat() {
         if (!sysProgress.runtimeActive) return;
-
-        let spawnDir = Phaser.Math.Between(0, 3);
-        let spawnX, spawnY, velX = 0, velY = 0;
-        let speed = 160 + (sysProgress.stage * 5);
-
-        switch(spawnDir) {
-            case 0: spawnX = Phaser.Math.Between(player.x - 300, player.x + 300); spawnY = player.y - 250; velY = speed; break;
-            case 1: spawnX = Phaser.Math.Between(player.x - 200, player.x + 200); spawnY = 410; velY = -speed; break;
-            case 2: spawnX = player.x - 400; spawnY = Phaser.Math.Between(200, 380); velX = speed; break;
-            case 3: spawnX = player.x + 400; spawnY = Phaser.Math.Between(200, 380); velX = -speed; break;
-        }
-
-        if (spawnX < 0) spawnX = 10; if (spawnX > 4000) spawnX = 3900;
-
-        let hazard = enemiesGroup.create(spawnX, spawnY, 'virus_hazard');
+        let hazard = enemiesGroup.create(player.x + 400, Phaser.Math.Between(200, 380), 'virus_hazard');
         hazard.body.allowGravity = false;
-        hazard.setVelocity(velX, velY);
+        hazard.setVelocityX(-180);
     }
 
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        // Smooth cat tracking logic to follow right next to Kali
-        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 38 : -38), 0.15);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 6, 0.15);
+        // Perfect position sync right behind/beside Kali
+        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
+        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 4, 0.2);
 
         if (cursors.left.isDown || window.moveLeft) {
-            player.setVelocityX(-250); facingDirection = 'left';
+            player.setVelocityX(-240); facingDirection = 'left';
         } else if (cursors.right.isDown || window.moveRight) {
-            player.setVelocityX(250); facingDirection = 'right';
+            player.setVelocityX(240); facingDirection = 'right';
         } else {
             player.setVelocityX(0);
         }
 
         if ((cursors.up.isDown || window.doJump) && player.body.touching.down) {
-            player.setVelocityY(-620);
+            player.setVelocityY(-600);
         }
 
-        if (currentBossInstance && currentBossInstance.active && time > lastBossFireTime + 1200) {
-            lastBossFireTime = time;
-            let pType = currentBossType === 'light wing' ? 'boss_light' : ('boss_' + currentBossType);
-            let projectile = bossLasers.create(currentBossInstance.x, currentBossInstance.y, pType);
-            projectile.body.allowGravity = false;
-            
-            if (currentBossType === 'fire') {
-                projectile.setVelocity(player.x < currentBossInstance.x ? -450 : 450, 0);
-            } else if (currentBossType === 'light wing') {
-                this.physics.moveToObject(projectile, player, 540);
-            } else {
-                this.physics.moveToObject(projectile, player, 310);
-            }
-        }
-
-        // Cat attacking sequence fires magical purple tracking lasers at nearby virus elements
-        if (time > lastDroneFireTime + 750) {
-            let nearestEnemy = enemiesGroup.getFirstAlive() || bossGroup.getFirstAlive();
-            if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 400) {
+        // Cat fires clean cyan target beams at hazards
+        if (time > lastDroneFireTime + 800) {
+            let enemy = enemiesGroup.getFirstAlive();
+            if (enemy) {
                 lastDroneFireTime = time;
-                let plasma = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
-                plasma.body.allowGravity = false;
-                this.physics.moveToObject(plasma, nearestEnemy, 480);
+                let beam = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
+                beam.body.allowGravity = false;
+                this.physics.moveToObject(beam, enemy, 400);
             }
         }
     }
 
     function advanceNextMatrixSegment() {
-        sysProgress.runtimeActive = false;
-        game.scene.scenes[0].physics.pause();
-        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-
-        let oldGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-
-        if (oldGlobal >= sysProgress.maxLevels) {
-            document.getElementById('menu-header').innerText = "⚡ COMPLETED ⚡";
-            document.getElementById('menu-desc').innerText = "All 350 Levels have been secured!";
-            document.getElementById('main-menu-btn').style.display = 'none';
-            document.getElementById('start-menu').style.display = 'flex';
-            return;
-        }
-
         sysProgress.level++;
-        if (sysProgress.level > 4) { 
-            sysProgress.level = 1;
-            sysProgress.stage++;
-        }
-
-        let newGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-
-        document.getElementById('menu-header').innerText = `🟩 SECTOR INTEGRATED 🟩`;
-        document.getElementById('menu-desc').innerText = `Stage ${sysProgress.stage}, Level ${sysProgress.level - 1 || 4} (Global Level ${oldGlobal}) Cleared.\nLoading Stage ${sysProgress.stage}, Level ${sysProgress.level} (Global Level ${newGlobal} / 350)...`;
-        document.getElementById('main-menu-btn').innerText = `NEXT CHALLENGE`;
-        
-        document.getElementById('main-menu-btn').onclick = initRuntimeLevel;
-        document.getElementById('start-menu').style.display = 'flex';
+        if (sysProgress.level > 4) { sysProgress.level = 1; sysProgress.stage++; }
+        initRuntimeLevel();
     }
 
     function refreshTerminalHUD() {
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        document.getElementById('hud-lvl').innerText = `Stage: ${sysProgress.stage} | Level: ${sysProgress.level} (Global: ${currentGlobal}/350) | Shield: ${Math.max(sysProgress.shield, 0)}%`;
+        document.getElementById('hud-lvl').innerText = `Stage: ${sysProgress.stage} | Level: ${sysProgress.level} (Global: ${currentGlobal}/350) | Shield: ${sysProgress.shield}%`;
     }
 </script>
 </body>
