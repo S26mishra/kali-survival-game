@@ -193,11 +193,9 @@
         this.load.image('platform_block', 'https://labs.phaser.io/assets/sprites/platform.png');
         this.load.spritesheet('hero_kali', 'https://labs.phaser.io/assets/sprites/dude.png', { frameWidth: 32, frameHeight: 48 });
         this.load.spritesheet('susi_wings', 'https://labs.phaser.io/assets/sprites/baddie.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
         this.load.image('fire_particle', 'https://labs.phaser.io/assets/particles/muzzleflash3.png');
         this.load.image('laser_bullet', 'https://labs.phaser.io/assets/sprites/purple_ball.png');
-        
-        // FIXED: New highly-reliable asset source for a real moving cat (Kitty)
-        this.load.spritesheet('real_cat', 'https://labs.phaser.io/assets/sprites/catpasje.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     function create() {
@@ -220,6 +218,7 @@
         this.goalPointX1 = 4000;
         this.goalPointX2 = 8000;
 
+        // Visual Café Signboard for the Meeting Point
         cafeSign = this.add.text(this.goalPointX1, 280, '☕ CROSSROADS CAFÉ', { 
             fontSize: '20px', fill: '#00ffff', backgroundColor: '#110724', padding: { x: 10, y: 5 } 
         }).setOrigin(0.5);
@@ -237,18 +236,8 @@
             key: 'right', frames: this.anims.generateFrameNumbers('hero_kali', { start: 5, end: 8 }), frameRate: 10, repeat: -1
         });
 
-        // FIXED: Cat scale adjusted slightly to fit perfectly with Phaser spritesheet frames
-        kittyCat = this.physics.add.sprite(160, 350, 'real_cat').setScale(0.8);
+        kittyCat = this.physics.add.sprite(160, 350, 'real_cat');
         kittyCat.setCollideWorldBounds(true);
-
-        // Kitty Cat walking animation
-        this.anims.create({
-            key: 'cat_walk',
-            frames: this.anims.generateFrameNumbers('real_cat', { start: 0, end: 3 }),
-            frameRate: 8,
-            repeat: -1
-        });
-        kittyCat.play('cat_walk');
 
         partnerSusi = this.physics.add.sprite(220, 350, 'susi_wings');
         partnerSusi.setCollideWorldBounds(true);
@@ -340,11 +329,9 @@
         if (cursors.left.isDown || window.moveLeft) { 
             player.setVelocityX(-220); player.anims.play('left', true); facingDirection = 'left';
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
-            if(kittyCat.flipX === false) kittyCat.flipX = true;
         } else if (cursors.right.isDown || window.moveRight) { 
             player.setVelocityX(220); player.anims.play('right', true); facingDirection = 'right';
             bgCity.tilePositionX = this.cameras.main.scrollX * 0.5;
-            if(kittyCat.flipX === true) kittyCat.flipX = false;
             
             if (gameState.levelIndex > 1 && Math.abs(player.x - lastSpawnX) > 400) {
                 lastSpawnX = player.x;
@@ -379,6 +366,7 @@
             if (enemy.body.blocked.right) enemy.setVelocityX(-130);
         });
 
+        // MEETING AT THE CAFÉ TRIGGERS AN EMBUSH!
         if (gameState.levelIndex === 2 && player.x >= this.goalPointX1) {
             showLevelClearScreen("☕ You met Susi at the Café! Suddenly, enemies attack! Susi joins forces with you.", 3);
         } else if (gameState.levelIndex === 3 && player.x >= this.goalPointX2) {
