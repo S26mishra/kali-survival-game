@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kali's Legend: Multiplayer Testing</title>
+    <title>Kali's Legend: Multiplayer</title>
     
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -11,11 +11,11 @@
     <style>
         body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
         
-        /* The main game container */
+        /* Game Container with your original green border */
         #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; background: #000; }
         
-        /* The Chat UI Overlay */
-        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; pointer-events: auto; }
+        /* Chat UI Overlay */
+        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; }
         #chat-box { height: 150px; overflow-y: scroll; border: 1px solid #00ff00; margin-bottom: 5px; font-size: 12px; }
     </style>
 </head>
@@ -31,7 +31,7 @@
     </div>
 
     <script>
-        // --- 1. Multiplayer Connection ---
+        // --- 1. Multiplayer Logic ---
         const socket = io("http://localhost:3000");
         const myName = "Player_" + Math.floor(Math.random() * 1000);
 
@@ -54,12 +54,12 @@
             alert("Joined: " + roomName);
         }
 
-        // --- 2. Phaser Game Logic ---
+        // --- 2. Your Original Game Logic ---
         const config = {
             type: Phaser.AUTO,
             width: 800,
             height: 600,
-            parent: 'game-wrapper', 
+            parent: 'game-wrapper',
             scene: {
                 preload: preload,
                 create: create
@@ -69,13 +69,14 @@
         const game = new Phaser.Game(config);
 
         function preload() {
-            // PASTE YOUR ASSET LOADING CODE HERE
+            // If you have your original image loading, add it here
+            // Example: this.load.image('player', 'assets/player.png');
         }
 
         function create() {
-            console.log("Game Scene Ready");
-            // PASTE YOUR ORIGINAL AVATAR/GRID DRAWING CODE HERE
-            // Example: this.add.sprite(400, 300, 'yourPlayerImage');
+            // Put your original drawing code back in here
+            // This is the area where you drew the grid, player, and bars
+            console.log("Game Scene Initialized");
         }
     </script>
 </body>
