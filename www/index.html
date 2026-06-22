@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Journey with Susi</title>
+    <title>Kali's Legend: Humanoid Combat Matrix</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -27,7 +27,7 @@
         }
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 15, 0, 0.95);
+            background: rgba(0, 10, 0, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
         }
@@ -63,14 +63,14 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage 1 - Level 1 | Age: 5 | Shield: 100%</div>
-        <div id="hud-log">System Initialized. Clear the virus hazards and advance!</div>
+        <div id="hud-log">System Initialized. Clear virus vectors and push forward!</div>
     </div>
 
     <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title" id="menu-header">🟩 MATRIX GRID ONLINE 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Kali and Susi Combat Link Activated. Secure the core matrix fields across all 150 Stages.</p>
-        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">INITIALIZE LEVEL</button>
+        <div class="menu-title" id="menu-header">🟩 KALI HUMAN COMBAT ONLINE 🟩</div>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Humanoid interface sync stable. Fight side-by-side with Susi through 350 tactical levels.</p>
+        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">INITIALIZE MISSION</button>
     </div>
 
     <div id="game-container"></div>
@@ -110,6 +110,7 @@
     let sysProgress = {
         stage: 1,
         level: 1,
+        maxLevels: 350,
         age: 5,
         shield: 100,
         runtimeActive: false
@@ -124,30 +125,27 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Exact Onion-headed Avatar (Kali) from image_725a26.jpg
-        generateVectorGraphic('kali_avatar', 32, 44, (ctx) => {
-            // Purple Onion Mask Head
-            ctx.fillStyle = '#b366cc';
-            ctx.beginPath();
-            ctx.arc(16, 20, 11, 0, Math.PI * 2);
-            ctx.fill();
-            // Pointy Top Spire Tip
-            ctx.beginPath();
-            ctx.moveTo(16, 2);
-            ctx.lineTo(9, 12);
-            ctx.lineTo(23, 12);
-            ctx.fill();
-            // Large Yellow Eye/Goggle Visor Rings
-            ctx.fillStyle = '#ffea00';
-            ctx.beginPath();
-            ctx.arc(16, 20, 7, 0, Math.PI * 2);
-            ctx.fill();
-            // Inner Core Focus Eyes
-            ctx.fillStyle = '#ff3300';
-            ctx.fillRect(13, 19, 6, 3);
-            // Orange Base Body Support Stalk
-            ctx.fillStyle = '#e67e22';
-            ctx.fillRect(12, 31, 8, 13);
+        // Humanoid Figure Canvas Blueprint (Head, Torso, Arms, Legs)
+        generateVectorGraphic('kali_humanoid', 32, 48, (ctx) => {
+            // Head / Skin Tone
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath(); ctx.arc(16, 8, 6, 0, Math.PI * 2); ctx.fill();
+            // Tactical Visor / Eyes
+            ctx.fillStyle = '#00ffff'; ctx.fillRect(13, 6, 7, 2);
+            // Torso / Human Shirt Jacket
+            ctx.fillStyle = '#3366cc'; ctx.fillRect(10, 14, 12, 16);
+            // Human Arms
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(6, 15, 4, 12);  // Left arm
+            ctx.fillRect(22, 15, 4, 12); // Right arm
+            // Legs / Trousers
+            ctx.fillStyle = '#222222';
+            ctx.fillRect(10, 30, 5, 14);  // Left leg
+            ctx.fillRect(17, 30, 5, 14);  // Right leg
+            // Shoes
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(9, 44, 6, 4);
+            ctx.fillRect(17, 44, 6, 4);
         });
 
         // Target Kitty Block Node
@@ -157,38 +155,37 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        // Susi Combat Support Drone Fighter
+        // Susi Companion - Active Flying Ally Fighter
         generateVectorGraphic('susi_drone', 24, 24, (ctx) => {
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath(); ctx.arc(12, 12, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ff00ff';
+            ctx.beginPath(); ctx.arc(12, 12, 7, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.strokeRect(2, 2, 20, 20);
         });
 
-        // Solid Matrix Green Floor Block
+        // Matrix Grid Platform Floor
         generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
-            ctx.fillStyle = '#0c2c0c'; ctx.fillRect(0, 0, 32, 32);
+            ctx.fillStyle = '#0d260d'; ctx.fillRect(0, 0, 32, 32);
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
         });
 
-        // Virus Hazard Code-Blocks (Enemies)
+        // Threat Elements
         generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#ff2222'; ctx.fillRect(4, 4, 24, 24);
+            ctx.fillStyle = '#ee2222'; ctx.fillRect(4, 4, 24, 24);
             ctx.strokeStyle = '#ffffff'; ctx.strokeRect(1, 1, 30, 30);
         });
 
-        // Projectile Entities
+        // Laser rounds
         generateVectorGraphic('laser_green', 14, 6, (ctx) => { ctx.fillStyle = '#33ff33'; ctx.fillRect(0, 0, 14, 6); });
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
     }
 
     function create() {
-        // Build Exact Vector Array Grid Background
         let grid = this.add.graphics();
-        grid.lineStyle(1, 0x115511, 0.8);
+        grid.lineStyle(1, 0x114411, 0.7);
         for (let x = 0; x <= 4000; x += 30) { grid.lineBetween(x, 0, x, 450); }
         for (let y = 0; y <= 450; y += 30) { grid.lineBetween(0, y, 4000, y); }
         
-        grid.lineStyle(0.5, 0x072207, 0.5);
+        grid.lineStyle(0.5, 0x051a05, 0.4);
         for (let x = 0; x < 4000; x += 30) {
             for (let y = 0; y < 450; y += 30) { grid.lineBetween(x, y, x + 30, y + 30); }
         }
@@ -199,12 +196,11 @@
         kaliLasers = this.physics.add.group();
         susiLasers = this.physics.add.group();
 
-        // Build Level Base Floor
         for (let x = 0; x < 4000; x += 32) {
             mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
         }
 
-        player = this.physics.add.sprite(100, 300, 'kali_avatar').setCollideWorldBounds(true);
+        player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
         partnerSusi = this.physics.add.sprite(70, 260, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
@@ -219,12 +215,10 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        // Overlap Clear Verification
         this.physics.add.overlap(player, targetKitty, () => {
             if (sysProgress.runtimeActive) advanceNextMatrixSegment();
         }, null, this);
 
-        // Weapon Systems Collision
         this.physics.add.overlap([kaliLasers, susiLasers], enemiesGroup, (projectile, enemy) => {
             projectile.destroy();
             enemy.destroy();
@@ -240,7 +234,6 @@
             }
         });
 
-        // Map Control Inputs
         const bindInput = (id, prop) => {
             let btn = document.getElementById(id);
             btn.addEventListener('mousedown', () => window[prop] = true);
@@ -262,7 +255,7 @@
     function triggerKaliLaser() {
         if (!sysProgress.runtimeActive) return;
         let offset = facingDirection === 'right' ? 20 : -20;
-        let shot = kaliLasers.create(player.x + offset, player.y - 4, 'laser_green');
+        let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_green');
         shot.body.allowGravity = false;
         shot.setVelocityX(facingDirection === 'right' ? 650 : -650);
     }
@@ -272,45 +265,42 @@
         game.scene.scenes[0].physics.resume();
         sysProgress.runtimeActive = true;
 
-        // Reset positions
         player.x = 100; player.y = 350;
-        targetKitty.x = 800 + (sysProgress.level * 600); // Level maps expand outwards lineally
+        let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+        
+        targetKitty.x = 800 + (sysProgress.level * 650); 
         if (targetKitty.x > 3900) targetKitty.x = 3900;
         targetKitty.body.updateFromObj();
 
-        // Wipe out old active threat blocks
         enemiesGroup.clear(true, true);
 
-        // Generate Procedural Platform Ledges & Dynamic Threat Vectors
         let platformCount = 3 + sysProgress.level;
         for (let i = 0; i < platformCount; i++) {
-            let platX = 350 + (i * 450) + Phaser.Math.Between(-50, 50);
+            let platX = 350 + (i * 450) + Phaser.Math.Between(-40, 40);
             let platY = Phaser.Math.Between(220, 310);
             
             for (let block = 0; block < 4; block++) {
                 mapPlatforms.create(platX + (block * 32), platY, 'matrix_floor').setOrigin(0,0).refreshBody();
             }
 
-            // Spawn dynamic hazard units based on Stage Difficulty modifiers
             if (i > 0) {
                 let hazard = enemiesGroup.create(platX + 48, platY - 40, 'virus_hazard');
-                hazard.setVelocityX(Phaser.Math.Between(-50, -150) - (sysProgress.stage * 3));
+                hazard.setVelocityX(Phaser.Math.Between(-60, -160) - (sysProgress.stage * 2));
                 hazard.setBounce(1, 0).setCollideWorldBounds(true);
             }
         }
 
         refreshTerminalHUD();
-        document.getElementById('hud-log').innerText = `Stage ${sysProgress.stage} - Objective: Guard your position and reach the Matrix block terminal at X=${Math.round(targetKitty.x)}!`;
+        document.getElementById('hud-log').innerText = `Level ${currentTotalLevel} of ${sysProgress.maxLevels} | Head right and clear threats with Susi!`;
     }
 
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        // Smooth Drone Lag Follow Mechanic for Partner Susi
+        // Ally Follow Offset
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.1);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 30, 0.1);
+        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 25, 0.1);
 
-        // Core Movement Vector Input Loops
         if (cursors.left.isDown || window.moveLeft) {
             player.setVelocityX(-240); facingDirection = 'left';
         } else if (cursors.right.isDown || window.moveRight) {
@@ -323,14 +313,14 @@
             player.setVelocityY(-480);
         }
 
-        // Automatic Combat AI Routines for Partner Susi
-        if (time > lastDroneFireTime + 1200) {
+        // Susi Automatic Combat Targeting
+        if (time > lastDroneFireTime + 1100) {
             let nearestEnemy = enemiesGroup.getFirstAlive();
-            if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 380) {
+            if (nearestEnemy && Phaser.Math.Distance.Between(partnerSusi.x, partnerSusi.y, nearestEnemy.x, nearestEnemy.y) < 400) {
                 lastDroneFireTime = time;
                 let plasma = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
                 plasma.body.allowGravity = false;
-                this.physics.moveToObject(plasma, nearestEnemy, 400);
+                this.physics.moveToObject(plasma, nearestEnemy, 420);
             }
         }
     }
@@ -339,31 +329,36 @@
         sysProgress.runtimeActive = false;
         game.scene.scenes[0].physics.pause();
 
-        sysProgress.level++;
-        if (sysProgress.level > 4) { // 4 Sublevels per main global stage structure
-            sysProgress.level = 1;
-            sysProgress.stage++;
-            sysProgress.age += 2; // Incremental Age maturation mechanics
-        }
+        let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
 
-        if (sysProgress.stage > 150) {
-            document.getElementById('menu-header').innerText = "⚡ THE OMEGA TERMINAL CLEARED ⚡";
-            document.getElementById('menu-desc').innerText = "Incredible! You have completely solved all 150 stages of the Matrix Grid framework with Kali and Susi!";
+        if (currentTotalLevel >= sysProgress.maxLevels) {
+            document.getElementById('menu-header').innerText = "⚡ FREEDOM RECLAIMED ⚡";
+            document.getElementById('menu-desc').innerText = "Incredible! You completed all 350 customized combat levels with your Humanoid Avatar and Susi!";
             document.getElementById('main-menu-btn').style.display = 'none';
             document.getElementById('start-menu').style.display = 'flex';
             return;
         }
 
-        document.getElementById('menu-header').innerText = `🟩 STAGE MODULATION COMPLETE 🟩`;
-        document.getElementById('menu-desc').innerText = `Successfully verified code segment. Prepare to sync data pipelines for Stage ${sysProgress.stage} - Level ${sysProgress.level}.`;
-        document.getElementById('main-menu-btn').innerText = `SYNC NEXT SECTOR`;
+        sysProgress.level++;
+        if (sysProgress.level > 4) { 
+            sysProgress.level = 1;
+            sysProgress.stage++;
+            sysProgress.age += 1; 
+        }
+
+        let nextTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+
+        document.getElementById('menu-header').innerText = `🟩 STAGE UNLOCKED 🟩`;
+        document.getElementById('menu-desc').innerText = `Level ${currentTotalLevel} Clear. Prepared interface calibrations for Level ${nextTotalLevel} / 350.`;
+        document.getElementById('main-menu-btn').innerText = `LOAD NEXT ZONE`;
         
         document.getElementById('main-menu-btn').onclick = initRuntimeLevel;
         document.getElementById('start-menu').style.display = 'flex';
     }
 
     function refreshTerminalHUD() {
-        document.getElementById('hud-lvl').innerText = `Stage ${sysProgress.stage} - Level ${sysProgress.level} | Age: ${sysProgress.age} | Shield: ${sysProgress.shield}%`;
+        let currentTotalLevel = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+        document.getElementById('hud-lvl').innerText = `Level: ${currentTotalLevel} / 350 | Age: ${sysProgress.age} | Shield: ${sysProgress.shield}%`;
     }
 </script>
 </body>
