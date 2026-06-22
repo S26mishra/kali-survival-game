@@ -42,31 +42,14 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
-        /* YouTube Mock Visual Player UI */
-        .youtube-visual-player {
-            width: 420px; height: 220px; background: #000; border: 2px solid #333;
-            position: relative; margin: 15px 0; cursor: pointer; box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        /* Fixed YouTube Embedded Video Object styling */
+        .youtube-video-frame-container {
+            width: 440px; height: 245px; background: #000; border: 2px solid #ff0000;
+            position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
         }
-        .yt-top-bar {
-            position: absolute; top: 0; left: 0; width: 100%; height: 35px; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
-            display: flex; align-items: center; padding: 0 10px; font-size: 12px; color: #fff; box-sizing: border-box;
+        .youtube-video-frame-container iframe {
+            width: 100%; height: 100%; border: none;
         }
-        .yt-play-btn {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 65px; height: 45px; background: #ff0000; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px;
-        }
-        .youtube-visual-player:hover .yt-play-btn { background: #cc0000; scale: 1.05; }
-        .yt-controls {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 35px;
-            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;
-        }
-        .yt-progress-bar {
-            position: absolute; top: -4px; left: 0; height: 4px; background: #ff0000; width: 100%;
-            animation: progressCountdown 10s linear forwards;
-        }
-        @keyframes progressCountdown { from { width: 100%; } to { width: 0%; } }
 
         .mobile-controls {
             position: absolute; bottom: 12px; left: 0; width: 100%;
@@ -113,22 +96,20 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Wednesday Ad View Mode (YouTube Visual Player Layout) -->
+    <!-- Screen 2: Real YouTube Video Embed Layout Mode -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div class="menu-title" style="color:#ff3333; text-shadow: 0 0 10px #ff3333;">📺 YOUTUBE ADVERTISEMENT 📺</div>
+        <div class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER active 📺</div>
+        <p style="font-size:12px; margin:0 0 10px 0; color:#aaa;">Watch the Wednesday Addams scene below to skip and continue.</p>
         
-        <!-- Interactive YouTube Mock Graphic Object -->
-        <div class="youtube-visual-player" onclick="claimVideoRevival()">
-            <div class="yt-top-bar">Wednesday Addams Dance Scene & Song (Audio HQ)</div>
-            <div class="yt-play-btn">▶</div>
-            <div class="yt-controls">
-                <span style="font-size:10px; color:#ccc;">0:04 / 0:10</span>
-                <span style="font-size:11px; color:#ff3333; font-weight:bold;">[CLICK TO SKIP ADS & RESUME]</span>
-            </div>
-            <div class="yt-progress-bar"></div>
+        <!-- Embedded Iframe containing streaming Wednesday Dance Content -->
+        <div class="youtube-video-frame-container">
+            <iframe id="ad-youtube-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
 
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:12px; padding:6px 15px;" onclick="resetToLevelBeginning()">Skip & Restart Level</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()">CLAIM CONTINUE & RESUME</button>
+            <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:13px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL Instead</button>
+        </div>
     </div>
 
     <div id="game-container"></div>
@@ -164,7 +145,7 @@
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0, lastBossFireTime = 0;
-    let globalAmbushTimer = null, adCountdownTimer = null;
+    let globalAmbushTimer = null;
     let currentBossInstance = null;
     let currentBossType = 'fire'; 
 
@@ -350,7 +331,6 @@
             game.scene.scenes[0].physics.pause();
             if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
             
-            // Display exact point data info where he lost
             document.getElementById('defeat-info-text').innerText = `Defeated at Stage ${sysProgress.stage}, Level ${sysProgress.level}.`;
             document.getElementById('defeat-menu').style.display = 'flex';
         }
@@ -358,14 +338,15 @@
 
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
-        document.getElementById('revival-ad-container').style.display = 'flex';
         
-        if (adCountdownTimer) clearTimeout(adCountdownTimer);
-        adCountdownTimer = setTimeout(() => { resetToLevelBeginning(); }, 10000);
+        // FIXED: Inject real embed video source so clicking the ad button actually renders the YouTube player
+        document.getElementById('ad-youtube-player').src = "https://www.youtube.com/embed/Di310WS8zLk?autoplay=1";
+        document.getElementById('revival-ad-container').style.display = 'flex';
     };
 
     window.claimVideoRevival = function() {
-        clearTimeout(adCountdownTimer);
+        // Clear the iframe contents so video music stops playing
+        document.getElementById('ad-youtube-player').src = "";
         document.getElementById('revival-ad-container').style.display = 'none';
         
         sysProgress.shield = 100;
@@ -383,9 +364,8 @@
         refreshTerminalHUD();
     };
 
-    // FIXED: Wipes current health core/hazards but preserves the current Stage/Level point instead of absolute resetting!
     window.resetToLevelBeginning = function() {
-        clearTimeout(adCountdownTimer);
+        document.getElementById('ad-youtube-player').src = "";
         document.getElementById('defeat-menu').style.display = 'none';
         document.getElementById('revival-ad-container').style.display = 'none';
         
