@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Kali's Legend</title>
+    <title>Kali's Legend: Multiplayer</title>
+    
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 
     <style>
-        /* Your Original Styles preserved */
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', monospace; }
+        body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        
+        /* The main game container */
         #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; background: #000; }
         
-        /* New Multiplayer Chat Overlay */
+        /* The Chat UI Overlay */
         #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; }
         #chat-box { height: 150px; overflow-y: scroll; border: 1px solid #00ff00; margin-bottom: 5px; font-size: 12px; }
     </style>
@@ -22,16 +24,16 @@
         <div id="multiplayer-ui">
             <div id="chat-box"></div>
             <input type="text" id="chat-input" placeholder="Message..." style="width: 95%; background: #000; color: #00ff00; border: 1px solid #00ff00;">
-            <button onclick="sendChatMessage()" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer;">Send</button>
-            <button onclick="joinGameRoom('General')" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer;">Join Room</button>
+            <button onclick="sendChatMessage()" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer; color: #000; font-weight: bold;">Send</button>
+            <button onclick="joinGameRoom('General')" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer; color: #000; font-weight: bold;">Join Room</button>
         </div>
     </div>
 
     <script>
+        // 1. Multiplayer Connection
         const socket = io("http://localhost:3000");
         const myName = "Player_" + Math.floor(Math.random() * 1000);
 
-        // Chat Logic
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             if(input.value) {
@@ -51,10 +53,30 @@
             alert("Joined: " + roomName);
         }
 
-        // --- Your existing Game Configs (Insert your game logic here) ---
-        const config = { type: Phaser.AUTO, width: 800, height: 600, parent: 'game-wrapper', scene: { create: create } };
+        // 2. Phaser Game Logic
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-wrapper', // Stays inside the box
+            scene: {
+                preload: preload,
+                create: create
+            }
+        };
+
         const game = new Phaser.Game(config);
-        function create() { console.log("Game Scene Ready"); }
+
+        function preload() {
+            // LOAD YOUR AVATAR ASSETS HERE
+            // Example: this.load.image('player', 'assets/player.png');
+        }
+
+        function create() {
+            console.log("Game Scene Ready");
+            // DRAW YOUR PLAYER AVATAR AND GAME ELEMENTS HERE
+            // Example: this.add.sprite(400, 300, 'player');
+        }
     </script>
 </body>
 </html>
