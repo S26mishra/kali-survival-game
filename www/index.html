@@ -37,12 +37,13 @@
             cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
         }
         .btn-action:hover { background: #33ff33; color: #000; }
+        .btn-action:disabled { background: #222; border-color: #555; color: #555; cursor: not-allowed; }
         
         /* Defeat Menus */
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
-        /* Fixed YouTube Embedded Video Object styling */
+        /* YouTube Embedded Video Object styling */
         .youtube-video-frame-container {
             width: 440px; height: 245px; background: #000; border: 2px solid #ff0000;
             position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
@@ -96,10 +97,10 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Real YouTube Video Embed Layout Mode -->
+    <!-- Screen 2: YouTube Video Embed Layout Mode -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER active 📺</div>
-        <p style="font-size:12px; margin:0 0 10px 0; color:#aaa;">Watch the Wednesday Addams scene below to skip and continue.</p>
+        <div class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
+        <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Please watch the video: 20s remaining</p>
         
         <!-- Embedded Iframe containing streaming Wednesday Dance Content -->
         <div class="youtube-video-frame-container">
@@ -107,7 +108,7 @@
         </div>
 
         <div style="display: flex; gap: 10px;">
-            <button class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()">CLAIM CONTINUE & RESUME</button>
+            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING GENERATOR...</button>
             <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:13px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL Instead</button>
         </div>
     </div>
@@ -145,7 +146,7 @@
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0, lastBossFireTime = 0;
-    let globalAmbushTimer = null;
+    let globalAmbushTimer = null, adCountdownInterval = null;
     let currentBossInstance = null;
     let currentBossType = 'fire'; 
 
@@ -339,13 +340,44 @@
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
         
-        // FIXED: Inject real embed video source so clicking the ad button actually renders the YouTube player
-        document.getElementById('ad-youtube-player').src = "https://www.youtube.com/embed/Di310WS8zLk?autoplay=1";
+        // Inject YouTube video source (Wednesday Addams Dance & Song Sequence)
+        document.getElementById('ad-youtube-player').src = "https://www.youtube.com/embed/Di310WS8zLk?autoplay=1&controls=0";
         document.getElementById('revival-ad-container').style.display = 'flex';
+
+        // Set up strict 20-second countdown lock logic
+        let timeRemaining = 20;
+        const resumeBtn = document.getElementById('claim-resume-btn');
+        const timerText = document.getElementById('ad-timer-text');
+        
+        resumeBtn.disabled = true;
+        resumeBtn.innerText = "WATCHING AD...";
+        timerText.innerText = `Please watch the video: ${timeRemaining}s remaining`;
+
+        if (adCountdownInterval) clearInterval(adCountdownInterval);
+        
+        adCountdownInterval = setInterval(() => {
+            timeRemaining--;
+            if (timeRemaining > 0) {
+                timerText.innerText = `Please watch the video: ${timeRemaining}s remaining`;
+            } else {
+                clearInterval(adCountdownInterval);
+                timerText.innerText = "✨ Ad Complete! You can now continue your game.";
+                resumeBtn.disabled = false;
+                resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
+            }
+        }, 10000); // Set to run updates matching accurate timelines
+        
+        // Instant safety backup timeout to unlock frame at 20 seconds exactly
+        setTimeout(() => {
+            clearInterval(adCountdownInterval);
+            timerText.innerText = "✨ Ad Complete! You can now continue your game.";
+            resumeBtn.disabled = false;
+            resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
+        }, 20000);
     };
 
     window.claimVideoRevival = function() {
-        // Clear the iframe contents so video music stops playing
+        if (adCountdownInterval) clearInterval(adCountdownInterval);
         document.getElementById('ad-youtube-player').src = "";
         document.getElementById('revival-ad-container').style.display = 'none';
         
@@ -365,6 +397,7 @@
     };
 
     window.resetToLevelBeginning = function() {
+        if (adCountdownInterval) clearInterval(adCountdownInterval);
         document.getElementById('ad-youtube-player').src = "";
         document.getElementById('defeat-menu').style.display = 'none';
         document.getElementById('revival-ad-container').style.display = 'none';
