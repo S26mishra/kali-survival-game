@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Level Segment Restart</title>
+    <title>Kali's Legend: Dynamic Ad Shuffler</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -82,14 +82,12 @@
         <div id="hud-log">System Ready. Run right to locate the Node element.</div>
     </div>
 
-    <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss milestones attached. Dynamic properties shuffling active.</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Screen 1: You Lost Game Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 YOU LOST THE GAME 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Your shield core was completely vaporized.</p>
@@ -97,12 +95,10 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: YouTube Video Embed Layout Mode -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
+        <div id="ad-player-title" class="menu-title" style="color:#ff3333; font-size:20px; text-shadow: 0 0 10px #ff3333; margin-bottom:5px;">📺 YOUTUBE AD PLAYER ACTIVE 📺</div>
         <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Please watch the video: 20s remaining</p>
         
-        <!-- Embedded Iframe containing streaming Wednesday Dance Content -->
         <div class="youtube-video-frame-container">
             <iframe id="ad-youtube-player" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
@@ -157,6 +153,14 @@
         shield: 100,
         runtimeActive: false
     };
+
+    // Pool of rotating video assets that swaps layout properties every cycle Kali loses
+    const dynamicAdPool = [
+        { title: "📺 STREAMING: WEDNESDAY ADDAMS DANCE", embedId: "Di310WS8zLk" },
+        { title: "🧟 ALERT: ZOMBIE OUTBREAK INCOMING", embedId: "R138wN72Xz8" },
+        { title: "👻 WARNING: JUMPSCARE HORROR VIDEO", embedId: "aUre8bK8fN0" },
+        { title: "⚡ SHORTS CHANNELS: VIRUS CLIPS SPEEDRUN", embedId: "e7wApeVzDrs" }
+    ];
 
     function preload() {
         let generateVectorGraphic = (key, w, h, drawCallback) => {
@@ -340,37 +344,40 @@
     window.showWednesdayVideoAd = function() {
         document.getElementById('defeat-menu').style.display = 'none';
         
-        // Inject YouTube video source (Wednesday Addams Dance & Song Sequence)
-        document.getElementById('ad-youtube-player').src = "https://www.youtube.com/embed/Di310WS8zLk?autoplay=1&controls=0";
+        // Randomly grab a unique content configuration from the pool every time Kali fails!
+        let randomChoice = dynamicAdPool[Math.floor(Math.random() * dynamicAdPool.length)];
+        
+        document.getElementById('ad-player-title').innerText = randomChoice.title;
+        document.getElementById('ad-youtube-player').src = `https://www.youtube.com/embed/${randomChoice.embedId}?autoplay=1&controls=0`;
         document.getElementById('revival-ad-container').style.display = 'flex';
 
-        // Set up strict 20-second countdown lock logic
+        // Set up strict 20-second layout countdown lock logic
         let timeRemaining = 20;
         const resumeBtn = document.getElementById('claim-resume-btn');
         const timerText = document.getElementById('ad-timer-text');
         
         resumeBtn.disabled = true;
-        resumeBtn.innerText = "WATCHING AD...";
-        timerText.innerText = `Please watch the video: ${timeRemaining}s remaining`;
+        resumeBtn.innerText = "WATCHING CONTENT AD...";
+        timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
 
         if (adCountdownInterval) clearInterval(adCountdownInterval);
         
         adCountdownInterval = setInterval(() => {
             timeRemaining--;
             if (timeRemaining > 0) {
-                timerText.innerText = `Please watch the video: ${timeRemaining}s remaining`;
+                timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
             } else {
                 clearInterval(adCountdownInterval);
-                timerText.innerText = "✨ Ad Complete! You can now continue your game.";
+                timerText.innerText = "✨ Video finished! Claim reward below.";
                 resumeBtn.disabled = false;
                 resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
             }
-        }, 10000); // Set to run updates matching accurate timelines
+        }, 1000);
         
-        // Instant safety backup timeout to unlock frame at 20 seconds exactly
+        // Safety lock cleanup trigger at 20000ms
         setTimeout(() => {
             clearInterval(adCountdownInterval);
-            timerText.innerText = "✨ Ad Complete! You can now continue your game.";
+            timerText.innerText = "✨ Video finished! Claim reward below.";
             resumeBtn.disabled = false;
             resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
         }, 20000);
