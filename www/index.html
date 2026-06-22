@@ -33,20 +33,21 @@
         
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 8, 29, 0.95);
+            background: rgba(11, 27, 11, 0.95);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; box-sizing: border-box; padding: 15px; color: white;
+            z-index: 10; box-sizing: border-box; padding: 15px; color: #33ff33;
             border-radius: 8px;
+            border: 2px solid #33ff33;
         }
-        .menu-title { color: #00ffff; font-size: 22px; text-shadow: 0 0 10px #00ffff; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
+        .menu-title { color: #33ff33; font-size: 22px; text-shadow: 0 0 10px #33ff33; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
         
         .btn-action {
-            background: linear-gradient(180deg, #ff007f 0%, #b30059 100%);
-            border: 2px solid #ffffff; padding: 12px 30px; font-size: 16px; color: white;
+            background: linear-gradient(180deg, #118811 0%, #004400 100%);
+            border: 2px solid #33ff33; padding: 12px 30px; font-size: 16px; color: #33ff33;
             border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase;
-            box-shadow: 0 4px 10px rgba(255, 0, 127, 0.5); margin: 10px; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 255, 0, 0.3); margin: 10px; transition: 0.2s;
         }
-        .btn-action:hover { transform: scale(1.05); }
+        .btn-action:hover { transform: scale(1.05); background: #33ff33; color: #000; }
 
         .mobile-controls {
             position: absolute; bottom: 10px; left: 0; width: 100%;
@@ -56,20 +57,20 @@
         .dir-pad, .action-pad { display: flex; gap: 15px; pointer-events: auto; }
         .ctrl-btn {
             width: 50px; height: 50px;
-            background: linear-gradient(180deg, #3a1c6e 0%, #1a0b36 100%);
-            border: 2px solid #00ffff; border-radius: 50%;
-            color: #fff; font-size: 20px; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(180deg, #1a3a1a 0%, #051405 100%);
+            border: 2px solid #33ff33; border-radius: 50%;
+            color: #33ff33; font-size: 20px; display: flex; justify-content: center; align-items: center;
             cursor: pointer; box-shadow: 0 4px 0 #000; user-select: none;
         }
-        .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #ff007f; }
-        .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 70px; font-size: 13px; border-radius: 12px; }
+        .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #33ff33; color: #000; }
+        .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; color: white; width: 70px; font-size: 13px; border-radius: 12px; }
         
         .hud-overlay {
-            position: absolute; top: 15px; left: 15px; pointer-events: none; color: white; font-family: Arial, sans-serif;
+            position: absolute; top: 15px; left: 15px; pointer-events: none; color: #33ff33; font-family: Arial, sans-serif;
             z-index: 4; display: flex; flex-direction: column; gap: 5px;
         }
-        #hud-lvl { color: #00ffff; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
-        #hud-log { color: #ffffff; font-size: 12px; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; }
+        #hud-lvl { color: #33ff33; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        #hud-log { color: #ffffff; font-size: 12px; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; border: 1px solid #116611; }
     </style>
 </head>
 <body>
@@ -77,13 +78,13 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Age: 5 | Shield: 100%</div>
-        <div id="hud-log">Welcome to Kali's Legend! Click START below.</div>
+        <div id="hud-log">Loading matrix grid system... Click START below.</div>
     </div>
 
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Journey with Susi ⚔️</div>
-        <p id="menu-desc" style="text-align:center; max-width:440px; font-size:14px; line-height:1.4;">Rescue your companion Kitty the cat, meet up with Susi, and clear the cosmic threats!</p>
-        <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START GAME</button>
+        <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Retro Journey ⚔️</div>
+        <p id="menu-desc" style="text-align:center; max-width:440px; font-size:14px; line-height:1.4;">Navigate the green grid vector space, rescue your companion, and bypass obstacles!</p>
+        <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START MATRIX</button>
     </div>
 
     <div id="game-container"></div>
@@ -135,99 +136,117 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // 1. Futuristic Cyan Platform Tile
+        // Standardized Platform Brick Tile
         createTexture('platform_tile', 32, 32, (ctx) => {
-            ctx.fillStyle = '#1a0933';
+            ctx.fillStyle = '#143314';
             ctx.fillRect(0, 0, 32, 32);
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(2, 2, 28, 28);
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-            ctx.fillRect(8, 8, 16, 16);
+            ctx.strokeStyle = '#33ff33';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(1, 1, 30, 30);
         });
 
-        // 2. Kali Sprite
+        // Onion Character
         createTexture('hero_sprite', 32, 48, (ctx) => {
-            ctx.fillStyle = '#4a154b';
-            ctx.fillRect(0, 8, 32, 40);
-            ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(4, 4, 24, 16);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(2, 0, 28, 6);
-            ctx.fillStyle = '#00ffff';
-            ctx.fillRect(12, 8, 16, 4);
-        });
-
-        // 3. Kitty Cat Sprite
-        createTexture('cat_sprite', 32, 26, (ctx) => {
-            ctx.fillStyle = '#ffa500';
-            ctx.fillRect(4, 10, 24, 14);
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(16, 2, 12, 12);
+            // Purple Onion Head
+            ctx.fillStyle = '#a164a9';
             ctx.beginPath();
-            ctx.moveTo(16, 2); ctx.lineTo(19, -2); ctx.lineTo(21, 2);
-            ctx.moveTo(23, 2); ctx.lineTo(26, -2); ctx.lineTo(28, 2);
+            ctx.arc(16, 18, 12, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Pointy Onion top tip
+            ctx.fillStyle = '#a164a9';
+            ctx.beginPath();
+            ctx.moveTo(16, 2);
+            ctx.lineTo(10, 10);
+            ctx.lineTo(22, 10);
+            ctx.fill();
+
+            // Large yellow outer eye ring
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(16, 18, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Center pupil eye slit
+            ctx.fillStyle = '#ff3300';
+            ctx.fillRect(14, 17, 4, 3);
+
+            // Little brown body stalk/feet support
+            ctx.fillStyle = '#8b5a2b';
+            ctx.fillRect(12, 30, 8, 14);
         });
 
-        // 4. SUSI (Beautiful Anime Girl Design)
+        // Companion Target item
+        createTexture('cat_sprite', 32, 32, (ctx) => {
+            ctx.fillStyle = '#ffaa00';
+            ctx.fillRect(4, 8, 24, 24);
+            ctx.strokeStyle = '#fff';
+            ctx.strokeRect(4, 8, 24, 24);
+        });
+
+        // Secondary Susi Vector Entity
         createTexture('susi_sprite', 32, 44, (ctx) => {
-            ctx.fillStyle = '#ffc0cb';
-            ctx.fillRect(6, 16, 20, 24);
-            ctx.fillStyle = '#ffe0bd';
-            ctx.beginPath(); ctx.arc(16, 10, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#331a00';
-            ctx.fillRect(8, 2, 16, 6);
-            ctx.fillRect(6, 8, 4, 16);
-            ctx.fillRect(22, 8, 4, 16);
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(13, 9, 2, 3); ctx.fillRect(17, 9, 2, 3);
+            ctx.fillStyle = '#00aa00';
+            ctx.fillRect(6, 14, 20, 30);
+            ctx.fillStyle = '#33ff33';
+            ctx.fillRect(12, 4, 8, 8);
         });
 
-        // 5. Red Shard Enemy
+        // Danger block obstacle
         createTexture('enemy_sprite', 32, 32, (ctx) => {
-            ctx.fillStyle = '#ff0055';
-            ctx.beginPath();
-            ctx.moveTo(16, 0); ctx.lineTo(0, 32); ctx.lineTo(32, 32);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(16, 20, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ff2222';
+            ctx.fillRect(0, 0, 32, 32);
+            ctx.strokeStyle = '#ffffff';
+            ctx.strokeRect(2, 2, 28, 28);
         });
 
-        // 6. Laser Ball Projectile
+        // Projectile Laser
         createTexture('laser_sprite', 16, 16, (ctx) => {
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath(); ctx.arc(8, 8, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(8, 8, 2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#33ff33';
+            ctx.beginPath(); ctx.arc(8, 8, 5, 0, Math.PI * 2); ctx.fill();
         });
     }
 
     function create() {
-        let skyBkg = this.add.graphics();
-        skyBkg.fillGradientStyle(0x030107, 0x030107, 0x1a0933, 0x1a0933, 1);
-        skyBkg.fillRect(0, 0, 12000, 450);
+        // Build the precise green retro vector grid framework
+        let gridGraphic = this.add.graphics();
+        gridGraphic.lineStyle(1, 0x116611, 1);
 
-        for (let i = 0; i < 300; i++) {
-            let starX = Phaser.Math.Between(0, 12000);
-            let starY = Phaser.Math.Between(0, 400);
-            let starSize = Phaser.Math.Between(1, 3);
-            skyBkg.fillStyle(i % 2 === 0 ? 0x00ffff : 0xff00ff, Phaser.Math.FloatBetween(0.4, 1));
-            skyBkg.fillRect(starX, starY, starSize, starSize);
+        const worldWidth = 12000;
+        const worldHeight = 450;
+        const cellSize = 30;
+
+        // Draw vertical system lines
+        for (let x = 0; x <= worldWidth; x += cellSize) {
+            gridGraphic.lineBetween(x, 0, x, worldHeight);
+        }
+        // Draw horizontal system lines
+        for (let y = 0; y <= worldHeight; y += cellSize) {
+            gridGraphic.lineBetween(0, y, worldWidth, y);
+        }
+        
+        // Draw the diagnostic cross diagonal lines inside every cell grid block
+        gridGraphic.lineStyle(0.5, 0x0a330a, 0.7);
+        for (let x = 0; x < worldWidth; x += cellSize) {
+            for (let y = 0; y < worldHeight; y += cellSize) {
+                gridGraphic.lineBetween(x, y, x + cellSize, y + cellSize);
+            }
         }
 
-        this.physics.world.setBounds(0, 0, 12000, 450);
+        this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
         mapPlatforms = this.physics.add.staticGroup();
         enemiesGroup = this.physics.add.group();
         projectilesGroup = this.physics.add.group();
         
-        for (let x = 0; x < 12000; x += 32) {
+        // Ground floors base line
+        for (let x = 0; x < worldWidth; x += 32) {
             mapPlatforms.create(x, 435, 'platform_tile').setOrigin(0, 0).refreshBody();
         }
 
+        // Float platform steps
         for (let p = 500; p < 11000; p += 400) {
-            let h = Phaser.Math.Between(250, 310);
+            let h = Phaser.Math.Between(260, 320);
             for(let block = 0; block < 5; block++) {
                 mapPlatforms.create(p + (block * 32), h, 'platform_tile').setOrigin(0, 0).refreshBody();
             }
@@ -235,10 +254,6 @@
 
         this.goalPointX1 = 3000;
         this.goalPointX2 = 6000;
-
-        this.add.text(this.goalPointX1, 180, '☕ CROSSROADS CAFÉ', { 
-            fontSize: '20px', fontStyle: 'bold', fill: '#00ffff', backgroundColor: '#1a0933', padding: { x: 12, y: 6 } 
-        }).setOrigin(0.5);
 
         player = this.physics.add.sprite(100, 350, 'hero_sprite');
         player.setCollideWorldBounds(true);
@@ -255,7 +270,7 @@
         this.physics.add.collider(kittyCat, mapPlatforms);
         this.physics.add.collider(enemiesGroup, mapPlatforms);
 
-        this.cameras.main.setBounds(0, 0, 12000, 450);
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         cursors = this.input.keyboard.createCursorKeys();
@@ -263,14 +278,14 @@
         this.physics.add.overlap(player, kittyCat, () => {
             if(gameState.levelIndex === 1 && !gameState.isKittySaved) {
                 gameState.isKittySaved = true;
-                showLevelClearScreen("😻 You rescued Kitty the cat! Stage 1 cleared.", 2);
+                showLevelClearScreen("🟩 Grid Vector Segment 1 Safe! Loading Next Phase.", 2);
             }
         }, null, this);
 
         this.physics.add.overlap(projectilesGroup, enemiesGroup, (bullet, enemy) => {
             bullet.destroy();
             enemy.destroy();
-            updateHUDLog("💥 Threat Neutralized!");
+            updateHUDLog("💥 Glitch Cleared!");
         }, null, this);
 
         this.physics.add.collider(player, enemiesGroup, (pl, enemy) => {
@@ -279,7 +294,7 @@
             enemy.destroy();
             refreshHUDBars();
             if (gameState.kaliShield <= 0) {
-                updateHUDLog("💔 Shield depleted! Reloading area...");
+                updateHUDLog("❌ Core Shield Depleted. System Reboot...");
                 startCurrentStage();
             }
         }, null, this);
@@ -309,8 +324,6 @@
         }
 
         this.input.keyboard.on('keydown-SPACE', castFire);
-        
-        // This ensures the menu box displays perfectly immediately on startup
         document.getElementById('start-menu').style.display = 'flex';
         this.physics.pause();
     }
@@ -326,7 +339,7 @@
             if (gameState.levelIndex > 1 && Math.abs(player.x - lastSpawnX) > 450) {
                 lastSpawnX = player.x;
                 let enemy = enemiesGroup.create(player.x + 450, 200, 'enemy_sprite');
-                enemy.setVelocityX(-130);
+                enemy.setVelocityX(-140);
             }
         } else { 
             player.setVelocityX(0);
@@ -345,9 +358,9 @@
         }
 
         if (gameState.levelIndex === 2 && player.x >= this.goalPointX1) {
-            showLevelClearScreen("☕ Susi met you at the Crossroads Café! Together now.", 3);
+            showLevelClearScreen("🟩 Matrix checkpoint reached at X=3000!", 3);
         } else if (gameState.levelIndex === 3 && player.x >= this.goalPointX2) {
-            showLevelClearScreen("🎉 VICTORY! Kali and Susi completed the legendary journey!", 1);
+            showLevelClearScreen("⚡ TERMINAL SUCCESS! The Grid Journey is Complete!", 1);
         }
     }
 
@@ -356,9 +369,9 @@
         player.setVelocity(0,0);
         game.scene.scenes[0].physics.pause();
 
-        document.getElementById('menu-header').innerText = "🏆 STAGE CLEAR 🏆";
+        document.getElementById('menu-header').innerText = "🟩 SECTOR CLEAR 🟩";
         document.getElementById('menu-desc').innerText = message;
-        document.getElementById('main-menu-btn').innerText = "PROCEED TO NEXT STAGE";
+        document.getElementById('main-menu-btn').innerText = "INITIALIZE NEXT LOGIC SEGMENT";
 
         document.getElementById('main-menu-btn').onclick = function() {
             gameState.levelIndex = nextLevelTarget;
@@ -378,17 +391,17 @@
             gameState.age = 5; gameState.currentJumpVelocity = -450; gameState.isKittySaved = false;
             kittyCat.x = 450; kittyCat.y = 350; partnerSusi.setVisible(false);
             player.x = 100; player.y = 350;
-            desc = "Objective: Head right to locate and save Kitty the cat!";
+            desc = "Objective: Head right to scan and capture the yellow grid sector node!";
         } else if (gameState.levelIndex === 2) {
             gameState.age = 12; gameState.currentJumpVelocity = -520; gameState.isKittySaved = true;
             partnerSusi.setVisible(false);
             player.x = 100; player.y = 350;
-            desc = "Objective: Avoid the dark crimson shard obstacles and advance to the Café (X=3000)!";
+            desc = "Objective: Evade the red hazard code-blocks and advance down the array corridor!";
         } else if (gameState.levelIndex === 3) {
             gameState.age = 24; gameState.currentJumpVelocity = -580;
             partnerSusi.setVisible(true); partnerSusi.x = player.x - 60; partnerSusi.y = player.y - 40;
             player.x = 100; player.y = 350;
-            desc = "Susi is traveling with you! Press SPACE or tap FIRE to project magic blasts. Reach X=6000!";
+            desc = "Laser subroutines active. Press SPACE or tap FIRE to neutralize threats and complete system runtime.";
         }
 
         refreshHUDBars();
