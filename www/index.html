@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Seamless Revive Fixed</title>
+    <title>Kali's Legend: Level Segment Restart</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -27,32 +27,43 @@
         }
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 0, 15, 0.96);
+            background: rgba(10, 5, 15, 0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 999; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
         }
-        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
+        .menu-title { font-size: 26px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
-            background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 16px; color: #33ff33;
+            background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 15px; color: #33ff33;
             cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
         }
         .btn-action:hover { background: #33ff33; color: #000; }
         
-        /* Wednesday Revival Screen Design */
-        #revival-ad-container {
-            display: none;
-            background: rgba(20, 0, 30, 0.98);
-            border: 3px solid #b000ff;
-            text-align: center;
+        /* Defeat Menus */
+        #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
+        #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
+        
+        /* YouTube Mock Visual Player UI */
+        .youtube-visual-player {
+            width: 420px; height: 220px; background: #000; border: 2px solid #333;
+            position: relative; margin: 15px 0; cursor: pointer; box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
         }
-        .video-box {
-            width: 340px; height: 160px; background: #111; border: 2px dashed #b000ff;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin: 15px 0; cursor: pointer; position: relative; overflow: hidden;
+        .yt-top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 35px; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            display: flex; align-items: center; padding: 0 10px; font-size: 12px; color: #fff; box-sizing: border-box;
         }
-        .video-box:hover { background: #220033; border-style: solid; }
-        .animated-dance-bar {
-            position: absolute; bottom: 0; left: 0; height: 6px; background: #b000ff; width: 100%;
+        .yt-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 65px; height: 45px; background: #ff0000; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px;
+        }
+        .youtube-visual-player:hover .yt-play-btn { background: #cc0000; scale: 1.05; }
+        .yt-controls {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 35px;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;
+        }
+        .yt-progress-bar {
+            position: absolute; top: -4px; left: 0; height: 4px; background: #ff0000; width: 100%;
             animation: progressCountdown 10s linear forwards;
         }
         @keyframes progressCountdown { from { width: 100%; } to { width: 0%; } }
@@ -90,24 +101,34 @@
     <!-- UI Terminal Overlay Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss system attached to stage milestones. Dynamic attributes fully operational.</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Boss milestones attached. Dynamic properties shuffling active.</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- 10s Wednesday Ad Choice Screen -->
+    <!-- Screen 1: You Lost Game Screen -->
+    <div id="defeat-menu" class="overlay-screen">
+        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 YOU LOST THE GAME 💀</div>
+        <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Your shield core was completely vaporized.</p>
+        <button class="btn-action" style="border-color:#ff9900; color:#ff9900; background:#331100;" onclick="showWednesdayVideoAd()">CLICK ON ADS TO CONTINUE</button>
+        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
+    </div>
+
+    <!-- Screen 2: Wednesday Ad View Mode (YouTube Visual Player Layout) -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div class="menu-title" style="color:#b000ff; text-shadow: 0 0 10px #b000ff;">💀 KALI DEFEATED 💀</div>
-        <p style="font-size:13px; margin:0; color:#fff;">Click video within 10s to claim an instant <b>CONTINUE</b> right where you fell!</p>
+        <div class="menu-title" style="color:#ff3333; text-shadow: 0 0 10px #ff3333;">📺 YOUTUBE ADVERTISEMENT 📺</div>
         
-        <div class="video-box" onclick="claimVideoRevival()">
-            <div style="font-size:28px; margin-bottom:5px;">🎬</div>
-            <div style="font-size:12px; font-weight:bold; color:#e0b0ff; text-align:center; padding:0 10px;">
-                🎶 Wednesday Addams Song Playing 🎶<br><span style="font-size:10px; color:#aaa;">[Click here to Continue Fight]</span>
+        <!-- Interactive YouTube Mock Graphic Object -->
+        <div class="youtube-visual-player" onclick="claimVideoRevival()">
+            <div class="yt-top-bar">Wednesday Addams Dance Scene & Song (Audio HQ)</div>
+            <div class="yt-play-btn">▶</div>
+            <div class="yt-controls">
+                <span style="font-size:10px; color:#ccc;">0:04 / 0:10</span>
+                <span style="font-size:11px; color:#ff3333; font-weight:bold;">[CLICK TO SKIP ADS & RESUME]</span>
             </div>
-            <div class="animated-dance-bar"></div>
+            <div class="yt-progress-bar"></div>
         </div>
 
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToAbsoluteStart()">START OVER</button>
+        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:12px; padding:6px 15px;" onclick="resetToLevelBeginning()">Skip & Restart Level</button>
     </div>
 
     <div id="game-container"></div>
@@ -323,20 +344,25 @@
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false;
             
-            // FIX: Instantly zero physical velocity so sprite doesn't loop or freeze inputs
             player.setVelocity(0, 0);
             window.moveLeft = false; window.moveRight = false; window.doJump = false;
             
             game.scene.scenes[0].physics.pause();
             if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
             
-            // Force reveal the Wednesday UI overlay instantly
-            document.getElementById('revival-ad-container').style.display = 'flex';
-            
-            if (adCountdownTimer) clearTimeout(adCountdownTimer);
-            adCountdownTimer = setTimeout(() => { resetToAbsoluteStart(); }, 10000);
+            // Display exact point data info where he lost
+            document.getElementById('defeat-info-text').innerText = `Defeated at Stage ${sysProgress.stage}, Level ${sysProgress.level}.`;
+            document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
+
+    window.showWednesdayVideoAd = function() {
+        document.getElementById('defeat-menu').style.display = 'none';
+        document.getElementById('revival-ad-container').style.display = 'flex';
+        
+        if (adCountdownTimer) clearTimeout(adCountdownTimer);
+        adCountdownTimer = setTimeout(() => { resetToLevelBeginning(); }, 10000);
+    };
 
     window.claimVideoRevival = function() {
         clearTimeout(adCountdownTimer);
@@ -353,23 +379,23 @@
             callback: spawnOmniDirectionalThreat
         });
         
-        document.getElementById('hud-log').innerText = "❤️ CONTINUE: Fight resumed on this spot!";
+        document.getElementById('hud-log').innerText = "❤️ CONTINUED: Revived exactly where you fell!";
         refreshTerminalHUD();
     };
 
-    window.resetToAbsoluteStart = function() {
+    // FIXED: Wipes current health core/hazards but preserves the current Stage/Level point instead of absolute resetting!
+    window.resetToLevelBeginning = function() {
         clearTimeout(adCountdownTimer);
+        document.getElementById('defeat-menu').style.display = 'none';
         document.getElementById('revival-ad-container').style.display = 'none';
         
-        sysProgress.stage = 1;
-        sysProgress.level = 1;
         sysProgress.shield = 100;
-        
-        initRuntimeLevel();
+        initRuntimeLevel(); 
     };
 
     function initRuntimeLevel() {
         document.getElementById('start-menu').style.display = 'none';
+        document.getElementById('defeat-menu').style.display = 'none';
         document.getElementById('revival-ad-container').style.display = 'none';
         game.scene.scenes[0].physics.resume();
         sysProgress.runtimeActive = true;
