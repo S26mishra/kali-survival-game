@@ -1,1 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <title>Kali's Legend: Journey with Susi</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #030107;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            overflow: hidden;
+            font-family: 'Arial Black', sans-serif;
+        }
+        #game-wrapper {
+            position: relative; 
+            width: 800px; 
+            height: 450px;
+            box-sizing: border-box;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+        }
+        #game-container canvas {
+            border: 3px solid #ff007f;
+            border-radius: 8px;
+            box-shadow: 0 0 20px #00ffff;
+        }
+        
+        .overlay-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 8, 29, 0.95);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; box-sizing: border-box; padding: 15px; color: white;
+            border-radius: 8px;
+        }
+        .menu-title { color: #00ffff; font-size: 22px; text-shadow: 0 0 10px #00ffff; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
+        
+        .btn-action {
+            background: linear-gradient(180deg, #ff007f 0%, #b30059 100%);
+            border: 2px solid #ffffff; padding: 12px 30px; font-size: 16px; color: white;
+            border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(255, 0, 127, 0.5); margin: 10px; transition: 0.2s;
+        }
+        .btn-action:hover { transform: scale(1.05); }
 
+        .mobile-controls {
+            position: absolute; bottom: 10px; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box; z-index: 5; pointer-events: none;
+        }
+        .dir-pad, .action-pad { display: flex; gap: 15px; pointer-events: auto; }
+        .ctrl-btn {
+            width: 50px; height: 50px;
+            background: linear-gradient(180deg, #3a1c6e 0%, #1a0b36 100%);
+            border: 2px solid #00ffff; border-radius: 50%;
+            color: #fff; font-size: 20px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: 0 4px 0 #000; user-select: none;
+        }
+        .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: #ff007f; }
+        .btn-power { background: linear-gradient(180deg, #ff5722 0%, #bf360c 100%); border-color: #ffcc00; width: 70px; font-size: 13px; border-radius: 12px; }
+        
+        .hud-overlay {
+            position: absolute; top: 15px; left: 15px; pointer-events: none; color: white; font-family: Arial, sans-serif;
+            z-index: 4; display: flex; flex-direction: column; gap: 5px;
+        }
+        #hud-lvl { color: #00ffff; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        #hud-log { color: #ffffff; font-size: 12px; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <div class="hud-overlay">
+        <div id="hud-lvl">Age: 5 | Shield: 100%</div>
+        <div id="hud-log">Welcome to Kali's Legend! Click START below.</div>
+    </div>
+
+    <div id="start-menu" class="overlay-screen">
+        <div class="menu-title" id="menu-header">⚔️ Kali's Legend: Journey with Susi ⚔️</div>
+        <p id="menu-desc" style="text-align:center; max-width:440px; font-size:14px; line-height:1.4;">Rescue your companion Kitty the cat, meet up with Susi, and clear the cosmic threats!</p>
+        <button id="main-menu-btn" class="btn-action" onclick="startCurrentStage()">START GAME</button>
+    </div>
+
+    <div id="game-container"></div>
+    
+    <div class="mobile-controls">
+        <div class="dir-pad">
+            <div class="ctrl-btn" id="btn-left">◀</div>
+            <div class="ctrl-btn" id="btn-right">▶</div>
+        </div>
+        <div class="action-pad">
+            <div class="ctrl-btn" id="btn-jump">▲</div>
+            <div class="ctrl-btn btn-power" id="btn-fire">FIRE</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 450,
+        parent: 'game-container',
+        physics: {
+            default: 'arcade',
+            arcade: { gravity: { y: 1000 }, debug: false }
+        },
+        scene: { preload: preload, create: create, update: update }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let player, partnerSusi, kittyCat, mapPlatforms, cursors, enemiesGroup, projectilesGroup;
+    let moveLeft = false, moveRight = false, doJump = false;
+    let facingDirection = 'right';
+    let lastSpawnX = 0;
+    
+    let gameState = { 
+        levelIndex: 1, age: 5, currentJumpVelocity: -450, isKittySaved: false,
+        kaliShield: 100, isChangingStage: false
+    };
+
+    function preload() {
+        let createTexture = (key, width, height, drawFn) => {
+            let canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            let ctx = canvas.getContext('2d');
+            drawFn(ctx);
+            game.textures.addCanvas(key, canvas);
+        };
+
+        // 1. Futuristic Cyan Platform Tile
+        createTexture('platform_tile', 32, 32, (ctx) => {
+            ctx.fillStyle = '#1a0933';
+            ctx.fillRect(0, 0, 32, 32);
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(2, 2, 28, 28);
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+            ctx.fillRect(8, 8, 16, 16);
+        });
+
+        // 2. Kali Sprite
+        createTexture('hero_sprite', 32, 48, (ctx) => {
+            ctx.fillStyle = '#4a154b';
+            ctx.fillRect(0, 8, 32, 40);
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(4, 4, 24, 16);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(2, 0, 28, 6);
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(12, 8, 16, 4);
+        });
+
+        // 3. Kitty Cat Sprite
+        createTexture('cat_sprite', 32, 26, (ctx) => {
+            ctx.fillStyle = '#ffa500';
+            ctx.fillRect(4, 10, 24, 14);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(16, 2, 12, 12);
+            ctx.beginPath();
+            ctx.moveTo(16, 2); ctx.lineTo(19, -2); ctx.lineTo(21, 2);
+            ctx.moveTo(23, 2); ctx.lineTo(26, -2); ctx.lineTo(28, 2);
+            ctx.fill();
+        });
+
+        // 4. SUSI (Beautiful Anime Girl Design)
+        createTexture('susi_sprite', 32, 44, (ctx) => {
+            ctx.fillStyle = '#ffc0cb';
+            ctx.fillRect(6, 16, 20, 24);
+            ctx.fillStyle = '#ffe0bd';
+            ctx.beginPath(); ctx.arc(16, 10, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#331a00';
+            ctx.fillRect(8, 2, 16, 6);
+            ctx.fillRect(6, 8, 4, 16);
+            ctx.fillRect(22, 8, 4, 16);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(13, 9, 2, 3); ctx.fillRect(17, 9, 2, 3);
+        });
+
+        // 5. Red Shard Enemy
+        createTexture('enemy_sprite', 32, 32, (ctx) => {
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.moveTo(16, 0); ctx.lineTo(0, 32); ctx.lineTo(32, 32);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(16, 20, 3, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // 6. Laser Ball Projectile
+        createTexture('laser_sprite', 16, 16, (ctx) => {
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath(); ctx.arc(8, 8, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(8, 8, 2, 0, Math.PI * 2); ctx.fill();
+        });
+    }
+
+    function create() {
+        let skyBkg = this.add.graphics();
+        skyBkg.fillGradientStyle(0x030107, 0x030107, 0x1a0933, 0x1a0933, 1);
+        skyBkg.fillRect(0, 0, 12000, 450);
+
+        for (let i = 0; i < 300; i++) {
+            let starX = Phaser.Math.Between(0, 12000);
+            let starY = Phaser.Math.Between(0, 400);
+            let starSize = Phaser.Math.Between(1, 3);
+            skyBkg.fillStyle(i % 2 === 0 ? 0x00ffff : 0xff00ff, Phaser.Math.FloatBetween(0.4, 1));
+            skyBkg.fillRect(starX, starY, starSize, starSize);
+        }
+
+        this.physics.world.setBounds(0, 0, 12000, 450);
+
+        mapPlatforms = this.physics.add.staticGroup();
+        enemiesGroup = this.physics.add.group();
+        projectilesGroup = this.physics.add.group();
+        
+        for (let x = 0; x < 12000; x += 32) {
+            mapPlatforms.create(x, 435, 'platform_tile').setOrigin(0, 0).refreshBody();
+        }
+
+        for (let p = 500; p < 11000; p += 400) {
+            let h = Phaser.Math.Between(250, 310);
+            for(let block = 0; block < 5; block++) {
+                mapPlatforms.create(p + (block * 32), h, 'platform_tile').setOrigin(0, 0).refreshBody();
+            }
+        }
+
+        this.goalPointX1 = 3000;
+        this.goalPointX2 = 6000;
+
+        this.add.text(this.goalPointX1, 180, '☕ CROSSROADS CAFÉ', { 
+            fontSize: '20px', fontStyle: 'bold', fill: '#00ffff', backgroundColor: '#1a0933', padding: { x: 12, y: 6 } 
+        }).setOrigin(0.5);
+
+        player = this.physics.add.sprite(100, 350, 'hero_sprite');
+        player.setCollideWorldBounds(true);
+
+        kittyCat = this.physics.add.sprite(450, 350, 'cat_sprite');
+        kittyCat.setCollideWorldBounds(true);
+
+        partnerSusi = this.physics.add.sprite(100, 300, 'susi_sprite');
+        partnerSusi.setCollideWorldBounds(true);
+        partnerSusi.body.allowGravity = false;
+        partnerSusi.setVisible(false);
+
+        this.physics.add.collider(player, mapPlatforms);
+        this.physics.add.collider(kittyCat, mapPlatforms);
+        this.physics.add.collider(enemiesGroup, mapPlatforms);
+
+        this.cameras.main.setBounds(0, 0, 12000, 450);
+        this.cameras.main.startFollow(player, true, 0.1, 0.1);
+
+        cursors = this.input.keyboard.createCursorKeys();
+
+        this.physics.add.overlap(player, kittyCat, () => {
+            if(gameState.levelIndex === 1 && !gameState.isKittySaved) {
+                gameState.isKittySaved = true;
+                showLevelClearScreen("😻 You rescued Kitty the cat! Stage 1 cleared.", 2);
+            }
+        }, null, this);
+
+        this.physics.add.overlap(projectilesGroup, enemiesGroup, (bullet, enemy) => {
+            bullet.destroy();
+            enemy.destroy();
+            updateHUDLog("💥 Threat Neutralized!");
+        }, null, this);
+
+        this.physics.add.collider(player, enemiesGroup, (pl, enemy) => {
+            if (gameState.levelIndex === 1 || gameState.isChangingStage) return;
+            gameState.kaliShield -= 20;
+            enemy.destroy();
+            refreshHUDBars();
+            if (gameState.kaliShield <= 0) {
+                updateHUDLog("💔 Shield depleted! Reloading area...");
+                startCurrentStage();
+            }
+        }, null, this);
+
+        const bindButton = (id, startProp) => {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); window[startProp] = true; });
+            el.addEventListener('touchend', () => window[startProp] = false);
+            el.addEventListener('mousedown', () => window[startProp] = true);
+            el.addEventListener('mouseup', () => window[startProp] = false);
+        };
+
+        bindButton('btn-left', 'moveLeft');
+        bindButton('btn-right', 'moveRight');
+        bindButton('btn-jump', 'doJump');
+        
+        document.getElementById('btn-fire').addEventListener('click', castFire);
+        document.getElementById('btn-fire').addEventListener('touchstart', (e) => { e.preventDefault(); castFire(); });
+
+        function castFire() {
+            if (gameState.levelIndex === 1) return;
+            let bulletX = player.x + (facingDirection === 'right' ? 25 : -25);
+            let bullet = projectilesGroup.create(bulletX, player.y - 12, 'laser_sprite');
+            bullet.body.allowGravity = false;
+            bullet.setVelocityX(facingDirection === 'right' ? 600 : -600);
+            setTimeout(() => { if(bullet.active) bullet.destroy(); }, 1000);
+        }
+
+        this.input.keyboard.on('keydown-SPACE', castFire);
+        
+        // This ensures the menu box displays perfectly immediately on startup
+        document.getElementById('start-menu').style.display = 'flex';
+        this.physics.pause();
+    }
+
+    function update() {
+        if (gameState.isChangingStage) return;
+
+        if (cursors.left.isDown || window.moveLeft) { 
+            player.setVelocityX(-220); facingDirection = 'left';
+        } else if (cursors.right.isDown || window.moveRight) { 
+            player.setVelocityX(220); facingDirection = 'right';
+            
+            if (gameState.levelIndex > 1 && Math.abs(player.x - lastSpawnX) > 450) {
+                lastSpawnX = player.x;
+                let enemy = enemiesGroup.create(player.x + 450, 200, 'enemy_sprite');
+                enemy.setVelocityX(-130);
+            }
+        } else { 
+            player.setVelocityX(0);
+        }
+
+        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) { 
+            player.setVelocityY(gameState.currentJumpVelocity); 
+        }
+
+        if (gameState.isKittySaved || gameState.levelIndex > 1) {
+            kittyCat.x = Phaser.Math.Linear(kittyCat.x, player.x - 45, 0.08);
+        }
+        if (gameState.levelIndex === 3) {
+            partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 75, 0.07);
+            partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 40, 0.07);
+        }
+
+        if (gameState.levelIndex === 2 && player.x >= this.goalPointX1) {
+            showLevelClearScreen("☕ Susi met you at the Crossroads Café! Together now.", 3);
+        } else if (gameState.levelIndex === 3 && player.x >= this.goalPointX2) {
+            showLevelClearScreen("🎉 VICTORY! Kali and Susi completed the legendary journey!", 1);
+        }
+    }
+
+    function showLevelClearScreen(message, nextLevelTarget) {
+        gameState.isChangingStage = true;
+        player.setVelocity(0,0);
+        game.scene.scenes[0].physics.pause();
+
+        document.getElementById('menu-header').innerText = "🏆 STAGE CLEAR 🏆";
+        document.getElementById('menu-desc').innerText = message;
+        document.getElementById('main-menu-btn').innerText = "PROCEED TO NEXT STAGE";
+
+        document.getElementById('main-menu-btn').onclick = function() {
+            gameState.levelIndex = nextLevelTarget;
+            gameState.isChangingStage = false;
+            startCurrentStage();
+        };
+        document.getElementById('start-menu').style.display = 'flex';
+    }
+
+    window.startCurrentStage = function() {
+        document.getElementById('start-menu').style.display = 'none';
+        game.scene.scenes[0].physics.resume();
+        gameState.kaliShield = 100;
+
+        let desc = "";
+        if (gameState.levelIndex === 1) {
+            gameState.age = 5; gameState.currentJumpVelocity = -450; gameState.isKittySaved = false;
+            kittyCat.x = 450; kittyCat.y = 350; partnerSusi.setVisible(false);
+            player.x = 100; player.y = 350;
+            desc = "Objective: Head right to locate and save Kitty the cat!";
+        } else if (gameState.levelIndex === 2) {
+            gameState.age = 12; gameState.currentJumpVelocity = -520; gameState.isKittySaved = true;
+            partnerSusi.setVisible(false);
+            player.x = 100; player.y = 350;
+            desc = "Objective: Avoid the dark crimson shard obstacles and advance to the Café (X=3000)!";
+        } else if (gameState.levelIndex === 3) {
+            gameState.age = 24; gameState.currentJumpVelocity = -580;
+            partnerSusi.setVisible(true); partnerSusi.x = player.x - 60; partnerSusi.y = player.y - 40;
+            player.x = 100; player.y = 350;
+            desc = "Susi is traveling with you! Press SPACE or tap FIRE to project magic blasts. Reach X=6000!";
+        }
+
+        refreshHUDBars();
+        updateHUDLog(desc);
+    }
+
+    function refreshHUDBars() {
+        document.getElementById('hud-lvl').innerText = `Age: ${gameState.age} | Shield: ${gameState.kaliShield}%`;
+    }
+
+    function updateHUDLog(msg) {
+        document.getElementById('hud-log').innerText = msg;
+    }
+</script>
+</body>
+</html>
