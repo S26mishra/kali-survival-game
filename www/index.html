@@ -3,32 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Kali's Legend: True Cat Companion</title>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
-        #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; }
-        /* Video Container for Wednesday Shorts */
-        #video-overlay { position: absolute; top: 10px; left: 10px; z-index: 200; }
-        /* Chat UI */
-        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; background: #000; }
     </style>
 </head>
 <body>
-
-    <div id="game-wrapper">
-        <div id="video-overlay">
-            <iframe width="200" height="150" src="https://www.youtube.com/embed/videoseries?list=PLr6c340u6G21c4-x6s-r8_Zt7-R5o7vNf" frameborder="0" allowfullscreen></iframe>
-        </div>
-        <div id="multiplayer-ui">
-            <div id="chat-box" style="height: 100px; overflow-y: scroll; border: 1px solid #00ff00; margin-bottom: 5px; font-size: 10px;"></div>
-            <input type="text" id="chat-input" style="width: 90%; background: #000; color: #00ff00; border: 1px solid #00ff00;">
-            <button onclick="sendMessage()" style="width: 100%; background: #00ff00; cursor: pointer;">Send</button>
-        </div>
-    </div>
+    <div id="game-wrapper"></div>
 
     <script>
-        // Phaser Game Configuration
         const config = {
             type: Phaser.AUTO, width: 800, height: 600, parent: 'game-wrapper',
             physics: { default: 'arcade', arcade: { gravity: { y: 800 } } },
@@ -37,21 +21,22 @@
         const game = new Phaser.Game(config);
 
         function preload() {
-            this.load.image('player', 'assets/player.png');
+            // Keep these exactly as they are so Kali and the Cat look the same
+            this.load.image('player', 'assets/player.png'); 
             this.load.image('platform', 'assets/platform.png');
         }
 
         function create() {
-            // Background Grid
+            // Recreating your exact green grid design
             this.add.grid(400, 300, 800, 600, 40, 40, 0x000000, 0, 0x00FF00, 0.3);
 
-            // Platforms
+            // Platforms for jumping
             this.platforms = this.physics.add.staticGroup();
             this.platforms.create(400, 580, 'platform').setScale(4).refreshBody();
             this.platforms.create(600, 400, 'platform');
             this.platforms.create(200, 300, 'platform');
 
-            // Player
+            // Kali and Cat remain unchanged
             this.player = this.physics.add.sprite(400, 450, 'player');
             this.player.setCollideWorldBounds(true);
             this.physics.add.collider(this.player, this.platforms);
@@ -65,12 +50,9 @@
             else this.player.setVelocityX(0);
 
             if (this.cursors.up.isDown && this.player.body.touching.down) {
-                this.player.setVelocityY(-500); // Jump High
+                this.player.setVelocityY(-500);
             }
         }
-
-        // Placeholder for Socket logic
-        function sendMessage() { /* logic here */ }
     </script>
 </body>
 </html>
