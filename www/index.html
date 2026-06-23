@@ -2,497 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: True Cat Companion & Reliable Streams</title>
+    <title>Kali's Legend: Multiplayer</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: #000;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        #game-wrapper {
-            position: relative; 
-            width: 800px; 
-            height: 450px;
-        }
-        #game-container canvas {
-            border: 4px solid #33ff33;
-            border-radius: 4px;
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
-        }
-        .overlay-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 15, 0.96);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 999; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
-        }
-        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
-        .btn-action {
-            background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 15px; color: #33ff33;
-            cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
-        }
-        .btn-action:hover { background: #33ff33; color: #000; }
-        .btn-action:disabled { background: #222; border-color: #555; color: #555; cursor: not-allowed; }
-        
-        #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
-        #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
-        
-        /* Fixed Video Container with visual Arcade simulation fallback */
-        .youtube-video-frame-container {
-            width: 440px; height: 245px; background: #111; border: 2px solid #ff0000;
-            position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .fallback-ad-graphics {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(45deg, #1f0033, #001a33);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #ff0055; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px #ff0055;
-            animation: pulseBg 2s infinite alternate;
-        }
-        @keyframes pulseBg {
-            0% { opacity: 0.9; }
-            100% { opacity: 1; filter: hue-rotate(20deg); }
-        }
-
-        .mobile-controls {
-            position: absolute; bottom: 12px; left: 0; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 5; pointer-events: none;
-        }
-        .dir-pad, .action-pad { display: flex; gap: 15px; pointer-events: auto; }
-        .ctrl-btn {
-            width: 52px; height: 52px; background: #002200; border: 2px solid #33ff33; border-radius: 50%;
-            color: #33ff33; font-size: 22px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; user-select: none;
-        }
-        .ctrl-btn:active { background: #33ff33; color: #000; }
-        .btn-power { background: #440000; border-color: #ff3333; color: #ff3333; font-size: 12px; font-weight: bold; border-radius: 8px; width: 65px; }
-        .btn-power:active { background: #ff3333; color: #000; }
-        
-        .hud-overlay {
-            position: absolute; top: 15px; left: 15px; pointer-events: none; color: #33ff33;
-            z-index: 4; display: flex; flex-direction: column; gap: 4px;
-        }
-        #hud-lvl { font-size: 16px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #hud-log { font-size: 12px; background: rgba(0,0,0,0.85); padding: 5px 10px; border: 1px solid #33ff33; border-radius: 4px; max-width: 500px; }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        #game-wrapper { position: relative; width: 800px; height: 600px; border: 2px solid #00ff00; background: #000; }
+        #multiplayer-ui { position: absolute; top: 10px; right: 10px; color: #00ff00; background: rgba(0, 20, 0, 0.8); padding: 10px; width: 200px; border: 1px solid #00ff00; z-index: 100; pointer-events: auto; }
+        #chat-box { height: 150px; overflow-y: scroll; border: 1px solid #00ff00; margin-bottom: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
-
-<div id="game-wrapper">
-    <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 4 | Level: 4 (Global: 16/350) | Shield: 100%</div>
-        <div id="hud-log">System Initialized. Cat Companion deployed.</div>
-    </div>
-
-    <!-- UI Main Start Menu -->
-    <div id="start-menu" class="overlay-screen">
-        <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
-        <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
-    </div>
-
-    <!-- Screen 1: Defeat Screen -->
-    <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
-        <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
-        <button class="btn-action" style="border-color:#ff9900; color:#ff9900; background:#331100;" onclick="showWednesdayVideoAd()">WATCH AD TO REVIVE</button>
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
-    </div>
-
-    <!-- Screen 2: Fixed Ad Simulator Screen to avoid YouTube Embed Errors -->
-    <div id="revival-ad-container" class="overlay-screen">
-        <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:20px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
-        <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
-        
-        <div class="youtube-video-frame-container">
-            <div class="fallback-ad-graphics">
-                <div style="font-size: 28px; margin-bottom: 10px;">🌌</div>
-                <div>SIMULATING SPACE CORE ARCHIVE</div>
-                <div style="font-size: 11px; color: #00ffff; margin-top: 5px; font-family: monospace;">[STREAM BUFFER ACTIVE]</div>
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING CHIP...</button>
-            <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:13px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL Instead</button>
+    <div id="game-wrapper">
+        <div id="multiplayer-ui">
+            <div id="chat-box"></div>
+            <input type="text" id="chat-input" placeholder="Message..." style="width: 95%; background: #000; color: #00ff00; border: 1px solid #00ff00;">
+            <button onclick="sendChatMessage()" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer; color: #000; font-weight: bold;">Send</button>
+            <button onclick="joinGameRoom('General')" style="width: 100%; margin-top: 5px; background: #00ff00; cursor: pointer; color: #000; font-weight: bold;">Join Room</button>
         </div>
     </div>
 
-    <div id="game-container"></div>
-    
-    <div class="mobile-controls">
-        <div class="dir-pad">
-            <div class="ctrl-btn" id="btn-left">◀</div>
-            <div class="ctrl-btn" id="btn-right">▶</div>
-        </div>
-        <div class="action-pad">
-            <div class="ctrl-btn" id="btn-jump">▲</div>
-            <div class="ctrl-btn btn-power" id="btn-fire">FIRE</div>
-        </div>
-    </div>
-</div>
+    <script>
+        const socket = io("http://localhost:3000");
+        const myName = "Player_" + Math.floor(Math.random() * 1000);
 
-<script>
-    const config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 450,
-        parent: 'game-container',
-        physics: {
-            default: 'arcade',
-            arcade: { gravity: { y: 1200 }, debug: false }
-        },
-        scene: { preload: preload, create: create, update: update }
-    };
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            if(input.value) {
+                socket.emit("sendMessage", { room: 'General', message: input.value, sender: myName });
+                input.value = '';
+            }
+        }
 
-    const game = new Phaser.Game(config);
+        socket.on("receiveMessage", (data) => {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div><b>${data.sender}:</b> ${data.message}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers;
-    let moveLeft = false, moveRight = false, doJump = false;
-    let facingDirection = 'right';
-    let lastDroneFireTime = 0, lastBossFireTime = 0;
-    let globalAmbushTimer = null, adCountdownInterval = null;
-    let currentBossInstance = null;
-    let currentBossType = 'fire'; 
+        function joinGameRoom(roomName) {
+            socket.emit("joinRoom", roomName);
+        }
 
-    let sysProgress = {
-        stage: 4,
-        level: 4,
-        maxLevels: 350,
-        shield: 100,
-        runtimeActive: false
-    };
-
-    const dynamicTitles = [
-        "🚀 SPACE EXPLORATION: NASA RETRO LAUNCHES",
-        "🎬 OPEN ANIMATION: RETRO ARCADE TRAILER",
-        "🎨 CYBERNETIC GRID: VECTOR VECTOR GRAPHICS"
-    ];
-
-    function preload() {
-        let generateVectorGraphic = (key, w, h, drawCallback) => {
-            let canvas = document.createElement('canvas');
-            canvas.width = w; canvas.height = h;
-            let ctx = canvas.getContext('2d');
-            // CRITICAL FIX: Ensure background transparent clearing so boxes do not form around sprites
-            ctx.clearRect(0, 0, w, h);
-            drawCallback(ctx);
-            game.textures.addCanvas(key, canvas);
+        const config = {
+            type: Phaser.AUTO, 
+            width: 800, 
+            height: 600, 
+            parent: 'game-wrapper',
+            physics: {
+                default: 'arcade',
+                arcade: { gravity: { y: 800 }, debug: false }
+            },
+            scene: { preload: preload, create: create }
         };
+        const game = new Phaser.Game(config);
 
-        generateVectorGraphic('kali_humanoid', 32, 48, (ctx) => {
-            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 8, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#00ffff'; ctx.fillRect(13, 6, 7, 2);
-            ctx.fillStyle = '#3366cc'; ctx.fillRect(10, 14, 12, 16);
-            ctx.fillStyle = '#ffdbac'; ctx.fillRect(6, 15, 4, 12); ctx.fillRect(22, 15, 4, 12);
-            ctx.fillStyle = '#222222'; ctx.fillRect(10, 30, 5, 14); ctx.fillRect(17, 30, 5, 14);
-        });
+        function preload() {
+            this.load.image('player', 'assets/player.png');
+            this.load.image('platform', 'assets/platform.png'); // Ensure this image exists
+        }
 
-        generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
-            ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
-        });
-
-        // CRITICAL FIX: Redrawn completely. No pink circles, no purple borders. A clean white/orange Calico Cat.
-        generateVectorGraphic('susi_drone', 32, 32, (ctx) => {
-            // White body base
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(6, 14, 18, 12); // body
-            ctx.fillRect(16, 6, 10, 10);  // head
+        function create() {
+            this.add.grid(400, 300, 800, 600, 40, 40, 0x000000, 0, 0x00FF00, 0.3);
             
-            // Cat Ears
-            ctx.fillStyle = '#ffaa66';
-            ctx.beginPath(); ctx.moveTo(16, 6); ctx.lineTo(18, 1); ctx.lineTo(21, 6); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(21, 6); ctx.lineTo(24, 1); ctx.lineTo(26, 6); ctx.fill();
+            // Create Physics Group for Platforms
+            this.platforms = this.physics.add.staticGroup();
+            this.platforms.create(400, 568, 'platform').setScale(2).refreshBody(); // Ground
+            this.platforms.create(600, 400, 'platform');
+            this.platforms.create(200, 300, 'platform');
+
+            // Player with physics
+            this.player = this.physics.add.sprite(400, 450, 'player');
+            this.player.setBounce(0.2);
+            this.player.setCollideWorldBounds(true);
+            this.physics.add.collider(this.player, this.platforms);
+
+            // Inputs
+            this.cursors = this.input.keyboard.createCursorKeys();
+
+            // Powers Indicator
+            this.add.text(20, 50, 'Powers: [FIRE] (Space) | [LIGHT] (L)', { color: '#ffff00' });
+        }
+
+        function update() {
+            if (this.cursors.left.isDown) this.player.setVelocityX(-160);
+            else if (this.cursors.right.isDown) this.player.setVelocityX(160);
+            else this.player.setVelocityX(0);
+
+            // Jump High (Up arrow)
+            if (this.cursors.up.isDown && this.player.body.touching.down) {
+                this.player.setVelocityY(-500); // Higher jump
+            }
             
-            // Calico orange patches
-            ctx.fillStyle = '#ff8822';
-            ctx.fillRect(10, 14, 6, 6);
-            ctx.fillRect(20, 6, 4, 4);
-            
-            // Cute tail
-            ctx.fillStyle = '#ff8822';
-            ctx.fillRect(2, 10, 4, 8);
-            
-            // Paws
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(7, 26, 3, 4);
-            ctx.fillRect(11, 26, 3, 4);
-            ctx.fillRect(17, 26, 3, 4);
-            ctx.fillRect(21, 26, 3, 4);
-
-            // Glowing cyan cat eyes
-            ctx.fillStyle = '#00ffff';
-            ctx.fillRect(18, 9, 2, 2);
-            ctx.fillRect(23, 9, 2, 2);
-        });
-
-        generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
-            ctx.fillStyle = '#0d260d'; ctx.fillRect(0, 0, 32, 32);
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
-        });
-
-        generateVectorGraphic('virus_hazard', 24, 24, (ctx) => {
-            ctx.fillStyle = '#ee2222'; ctx.fillRect(2, 2, 20, 20);
-        });
-
-        generateVectorGraphic('boss_monster', 96, 96, (ctx) => {
-            ctx.fillStyle = '#221133'; ctx.fillRect(0, 0, 96, 96);
-            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 4; ctx.strokeRect(4, 4, 88, 88);
-            ctx.fillStyle = '#ff0000'; ctx.fillRect(24, 24, 14, 8); ctx.fillRect(58, 24, 14, 8);
-        });
-
-        generateVectorGraphic('boss_fire', 16, 16, (ctx) => { ctx.fillStyle = '#ff5500'; ctx.beginPath(); ctx.arc(8,8,8,0,Math.PI*2); ctx.fill(); });
-        generateVectorGraphic('boss_light', 16, 16, (ctx) => { ctx.fillStyle = '#ffffbb'; ctx.beginPath(); ctx.arc(8,8,6,0,Math.PI*2); ctx.fill(); });
-        generateVectorGraphic('boss_water', 20, 20, (ctx) => { ctx.fillStyle = '#0088ff'; ctx.beginPath(); ctx.arc(10,10,9,0,Math.PI*2); ctx.fill(); });
-
-        generateVectorGraphic('laser_fire', 24, 10, (ctx) => { 
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
-            ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
-        });
-        generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
-    }
-
-    function create() {
-        let grid = this.add.graphics();
-        grid.lineStyle(1, 0x114411, 0.7);
-        for (let x = 0; x <= 4000; x += 30) { grid.lineBetween(x, 0, x, 450); }
-        for (let y = 0; y <= 450; y += 30) { grid.lineBetween(0, y, 4000, y); }
-
-        this.physics.world.setBounds(0, 0, 4000, 450);
-        mapPlatforms = this.physics.add.staticGroup();
-        enemiesGroup = this.physics.add.group();
-        bossGroup = this.physics.add.group();
-        bossLasers = this.physics.add.group();
-        kaliLasers = this.physics.add.group();
-        susiLasers = this.physics.add.group();
-
-        for (let x = 0; x < 4000; x += 32) {
-            mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
+            // Triggering Powers
+            if (this.input.keyboard.addKey('SPACE').isDown) console.log("Fire Power Activated!");
+            if (this.input.keyboard.addKey('L').isDown) console.log("Light Power Activated!");
         }
-
-        player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
-        
-        // Instant crisp render right next to Kali
-        partnerSusi = this.physics.add.sprite(60, 340, 'susi_drone').setCollideWorldBounds(true);
-        partnerSusi.body.allowGravity = false;
-
-        targetKitty = this.physics.add.sprite(300, 350, 'kitty_node').setCollideWorldBounds(true);
-
-        this.physics.add.collider(player, mapPlatforms);
-        this.physics.add.collider(targetKitty, mapPlatforms);
-        this.physics.add.collider(enemiesGroup, mapPlatforms);
-        this.physics.add.collider(bossGroup, mapPlatforms);
-
-        this.cameras.main.setBounds(0, 0, 4000, 450);
-        this.cameras.main.startFollow(player, true, 0.1, 0.1);
-
-        cursors = this.input.keyboard.createCursorKeys();
-
-        this.physics.add.overlap(player, targetKitty, () => {
-            if (sysProgress.runtimeActive) {
-                let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-                if (currentGlobal % 4 === 0 && currentBossInstance && currentBossInstance.active) {
-                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Matrix Boss to advance!";
-                } else {
-                    advanceNextMatrixSegment();
-                }
-            }
-        }, null, this);
-
-        this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
-        this.physics.add.overlap(susiLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
-
-        this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
-            projectile.destroy();
-            boss.health -= 10;
-            if (boss.health <= 0) {
-                boss.destroy();
-                currentBossInstance = null;
-                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Door cleared!";
-            } else {
-                document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% [Power: ${currentBossType.toUpperCase()}]`;
-            }
-        });
-
-        this.physics.add.overlap(player, bossLasers, (pl, laser) => {
-            laser.destroy();
-            sysProgress.shield -= 15;
-            refreshTerminalHUD();
-            checkPlayerMortality();
-        });
-
-        this.physics.add.collider(player, [enemiesGroup, bossGroup], (pl, enemy) => {
-            enemy.destroy();
-            sysProgress.shield -= 20;
-            refreshTerminalHUD();
-            checkPlayerMortality();
-        });
-
-        const bindInput = (id, prop) => {
-            let btn = document.getElementById(id);
-            btn.addEventListener('mousedown', () => window[prop] = true);
-            btn.addEventListener('mouseup', () => window[prop] = false);
-        };
-        bindInput('btn-left', 'moveLeft');
-        bindInput('btn-right', 'moveRight');
-        bindInput('btn-jump', 'doJump');
-
-        document.getElementById('btn-fire').addEventListener('click', triggerKaliLaser);
-        this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
-
-        document.getElementById('start-menu').style.display = 'flex';
-        this.physics.pause();
-    }
-
-    function triggerKaliLaser() {
-        if (!sysProgress.runtimeActive) return;
-        let offset = facingDirection === 'right' ? 20 : -20;
-        let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_fire');
-        shot.body.allowGravity = false;
-        shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
-    }
-
-    function checkPlayerMortality() {
-        if (sysProgress.shield <= 0) {
-            sysProgress.runtimeActive = false;
-            player.setVelocity(0, 0);
-            game.scene.scenes[0].physics.pause();
-            if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-            document.getElementById('defeat-menu').style.display = 'flex';
-        }
-    }
-
-    window.showWednesdayVideoAd = function() {
-        document.getElementById('defeat-menu').style.display = 'none';
-        document.getElementById('ad-player-title').innerText = dynamicTitles[Math.floor(Math.random() * dynamicTitles.length)];
-        document.getElementById('revival-ad-container').style.display = 'flex';
-
-        let timeRemaining = 15;
-        const resumeBtn = document.getElementById('claim-resume-btn');
-        const timerText = document.getElementById('ad-timer-text');
-        
-        resumeBtn.disabled = true;
-        resumeBtn.innerText = "WATCHING CONTENT AD...";
-        timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
-
-        if (adCountdownInterval) clearInterval(adCountdownInterval);
-        adCountdownInterval = setInterval(() => {
-            timeRemaining--;
-            if (timeRemaining > 0) {
-                timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
-            } else {
-                clearInterval(adCountdownInterval);
-                timerText.innerText = "✨ Stream fully verified! Resume key enabled.";
-                resumeBtn.disabled = false;
-                resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
-            }
-        }, 1000);
-    };
-
-    window.claimVideoRevival = function() {
-        document.getElementById('revival-ad-container').style.display = 'none';
-        sysProgress.shield = 100;
-        sysProgress.runtimeActive = true;
-        game.scene.scenes[0].physics.resume();
-        initRuntimeLevel();
-    };
-
-    window.resetToLevelBeginning = function() {
-        if (adCountdownInterval) clearInterval(adCountdownInterval);
-        document.getElementById('defeat-menu').style.display = 'none';
-        document.getElementById('revival-ad-container').style.display = 'none';
-        sysProgress.shield = 100;
-        initRuntimeLevel(); 
-    };
-
-    function initRuntimeLevel() {
-        document.getElementById('start-menu').style.display = 'none';
-        game.scene.scenes[0].physics.resume();
-        sysProgress.runtimeActive = true;
-
-        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-        
-        player.x = 100; player.y = 350;
-        player.setVelocity(0, 0);
-
-        partnerSusi.x = 60; partnerSusi.y = 340;
-
-        let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        targetKitty.x = 1200 + (sysProgress.level * 450);
-
-        enemiesGroup.clear(true, true);
-        bossGroup.clear(true, true);
-
-        if (currentGlobal % 4 === 0) {
-            currentBossInstance = bossGroup.create(targetKitty.x - 180, 330, 'boss_monster');
-            currentBossInstance.health = 100;
-            currentBossInstance.setVelocityX(-40);
-            currentBossInstance.setBounce(1, 0);
-            currentBossInstance.setCollideWorldBounds(true);
-        }
-
-        globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: 1000, loop: true, callback: spawnOmniDirectionalThreat
-        });
-        
-        refreshTerminalHUD();
-    }
-
-    function spawnOmniDirectionalThreat() {
-        if (!sysProgress.runtimeActive) return;
-        let hazard = enemiesGroup.create(player.x + 400, Phaser.Math.Between(200, 380), 'virus_hazard');
-        hazard.body.allowGravity = false;
-        hazard.setVelocityX(-180);
-    }
-
-    function update(time) {
-        if (!sysProgress.runtimeActive) return;
-
-        // Perfect position sync right behind/beside Kali
-        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 4, 0.2);
-
-        if (cursors.left.isDown || window.moveLeft) {
-            player.setVelocityX(-240); facingDirection = 'left';
-        } else if (cursors.right.isDown || window.moveRight) {
-            player.setVelocityX(240); facingDirection = 'right';
-        } else {
-            player.setVelocityX(0);
-        }
-
-        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) {
-            player.setVelocityY(-600);
-        }
-
-        // Cat fires clean cyan target beams at hazards
-        if (time > lastDroneFireTime + 800) {
-            let enemy = enemiesGroup.getFirstAlive();
-            if (enemy) {
-                lastDroneFireTime = time;
-                let beam = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
-                beam.body.allowGravity = false;
-                this.physics.moveToObject(beam, enemy, 400);
-            }
-        }
-    }
-
-    function advanceNextMatrixSegment() {
-        sysProgress.level++;
-        if (sysProgress.level > 4) { sysProgress.level = 1; sysProgress.stage++; }
-        initRuntimeLevel();
-    }
-
-    function refreshTerminalHUD() {
-        let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        document.getElementById('hud-lvl').innerText = `Stage: ${sysProgress.stage} | Level: ${sysProgress.level} (Global: ${currentGlobal}/350) | Shield: ${sysProgress.shield}%`;
-    }
-</script>
+    </script>
 </body>
 </html>
