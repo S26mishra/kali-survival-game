@@ -375,19 +375,18 @@
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Conditional responsive layout check
         let isMobileDevice = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
         if (isMobileDevice) {
-            // Enlarged control layout scaled up for mobile touch interactions
-            createVirtualBtn(65, 465, 46, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-            createVirtualBtn(170, 465, 46, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
-            createVirtualBtn(275, 465, 46, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+            // Lowered 10px down from grid plane (Y changed to 475) and expanded size 5% larger
+            createVirtualBtn(65, 475, 48, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+            createVirtualBtn(170, 475, 48, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+            createVirtualBtn(275, 475, 48, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
             
-            createVirtualBtn(595, 465, 46, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-            createVirtualBtn(715, 465, 48, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+            createVirtualBtn(595, 475, 48, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(715, 475, 50, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
         } else {
-            // Reverted back completely to the original desktop small-size values (Radius 24 / 30)
+            // Completely original legacy desktop profile mapping preserved
             createVirtualBtn(60, 485, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(125, 485, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(190, 485, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -503,6 +502,14 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
+        // Reposition cloud array seamlessly to span across new stages safely
+        if (cloudsGroup && cloudsGroup.children) {
+            cloudsGroup.children.entries.forEach(cloud => {
+                cloud.x = Phaser.Math.Between(0, 4000);
+                cloud.y = Phaser.Math.Between(20, 130);
+            });
+        }
+
         if (currentGlobal % 4 === 0) {
             currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
             currentBossInstance.health = 100;
@@ -566,7 +573,8 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        game.scene.scenes[0].physics.moveToObject(hazard, player, 105);
+        // Balanced monster velocity tracking layout speed slowed down further to 75 units
+        game.scene.scenes[0].physics.moveToObject(hazard, player, 75);
 
         game.scene.scenes[0].time.addEvent({
             delay: Phaser.Math.Between(900, 1500),
