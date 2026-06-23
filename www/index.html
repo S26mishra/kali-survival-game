@@ -87,12 +87,14 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
+    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
+    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -100,6 +102,7 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
+    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -124,7 +127,7 @@
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 520, // Increased height to create a dedicated control zone below the line
+        height: 520, 
         parent: 'game-container',
         scale: {
             mode: Phaser.Scale.FIT,
@@ -244,7 +247,6 @@
     function create() {
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
-        // Constrain grid strictly above the control floor bar area
         for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
         for (let y = 0; y <= 434; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
 
@@ -349,23 +351,23 @@
             checkPlayerMortality();
         });
 
-        // FIXED: All layout keys perfectly repositioned inside the lower black control bar (Y = 480)
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
             let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
-            let btnTxt = this.add.text(x, y, label, { font: 'bold 16px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+            let btnTxt = this.add.text(x, y, label, { font: 'bold 15px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
             
             btnBg.on('pointerdown', pointerDownCallback);
             btnBg.on('pointerup', pointerUpCallback);
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Left Side Controls Group
-        createVirtualBtn(60, 480, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-        createVirtualBtn(130, 480, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        // FIXED Layout: Left, Right, and Jump grouped on the left-hand side below the baseline
+        createVirtualBtn(50, 480, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(115, 480, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        createVirtualBtn(180, 480, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
         
-        // Right Side Action Group
-        createVirtualBtn(650, 480, 26, '▲', 0x004400, () => { doJump = true; }, () => { doJump = false; });
-        createVirtualBtn(735, 480, 32, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        // FIXED Layout: Fire and Light special power keys grouped together on the right-hand side
+        createVirtualBtn(655, 480, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+        createVirtualBtn(735, 480, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
 
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
 
@@ -379,6 +381,16 @@
         let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_fire');
         shot.body.allowGravity = false;
         shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
+    }
+
+    function triggerLightPower() {
+        if (!sysProgress.runtimeActive) return;
+        document.getElementById('hud-log').innerText = "💥 LIGHT FLASH: Blasting nearby airborne threats!";
+        enemiesGroup.children.entries.forEach((enemy) => {
+            if (enemy && enemy.active && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 250) {
+                enemy.destroy();
+            }
+        });
     }
 
     function checkPlayerMortality() {
