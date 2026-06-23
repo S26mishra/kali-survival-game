@@ -87,14 +87,12 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
-    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -102,7 +100,6 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -127,7 +124,7 @@
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 450,
+        height: 520, // Increased height to create a dedicated control zone below the line
         parent: 'game-container',
         scale: {
             mode: Phaser.Scale.FIT,
@@ -209,23 +206,15 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(8, 6, 48, 4);
         });
 
-        // FIXED: Custom detailed monster with body, head, pointy ears, and glowing eyes
         generateVectorGraphic('virus_hazard', 32, 36, (ctx) => {
-            // Ears
             ctx.fillStyle = '#990000';
             ctx.beginPath(); ctx.moveTo(4, 10); ctx.lineTo(8, 0); ctx.lineTo(12, 10); ctx.fill(); 
             ctx.beginPath(); ctx.moveTo(28, 10); ctx.lineTo(24, 0); ctx.lineTo(20, 10); ctx.fill(); 
-            
-            // Head/Face Body Frame
             ctx.fillStyle = '#ee2222';
             ctx.fillRect(4, 10, 24, 22);
-            
-            // Angry Eyes
             ctx.fillStyle = '#ffff00';
             ctx.fillRect(7, 15, 5, 5); 
             ctx.fillRect(20, 15, 5, 5); 
-            
-            // Little Fangs Mouth
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(11, 25, 10, 3);
         });
@@ -244,7 +233,6 @@
             ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
         });
         
-        // Monster Projectiles Asset Vector
         generateVectorGraphic('laser_red', 12, 12, (ctx) => {
             ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(6, 6, 6, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(6, 6, 2, 0, Math.PI * 2); ctx.fill();
@@ -256,10 +244,11 @@
     function create() {
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
-        for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 450); }
-        for (let y = 0; y <= 450; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
+        // Constrain grid strictly above the control floor bar area
+        for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
+        for (let y = 0; y <= 434; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
 
-        this.physics.world.setBounds(0, 0, 4000, 450);
+        this.physics.world.setBounds(0, 0, 4000, 434);
         mapPlatforms = this.physics.add.staticGroup();
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
@@ -269,11 +258,11 @@
         enemyLasers = this.physics.add.group();
 
         for (let x = 0; x < 4000; x += 32) {
-            mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
+            mapPlatforms.create(x, 418, 'matrix_floor').setOrigin(0, 0).refreshBody();
         }
 
         for (let pX = 250; pX < 3800; pX += 300) {
-            let pY = Phaser.Math.Between(220, 320);
+            let pY = Phaser.Math.Between(200, 300);
             mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
             mapPlatforms.create(pX + 100, pY - 80, 'cyber_platform').refreshBody();
         }
@@ -282,15 +271,14 @@
         partnerSusi = this.physics.add.sprite(100, 300, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
-        // Key stays low to ground
-        targetKitty = this.physics.add.sprite(450, 400, 'kitty_node').setCollideWorldBounds(true);
+        targetKitty = this.physics.add.sprite(450, 380, 'kitty_node').setCollideWorldBounds(true);
 
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(targetKitty, mapPlatforms);
         this.physics.add.collider(enemiesGroup, mapPlatforms);
         this.physics.add.collider(bossGroup, mapPlatforms);
 
-        this.cameras.main.setBounds(0, 0, 4000, 450);
+        this.cameras.main.setBounds(0, 0, 4000, 434);
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         cursors = this.input.keyboard.createCursorKeys();
@@ -361,21 +349,23 @@
             checkPlayerMortality();
         });
 
-        // Touch Control Triggers Matrix
+        // FIXED: All layout keys perfectly repositioned inside the lower black control bar (Y = 480)
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
-            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.5);
-            let btnTxt = this.add.text(x, y, label, { font: 'bold 18px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
+            let btnTxt = this.add.text(x, y, label, { font: 'bold 16px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
             
             btnBg.on('pointerdown', pointerDownCallback);
             btnBg.on('pointerup', pointerUpCallback);
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        createVirtualBtn(55, 395, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-        createVirtualBtn(120, 395, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        // Left Side Controls Group
+        createVirtualBtn(60, 480, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(130, 480, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
         
-        createVirtualBtn(675, 395, 26, '▲', 0x004400, () => { doJump = true; }, () => { doJump = false; });
-        createVirtualBtn(745, 395, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        // Right Side Action Group
+        createVirtualBtn(650, 480, 26, '▲', 0x004400, () => { doJump = true; }, () => { doJump = false; });
+        createVirtualBtn(735, 480, 32, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
 
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
 
@@ -458,7 +448,7 @@
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
         
         targetKitty.x = 420;
-        targetKitty.y = 400;
+        targetKitty.y = 380;
 
         enemiesGroup.clear(true, true);
         bossGroup.clear(true, true);
@@ -503,11 +493,10 @@
         refreshTerminalHUD();
     }
 
-    // FIXED: Monsters spawn from Up, Down, Left, or Right off-screen boundaries dynamically
     function spawnOmniDirectionalThreat() {
         if (!sysProgress.runtimeActive) return;
         
-        let side = Phaser.Math.Between(0, 3); // 0: Top, 1: Bottom, 2: Left, 3: Right
+        let side = Phaser.Math.Between(0, 3);
         let sX, sY;
         let cam = game.scene.scenes[0].cameras.main;
 
@@ -516,22 +505,20 @@
             sY = -40;
         } else if (side === 1) { // Bottom
             sX = Phaser.Math.Between(cam.scrollX, cam.scrollX + 800);
-            sY = 490;
+            sY = 400;
         } else if (side === 2) { // Left
             sX = cam.scrollX - 40;
-            sY = Phaser.Math.Between(50, 380);
+            sY = Phaser.Math.Between(50, 350);
         } else { // Right
             sX = cam.scrollX + 840;
-            sY = Phaser.Math.Between(50, 380);
+            sY = Phaser.Math.Between(50, 350);
         }
 
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        // Move enemy toward the player's current location coordinate vectors
         game.scene.scenes[0].physics.moveToObject(hazard, player, 160);
 
-        // Individual firing timer assigned to each dynamic monster instance
         game.scene.scenes[0].time.addEvent({
             delay: Phaser.Math.Between(900, 1500),
             callback: () => {
