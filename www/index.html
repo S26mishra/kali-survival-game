@@ -87,14 +87,12 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
-    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -102,7 +100,6 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -360,12 +357,12 @@
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // FIXED Layout: Left, Right, and Jump grouped on the left-hand side below the baseline
+        // Left side layout cluster (Positioned precisely beneath the standard spawn path/player zone line)
         createVirtualBtn(50, 480, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
         createVirtualBtn(115, 480, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
         createVirtualBtn(180, 480, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
         
-        // FIXED Layout: Fire and Light special power keys grouped together on the right-hand side
+        // Right side layout cluster
         createVirtualBtn(655, 480, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
         createVirtualBtn(735, 480, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
 
