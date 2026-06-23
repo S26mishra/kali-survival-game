@@ -87,12 +87,14 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
+    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
+    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -100,6 +102,7 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
+    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -124,7 +127,7 @@
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 520, 
+        height: 550, // Expanded canvas viewport height to fully clear the grid border
         parent: 'game-container',
         scale: {
             mode: Phaser.Scale.FIT,
@@ -249,6 +252,7 @@
     }
 
     function create() {
+        // Grid bounds limited to game action view height (434px)
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
         for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
@@ -378,15 +382,15 @@
         let isMobileDevice = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
         if (isMobileDevice) {
-            // Lowered 10px down from grid plane (Y changed to 475) and expanded size 5% larger
-            createVirtualBtn(65, 475, 48, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-            createVirtualBtn(170, 475, 48, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
-            createVirtualBtn(275, 475, 48, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+            // Positioned lower at Y=502 (completely separated down below the 434px grid perimeter) + kept at 5% size bump
+            createVirtualBtn(65, 502, 48, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+            createVirtualBtn(170, 502, 48, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+            createVirtualBtn(275, 502, 48, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
             
-            createVirtualBtn(595, 475, 48, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-            createVirtualBtn(715, 475, 50, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+            createVirtualBtn(595, 502, 48, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(715, 502, 50, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
         } else {
-            // Completely original legacy desktop profile mapping preserved
+            // Original legacy desktop mapping untouched
             createVirtualBtn(60, 485, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(125, 485, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(190, 485, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -502,7 +506,7 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
-        // Reposition cloud array seamlessly to span across new stages safely
+        // Constant Cloud Retention Logic across all segments
         if (cloudsGroup && cloudsGroup.children) {
             cloudsGroup.children.entries.forEach(cloud => {
                 cloud.x = Phaser.Math.Between(0, 4000);
@@ -513,7 +517,7 @@
         if (currentGlobal % 4 === 0) {
             currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
             currentBossInstance.health = 100;
-            currentBossInstance.setVelocityX(-120);
+            currentBossInstance.setVelocityX(-100); // Slowed boss tracking vector
             currentBossInstance.setCollideWorldBounds(true);
             currentBossInstance.setBounce(0.2);
             currentBossInstance.isInvulnerable = false; 
@@ -525,15 +529,15 @@
                     if (currentBossInstance && currentBossInstance.active) {
                         let choice = Phaser.Math.Between(0, 2);
                         if (choice === 0 && currentBossInstance.body.touching.down) {
-                            currentBossInstance.setVelocityY(-580); 
+                            currentBossInstance.setVelocityY(-520); 
                         } else if (choice === 1) {
-                            let dir = player.x < currentBossInstance.x ? -350 : 350;
+                            let dir = player.x < currentBossInstance.x ? -280 : 280;
                             currentBossInstance.setVelocityX(dir);
                             currentBossInstance.setAngle(dir > 0 ? 90 : -90); 
                             game.scene.scenes[0].time.delayedCall(400, () => {
                                 if (currentBossInstance && currentBossInstance.active) {
                                     currentBossInstance.setAngle(0);
-                                    currentBossInstance.setVelocityX(dir > 0 ? 120 : -120);
+                                    currentBossInstance.setVelocityX(dir > 0 ? 100 : -100);
                                 }
                             });
                         }
@@ -543,7 +547,7 @@
         }
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: 1500, loop: true, callback: spawnOmniDirectionalThreat
+            delay: 1800, loop: true, callback: spawnOmniDirectionalThreat // Slightly increased interval window for easier evasion
         });
         
         refreshTerminalHUD();
@@ -573,16 +577,16 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        // Balanced monster velocity tracking layout speed slowed down further to 75 units
-        game.scene.scenes[0].physics.moveToObject(hazard, player, 75);
+        // Speed significantly decreased from 75 to 45 units for standard tracking monsters
+        game.scene.scenes[0].physics.moveToObject(hazard, player, 45);
 
         game.scene.scenes[0].time.addEvent({
-            delay: Phaser.Math.Between(900, 1500),
+            delay: Phaser.Math.Between(1100, 1800),
             callback: () => {
                 if (hazard && hazard.active) {
                     let blast = enemyLasers.create(hazard.x, hazard.y, 'laser_red');
                     blast.body.allowGravity = false;
-                    game.scene.scenes[0].physics.moveToObject(blast, player, 320);
+                    game.scene.scenes[0].physics.moveToObject(blast, player, 240); // Slowed down red laser velocity
                 }
             }
         });
@@ -631,7 +635,7 @@
 
         if (currentBossInstance && currentBossInstance.active) {
             if (currentBossInstance.body.velocity.x === 0) {
-                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -120 : 120);
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -100 : 100);
             }
         }
     }
