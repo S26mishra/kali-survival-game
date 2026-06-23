@@ -89,12 +89,14 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
+    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
+    <!-- Screen 1: Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -102,6 +104,7 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
+    <!-- Screen 2: Fixed Ad Simulator Screen to avoid YouTube Embed Errors -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:20px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
         <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
@@ -211,7 +214,6 @@
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
         });
 
-        // Elevated cyber-platform texture block
         generateVectorGraphic('cyber_platform', 64, 16, (ctx) => {
             ctx.fillStyle = '#114411'; ctx.fillRect(0, 0, 64, 16);
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 64, 16);
@@ -222,17 +224,12 @@
             ctx.fillStyle = '#ee2222'; ctx.fillRect(2, 2, 20, 20);
         });
 
-        // REDRAWN BOSS: Humanoid warrior frame that rolls and jumps
         generateVectorGraphic('humanoid_boss', 48, 72, (ctx) => {
-            // Cyber head
             ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(24, 12, 10, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ff0000'; ctx.fillRect(18, 10, 4, 3); ctx.fillRect(26, 10, 4, 3); // red visor eyes
-            // Armored chest/torso
+            ctx.fillStyle = '#ff0000'; ctx.fillRect(18, 10, 4, 3); ctx.fillRect(26, 10, 4, 3); 
             ctx.fillStyle = '#220044'; ctx.fillRect(12, 22, 24, 26);
             ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 2; ctx.strokeRect(12, 22, 24, 26);
-            // Heavy combat arms
             ctx.fillStyle = '#440088'; ctx.fillRect(4, 24, 8, 20); ctx.fillRect(36, 24, 8, 20);
-            // Mecha legs
             ctx.fillStyle = '#110022'; ctx.fillRect(14, 48, 8, 24); ctx.fillRect(26, 48, 8, 24);
         });
 
@@ -244,7 +241,6 @@
     }
 
     function create() {
-        // Grid texture instance drawn systematically on clear loop context
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
         for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 450); }
@@ -258,12 +254,10 @@
         kaliLasers = this.physics.add.group();
         susiLasers = this.physics.add.group();
 
-        // Generate flat solid floor
         for (let x = 0; x < 4000; x += 32) {
             mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
         }
 
-        // Generate elevated floating platforms throughout the level mapping layout
         for (let pX = 250; pX < 3800; pX += 300) {
             let pY = Phaser.Math.Between(220, 320);
             mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
@@ -300,15 +294,44 @@
         this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
         this.physics.add.overlap(susiLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
 
+        // CRITICAL UPDATE: Boss damage control logic
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
-            boss.health -= 8;
+            
+            // If the boss is currently in its recovery frame, ignore damage
+            if (boss.isInvulnerable) return;
+
+            boss.health -= 5; // Reduced damage value to increase survival runtime
+            
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
                 document.getElementById('hud-log').innerText = "🏆 MECHA BOSS DEFEATED! Core vector cleared!";
             } else {
                 document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% | Combat Mode: EVADE & FIGHT`;
+                
+                // Set temporary invulnerability to avoid instance melt down
+                boss.isInvulnerable = true;
+                boss.setTint(0xff0000); // Visual flashing indicators
+                
+                this.time.delayedCall(300, () => {
+                    if (boss && boss.active) {
+                        boss.clearTint();
+                        boss.isInvulnerable = false;
+                    }
+                });
+            }
+        });
+
+        // Cat companion project hit handling
+        this.physics.add.overlap(susiLasers, bossGroup, (projectile, boss) => {
+            projectile.destroy();
+            if (boss.isInvulnerable) return;
+            boss.health -= 2; 
+            if (boss.health <= 0) {
+                boss.destroy();
+                currentBossInstance = null;
+                document.getElementById('hud-log').innerText = "🏆 MECHA BOSS DEFEATED!";
             }
         });
 
@@ -425,22 +448,20 @@
             currentBossInstance.setVelocityX(-120);
             currentBossInstance.setCollideWorldBounds(true);
             currentBossInstance.setBounce(0.2);
+            currentBossInstance.isInvulnerable = false; // Initialized flag state
             
-            // AI Action loops: Humanoid handles leaps and dashes/rolls randomly
             game.scene.scenes[0].time.addEvent({
-                delay: Phaser.Math.Between(1500, 3000),
+                delay: Phaser.Math.Between(1500, 2500),
                 loop: true,
                 callback: () => {
                     if (currentBossInstance && currentBossInstance.active) {
                         let choice = Phaser.Math.Between(0, 2);
                         if (choice === 0 && currentBossInstance.body.touching.down) {
-                            // High defensive Jump over lasers
-                            currentBossInstance.setVelocityY(-550);
+                            currentBossInstance.setVelocityY(-580); // Jump over player laser shots
                         } else if (choice === 1) {
-                            // Forward offensive combat Roll/Dash
-                            let dir = player.x < currentBossInstance.x ? -320 : 320;
+                            let dir = player.x < currentBossInstance.x ? -350 : 350;
                             currentBossInstance.setVelocityX(dir);
-                            currentBossInstance.setAngle(dir > 0 ? 90 : -90); // Graphical angle roll shift
+                            currentBossInstance.setAngle(dir > 0 ? 90 : -90); 
                             game.scene.scenes[0].time.delayedCall(400, () => {
                                 if (currentBossInstance && currentBossInstance.active) {
                                     currentBossInstance.setAngle(0);
@@ -485,7 +506,6 @@
             player.setVelocityY(-620);
         }
 
-        // Cat companion handles target locking on threats
         if (time > lastDroneFireTime + 700) {
             let enemy = enemiesGroup.getFirstAlive() || currentBossInstance;
             if (enemy && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 450) {
@@ -496,7 +516,6 @@
             }
         }
 
-        // Simple boss auto-pacing AI logic adjustment toward player direction vector
         if (currentBossInstance && currentBossInstance.active) {
             if (currentBossInstance.body.velocity.x === 0) {
                 currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -120 : 120);
