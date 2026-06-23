@@ -42,7 +42,6 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
-        /* Fixed Video Container with visual Arcade simulation fallback */
         .youtube-video-frame-container {
             width: 440px; height: 245px; background: #111; border: 2px solid #ff0000;
             position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
@@ -90,14 +89,12 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
-    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Screen 1: Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:14px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -105,7 +102,6 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Fixed Ad Simulator Screen to avoid YouTube Embed Errors -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:20px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
         <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
@@ -146,7 +142,7 @@
         parent: 'game-container',
         physics: {
             default: 'arcade',
-            arcade: { gravity: { y: 1200 }, debug: false }
+            arcade: { gravity: { y: 1400 }, debug: false }
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -156,7 +152,7 @@
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
-    let lastDroneFireTime = 0, lastBossFireTime = 0;
+    let lastDroneFireTime = 0;
     let globalAmbushTimer = null, adCountdownInterval = null;
     let currentBossInstance = null;
     let currentBossType = 'fire'; 
@@ -180,7 +176,6 @@
             let canvas = document.createElement('canvas');
             canvas.width = w; canvas.height = h;
             let ctx = canvas.getContext('2d');
-            // CRITICAL FIX: Ensure background transparent clearing so boxes do not form around sprites
             ctx.clearRect(0, 0, w, h);
             drawCallback(ctx);
             game.textures.addCanvas(key, canvas);
@@ -199,38 +194,16 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        // CRITICAL FIX: Redrawn completely. No pink circles, no purple borders. A clean white/orange Calico Cat.
         generateVectorGraphic('susi_drone', 32, 32, (ctx) => {
-            // White body base
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(6, 14, 18, 12); // body
-            ctx.fillRect(16, 6, 10, 10);  // head
-            
-            // Cat Ears
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 14, 18, 12); 
+            ctx.fillRect(16, 6, 10, 10);  
             ctx.fillStyle = '#ffaa66';
             ctx.beginPath(); ctx.moveTo(16, 6); ctx.lineTo(18, 1); ctx.lineTo(21, 6); ctx.fill();
             ctx.beginPath(); ctx.moveTo(21, 6); ctx.lineTo(24, 1); ctx.lineTo(26, 6); ctx.fill();
-            
-            // Calico orange patches
-            ctx.fillStyle = '#ff8822';
-            ctx.fillRect(10, 14, 6, 6);
-            ctx.fillRect(20, 6, 4, 4);
-            
-            // Cute tail
-            ctx.fillStyle = '#ff8822';
+            ctx.fillStyle = '#ff8822'; ctx.fillRect(10, 14, 6, 6); ctx.fillRect(20, 6, 4, 4);
             ctx.fillRect(2, 10, 4, 8);
-            
-            // Paws
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(7, 26, 3, 4);
-            ctx.fillRect(11, 26, 3, 4);
-            ctx.fillRect(17, 26, 3, 4);
-            ctx.fillRect(21, 26, 3, 4);
-
-            // Glowing cyan cat eyes
-            ctx.fillStyle = '#00ffff';
-            ctx.fillRect(18, 9, 2, 2);
-            ctx.fillRect(23, 9, 2, 2);
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(7, 26, 3, 4); ctx.fillRect(11, 26, 3, 4); ctx.fillRect(17, 26, 3, 4); ctx.fillRect(21, 26, 3, 4);
+            ctx.fillStyle = '#00ffff'; ctx.fillRect(18, 9, 2, 2); ctx.fillRect(23, 9, 2, 2);
         });
 
         generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
@@ -238,19 +211,30 @@
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
         });
 
+        // Elevated cyber-platform texture block
+        generateVectorGraphic('cyber_platform', 64, 16, (ctx) => {
+            ctx.fillStyle = '#114411'; ctx.fillRect(0, 0, 64, 16);
+            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 64, 16);
+            ctx.fillStyle = '#33ff33'; ctx.fillRect(8, 6, 48, 4);
+        });
+
         generateVectorGraphic('virus_hazard', 24, 24, (ctx) => {
             ctx.fillStyle = '#ee2222'; ctx.fillRect(2, 2, 20, 20);
         });
 
-        generateVectorGraphic('boss_monster', 96, 96, (ctx) => {
-            ctx.fillStyle = '#221133'; ctx.fillRect(0, 0, 96, 96);
-            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 4; ctx.strokeRect(4, 4, 88, 88);
-            ctx.fillStyle = '#ff0000'; ctx.fillRect(24, 24, 14, 8); ctx.fillRect(58, 24, 14, 8);
+        // REDRAWN BOSS: Humanoid warrior frame that rolls and jumps
+        generateVectorGraphic('humanoid_boss', 48, 72, (ctx) => {
+            // Cyber head
+            ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(24, 12, 10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ff0000'; ctx.fillRect(18, 10, 4, 3); ctx.fillRect(26, 10, 4, 3); // red visor eyes
+            // Armored chest/torso
+            ctx.fillStyle = '#220044'; ctx.fillRect(12, 22, 24, 26);
+            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 2; ctx.strokeRect(12, 22, 24, 26);
+            // Heavy combat arms
+            ctx.fillStyle = '#440088'; ctx.fillRect(4, 24, 8, 20); ctx.fillRect(36, 24, 8, 20);
+            // Mecha legs
+            ctx.fillStyle = '#110022'; ctx.fillRect(14, 48, 8, 24); ctx.fillRect(26, 48, 8, 24);
         });
-
-        generateVectorGraphic('boss_fire', 16, 16, (ctx) => { ctx.fillStyle = '#ff5500'; ctx.beginPath(); ctx.arc(8,8,8,0,Math.PI*2); ctx.fill(); });
-        generateVectorGraphic('boss_light', 16, 16, (ctx) => { ctx.fillStyle = '#ffffbb'; ctx.beginPath(); ctx.arc(8,8,6,0,Math.PI*2); ctx.fill(); });
-        generateVectorGraphic('boss_water', 20, 20, (ctx) => { ctx.fillStyle = '#0088ff'; ctx.beginPath(); ctx.arc(10,10,9,0,Math.PI*2); ctx.fill(); });
 
         generateVectorGraphic('laser_fire', 24, 10, (ctx) => { 
             ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
@@ -260,10 +244,11 @@
     }
 
     function create() {
-        let grid = this.add.graphics();
-        grid.lineStyle(1, 0x114411, 0.7);
-        for (let x = 0; x <= 4000; x += 30) { grid.lineBetween(x, 0, x, 450); }
-        for (let y = 0; y <= 450; y += 30) { grid.lineBetween(0, y, 4000, y); }
+        // Grid texture instance drawn systematically on clear loop context
+        this.gridGraphic = this.add.graphics();
+        this.gridGraphic.lineStyle(1, 0x114411, 0.6);
+        for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 450); }
+        for (let y = 0; y <= 450; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
 
         this.physics.world.setBounds(0, 0, 4000, 450);
         mapPlatforms = this.physics.add.staticGroup();
@@ -273,13 +258,19 @@
         kaliLasers = this.physics.add.group();
         susiLasers = this.physics.add.group();
 
+        // Generate flat solid floor
         for (let x = 0; x < 4000; x += 32) {
             mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
         }
 
+        // Generate elevated floating platforms throughout the level mapping layout
+        for (let pX = 250; pX < 3800; pX += 300) {
+            let pY = Phaser.Math.Between(220, 320);
+            mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
+            mapPlatforms.create(pX + 100, pY - 80, 'cyber_platform').refreshBody();
+        }
+
         player = this.physics.add.sprite(100, 300, 'kali_humanoid').setCollideWorldBounds(true);
-        
-        // Instant crisp render right next to Kali
         partnerSusi = this.physics.add.sprite(60, 340, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
@@ -299,7 +290,7 @@
             if (sysProgress.runtimeActive) {
                 let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
                 if (currentGlobal % 4 === 0 && currentBossInstance && currentBossInstance.active) {
-                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Matrix Boss to advance!";
+                    document.getElementById('hud-log').innerText = "🛑 SECURE ZONE: Defeat the Humanoid Boss to advance!";
                 } else {
                     advanceNextMatrixSegment();
                 }
@@ -311,32 +302,31 @@
 
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
-            boss.health -= 10;
+            boss.health -= 8;
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
-                document.getElementById('hud-log').innerText = "🏆 BOSS REMOVED! Door cleared!";
+                document.getElementById('hud-log').innerText = "🏆 MECHA BOSS DEFEATED! Core vector cleared!";
             } else {
-                document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% [Power: ${currentBossType.toUpperCase()}]`;
+                document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% | Combat Mode: EVADE & FIGHT`;
             }
         });
 
-        this.physics.add.overlap(player, bossLasers, (pl, laser) => {
-            laser.destroy();
-            sysProgress.shield -= 15;
-            refreshTerminalHUD();
-            checkPlayerMortality();
-        });
-
         this.physics.add.collider(player, [enemiesGroup, bossGroup], (pl, enemy) => {
-            enemy.destroy();
-            sysProgress.shield -= 20;
+            if(enemy === currentBossInstance) {
+                sysProgress.shield -= 25;
+            } else {
+                enemy.destroy();
+                sysProgress.shield -= 20;
+            }
             refreshTerminalHUD();
             checkPlayerMortality();
         });
 
         const bindInput = (id, prop) => {
             let btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); window[prop] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); window[prop] = false; });
             btn.addEventListener('mousedown', () => window[prop] = true);
             btn.addEventListener('mouseup', () => window[prop] = false);
         };
@@ -374,12 +364,12 @@
         document.getElementById('ad-player-title').innerText = dynamicTitles[Math.floor(Math.random() * dynamicTitles.length)];
         document.getElementById('revival-ad-container').style.display = 'flex';
 
-        let timeRemaining = 15;
+        let timeRemaining = 5;
         const resumeBtn = document.getElementById('claim-resume-btn');
         const timerText = document.getElementById('ad-timer-text');
         
         resumeBtn.disabled = true;
-        resumeBtn.innerText = "WATCHING CONTENT AD...";
+        resumeBtn.innerText = "STREAM BUFFER ACTIVE...";
         timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
 
         if (adCountdownInterval) clearInterval(adCountdownInterval);
@@ -389,9 +379,9 @@
                 timerText.innerText = `Video stream active: ${timeRemaining}s remaining`;
             } else {
                 clearInterval(adCountdownInterval);
-                timerText.innerText = "✨ Stream fully verified! Resume key enabled.";
+                timerText.innerText = "✨ Feed verified! Continuing systems...";
                 resumeBtn.disabled = false;
-                resumeBtn.innerText = "CLAIM CONTINUE & RESUME";
+                resumeBtn.innerText = "RESUME RETRO STREAM";
             }
         }, 1000);
     };
@@ -421,7 +411,6 @@
         
         player.x = 100; player.y = 350;
         player.setVelocity(0, 0);
-
         partnerSusi.x = 60; partnerSusi.y = 340;
 
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
@@ -431,15 +420,41 @@
         bossGroup.clear(true, true);
 
         if (currentGlobal % 4 === 0) {
-            currentBossInstance = bossGroup.create(targetKitty.x - 180, 330, 'boss_monster');
+            currentBossInstance = bossGroup.create(targetKitty.x - 200, 300, 'humanoid_boss');
             currentBossInstance.health = 100;
-            currentBossInstance.setVelocityX(-40);
-            currentBossInstance.setBounce(1, 0);
+            currentBossInstance.setVelocityX(-120);
             currentBossInstance.setCollideWorldBounds(true);
+            currentBossInstance.setBounce(0.2);
+            
+            // AI Action loops: Humanoid handles leaps and dashes/rolls randomly
+            game.scene.scenes[0].time.addEvent({
+                delay: Phaser.Math.Between(1500, 3000),
+                loop: true,
+                callback: () => {
+                    if (currentBossInstance && currentBossInstance.active) {
+                        let choice = Phaser.Math.Between(0, 2);
+                        if (choice === 0 && currentBossInstance.body.touching.down) {
+                            // High defensive Jump over lasers
+                            currentBossInstance.setVelocityY(-550);
+                        } else if (choice === 1) {
+                            // Forward offensive combat Roll/Dash
+                            let dir = player.x < currentBossInstance.x ? -320 : 320;
+                            currentBossInstance.setVelocityX(dir);
+                            currentBossInstance.setAngle(dir > 0 ? 90 : -90); // Graphical angle roll shift
+                            game.scene.scenes[0].time.delayedCall(400, () => {
+                                if (currentBossInstance && currentBossInstance.active) {
+                                    currentBossInstance.setAngle(0);
+                                    currentBossInstance.setVelocityX(dir > 0 ? 120 : -120);
+                                }
+                            });
+                        }
+                    }
+                }
+            });
         }
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: 1000, loop: true, callback: spawnOmniDirectionalThreat
+            delay: 1200, loop: true, callback: spawnOmniDirectionalThreat
         });
         
         refreshTerminalHUD();
@@ -447,15 +462,14 @@
 
     function spawnOmniDirectionalThreat() {
         if (!sysProgress.runtimeActive) return;
-        let hazard = enemiesGroup.create(player.x + 400, Phaser.Math.Between(200, 380), 'virus_hazard');
+        let hazard = enemiesGroup.create(player.x + 450, Phaser.Math.Between(100, 350), 'virus_hazard');
         hazard.body.allowGravity = false;
-        hazard.setVelocityX(-180);
+        hazard.setVelocityX(-190);
     }
 
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        // Perfect position sync right behind/beside Kali
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 4, 0.2);
 
@@ -468,17 +482,24 @@
         }
 
         if ((cursors.up.isDown || window.doJump) && player.body.touching.down) {
-            player.setVelocityY(-600);
+            player.setVelocityY(-620);
         }
 
-        // Cat fires clean cyan target beams at hazards
-        if (time > lastDroneFireTime + 800) {
-            let enemy = enemiesGroup.getFirstAlive();
-            if (enemy) {
+        // Cat companion handles target locking on threats
+        if (time > lastDroneFireTime + 700) {
+            let enemy = enemiesGroup.getFirstAlive() || currentBossInstance;
+            if (enemy && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 450) {
                 lastDroneFireTime = time;
                 let beam = susiLasers.create(partnerSusi.x, partnerSusi.y, 'laser_purple');
                 beam.body.allowGravity = false;
-                this.physics.moveToObject(beam, enemy, 400);
+                this.physics.moveToObject(beam, enemy, 500);
+            }
+        }
+
+        // Simple boss auto-pacing AI logic adjustment toward player direction vector
+        if (currentBossInstance && currentBossInstance.active) {
+            if (currentBossInstance.body.velocity.x === 0) {
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -120 : 120);
             }
         }
     }
