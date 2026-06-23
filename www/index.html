@@ -22,8 +22,6 @@
             position: relative; 
             width: 100vw;
             height: 100vh;
-            max-width: 100%;
-            max-height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -58,22 +56,19 @@
             border-radius: 4px;
         }
         .btn-action:hover { background: #33ff33; color: #000; }
-        .btn-action:disabled { background: #222; border-color: #555; color: #555; cursor: not-allowed; }
         
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
         .youtube-video-frame-container {
             width: 90%; max-width: 400px; height: 160px; background: #111; border: 2px solid #ff0000;
-            position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; margin: 10px 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .fallback-ad-graphics {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(45deg, #1f0033, #001a33);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #ff0055; font-weight: bold; font-size: 13px; text-shadow: 0 0 8px #ff0055;
-            text-align: center; padding: 10px; box-sizing: border-box;
+            color: #ff0055; font-weight: bold; font-size: 13px; text-align: center; padding: 10px; box-sizing: border-box;
         }
         
         .hud-overlay {
@@ -81,7 +76,7 @@
             z-index: 4; display: flex; flex-direction: column; gap: 6px;
         }
         #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; box-sizing: border-box; }
+        #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
     </style>
 </head>
 <body>
@@ -129,7 +124,6 @@
 </div>
 
 <script>
-    // Config adjusted to 16:9 safe standard widescreen frame optimized for resizing mechanics
     const config = {
         type: Phaser.AUTO,
         width: 800,
@@ -148,7 +142,7 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers;
+    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers, enemyLasers;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0;
@@ -215,8 +209,25 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(8, 6, 48, 4);
         });
 
-        generateVectorGraphic('virus_hazard', 24, 24, (ctx) => {
-            ctx.fillStyle = '#ee2222'; ctx.fillRect(2, 2, 20, 20);
+        // FIXED: Custom detailed monster with body, head, pointy ears, and glowing eyes
+        generateVectorGraphic('virus_hazard', 32, 36, (ctx) => {
+            // Ears
+            ctx.fillStyle = '#990000';
+            ctx.beginPath(); ctx.moveTo(4, 10); ctx.lineTo(8, 0); ctx.lineTo(12, 10); ctx.fill(); 
+            ctx.beginPath(); ctx.moveTo(28, 10); ctx.lineTo(24, 0); ctx.lineTo(20, 10); ctx.fill(); 
+            
+            // Head/Face Body Frame
+            ctx.fillStyle = '#ee2222';
+            ctx.fillRect(4, 10, 24, 22);
+            
+            // Angry Eyes
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(7, 15, 5, 5); 
+            ctx.fillRect(20, 15, 5, 5); 
+            
+            // Little Fangs Mouth
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(11, 25, 10, 3);
         });
 
         generateVectorGraphic('humanoid_boss', 48, 72, (ctx) => {
@@ -232,6 +243,13 @@
             ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
             ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
         });
+        
+        // Monster Projectiles Asset Vector
+        generateVectorGraphic('laser_red', 12, 12, (ctx) => {
+            ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(6, 6, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(6, 6, 2, 0, Math.PI * 2); ctx.fill();
+        });
+        
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
     }
 
@@ -248,25 +266,24 @@
         bossLasers = this.physics.add.group();
         kaliLasers = this.physics.add.group();
         susiLasers = this.physics.add.group();
+        enemyLasers = this.physics.add.group();
 
-        // Floor creation
         for (let x = 0; x < 4000; x += 32) {
             mapPlatforms.create(x, 434, 'matrix_floor').setOrigin(0, 0).refreshBody();
         }
 
-        // Procedural level platforms placement
         for (let pX = 250; pX < 3800; pX += 300) {
             let pY = Phaser.Math.Between(220, 320);
             mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
             mapPlatforms.create(pX + 100, pY - 80, 'cyber_platform').refreshBody();
         }
 
-        // Safe coordinates setup for mobile view initialization
         player = this.physics.add.sprite(150, 320, 'kali_humanoid').setCollideWorldBounds(true);
         partnerSusi = this.physics.add.sprite(100, 300, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
 
-        targetKitty = this.physics.add.sprite(400, 350, 'kitty_node').setCollideWorldBounds(true);
+        // Key stays low to ground
+        targetKitty = this.physics.add.sprite(450, 400, 'kitty_node').setCollideWorldBounds(true);
 
         this.physics.add.collider(player, mapPlatforms);
         this.physics.add.collider(targetKitty, mapPlatforms);
@@ -291,6 +308,13 @@
 
         this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
         this.physics.add.overlap(susiLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
+
+        this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
+            laser.destroy();
+            sysProgress.shield -= 10;
+            refreshTerminalHUD();
+            checkPlayerMortality();
+        });
 
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
@@ -337,7 +361,7 @@
             checkPlayerMortality();
         });
 
-        // FIXED VIRTUAL CONTROLS SYSTEM: Mapped cleanly to relative safe bounds 
+        // Touch Control Triggers Matrix
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
             let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.5);
             let btnTxt = this.add.text(x, y, label, { font: 'bold 18px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
@@ -347,7 +371,6 @@
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Layout relative configuration safely bounded inside the 800x450 scalable canvas matrix
         createVirtualBtn(55, 395, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
         createVirtualBtn(120, 395, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
         
@@ -433,13 +456,16 @@
         partnerSusi.x = 100; partnerSusi.y = 300;
 
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
-        targetKitty.x = 800 + (sysProgress.level * 350);
+        
+        targetKitty.x = 420;
+        targetKitty.y = 400;
 
         enemiesGroup.clear(true, true);
         bossGroup.clear(true, true);
+        enemyLasers.clear(true, true);
 
         if (currentGlobal % 4 === 0) {
-            currentBossInstance = bossGroup.create(targetKitty.x - 200, 300, 'humanoid_boss');
+            currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
             currentBossInstance.health = 100;
             currentBossInstance.setVelocityX(-120);
             currentBossInstance.setCollideWorldBounds(true);
@@ -471,17 +497,51 @@
         }
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: 1200, loop: true, callback: spawnOmniDirectionalThreat
+            delay: 1500, loop: true, callback: spawnOmniDirectionalThreat
         });
         
         refreshTerminalHUD();
     }
 
+    // FIXED: Monsters spawn from Up, Down, Left, or Right off-screen boundaries dynamically
     function spawnOmniDirectionalThreat() {
         if (!sysProgress.runtimeActive) return;
-        let hazard = enemiesGroup.create(player.x + 450, Phaser.Math.Between(100, 350), 'virus_hazard');
+        
+        let side = Phaser.Math.Between(0, 3); // 0: Top, 1: Bottom, 2: Left, 3: Right
+        let sX, sY;
+        let cam = game.scene.scenes[0].cameras.main;
+
+        if (side === 0) { // Top
+            sX = Phaser.Math.Between(cam.scrollX, cam.scrollX + 800);
+            sY = -40;
+        } else if (side === 1) { // Bottom
+            sX = Phaser.Math.Between(cam.scrollX, cam.scrollX + 800);
+            sY = 490;
+        } else if (side === 2) { // Left
+            sX = cam.scrollX - 40;
+            sY = Phaser.Math.Between(50, 380);
+        } else { // Right
+            sX = cam.scrollX + 840;
+            sY = Phaser.Math.Between(50, 380);
+        }
+
+        let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
-        hazard.setVelocityX(-190);
+        
+        // Move enemy toward the player's current location coordinate vectors
+        game.scene.scenes[0].physics.moveToObject(hazard, player, 160);
+
+        // Individual firing timer assigned to each dynamic monster instance
+        game.scene.scenes[0].time.addEvent({
+            delay: Phaser.Math.Between(900, 1500),
+            callback: () => {
+                if (hazard && hazard.active) {
+                    let blast = enemyLasers.create(hazard.x, hazard.y, 'laser_red');
+                    blast.body.allowGravity = false;
+                    game.scene.scenes[0].physics.moveToObject(blast, player, 320);
+                }
+            }
+        });
     }
 
     function update(time) {
@@ -500,7 +560,7 @@
 
         if ((cursors.up.isDown || doJump) && player.body.touching.down) {
             player.setVelocityY(-620);
-            doJump = false;
+            doJump = false; 
         }
 
         if (time > lastDroneFireTime + 700) {
