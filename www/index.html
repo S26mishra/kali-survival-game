@@ -375,11 +375,11 @@
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Determine device architecture profile dynamically
+        // Conditional responsive layout check
         let isMobileDevice = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
         if (isMobileDevice) {
-            // Enlarged layout config exclusively optimized for responsive Touch Devices
+            // Enlarged control layout scaled up for mobile touch interactions
             createVirtualBtn(65, 465, 46, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(170, 465, 46, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(275, 465, 46, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -387,13 +387,13 @@
             createVirtualBtn(595, 465, 46, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
             createVirtualBtn(715, 465, 48, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
         } else {
-            // Standard small size layouts for Desktop / Computers
-            createVirtualBtn(50, 480, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-            createVirtualBtn(115, 480, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
-            createVirtualBtn(180, 480, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+            // Reverted back completely to the original desktop small-size values (Radius 24 / 30)
+            createVirtualBtn(60, 485, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+            createVirtualBtn(125, 485, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+            createVirtualBtn(190, 485, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
             
-            createVirtualBtn(655, 480, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-            createVirtualBtn(735, 480, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+            createVirtualBtn(665, 485, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(740, 485, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
         }
 
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
