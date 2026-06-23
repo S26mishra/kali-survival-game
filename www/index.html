@@ -14,24 +14,36 @@
             justify-content: center; align-items: center;
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
         }
         #game-wrapper {
             position: relative; 
-            width: 800px; 
-            height: 450px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         #game-container canvas {
-            border: 4px solid #33ff33;
-            border-radius: 4px;
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+            border: 2px solid #33ff33;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 5, 15, 0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 999; color: #33ff33; border: 2px solid #33ff33; border-radius: 4px;
+            z-index: 999; color: #33ff33; border: 2px solid #33ff33; box-sizing: border-box;
         }
-        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
+        .menu-title { font-size: 22px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
             background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 15px; color: #33ff33;
             cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
@@ -43,7 +55,7 @@
         #revival-ad-container { display: none; background: rgba(10, 10, 15, 0.98); border: 3px solid #ff0000; text-align: center; }
         
         .youtube-video-frame-container {
-            width: 440px; height: 245px; background: #111; border: 2px solid #ff0000;
+            width: 80%; max-width: 400px; height: 180px; background: #111; border: 2px solid #ff0000;
             position: relative; margin: 10px 0; box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
@@ -51,34 +63,16 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(45deg, #1f0033, #001a33);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #ff0055; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px #ff0055;
-            animation: pulseBg 2s infinite alternate;
+            color: #ff0055; font-weight: bold; font-size: 14px; text-shadow: 0 0 8px #ff0055;
+            text-align: center; padding: 10px; box-sizing: border-box;
         }
-        @keyframes pulseBg {
-            0% { opacity: 0.9; }
-            100% { opacity: 1; filter: hue-rotate(20deg); }
-        }
-
-        .mobile-controls {
-            position: absolute; bottom: 12px; left: 0; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 5; pointer-events: none;
-        }
-        .dir-pad, .action-pad { display: flex; gap: 15px; pointer-events: auto; }
-        .ctrl-btn {
-            width: 52px; height: 52px; background: #002200; border: 2px solid #33ff33; border-radius: 50%;
-            color: #33ff33; font-size: 22px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; user-select: none;
-        }
-        .ctrl-btn:active { background: #33ff33; color: #000; }
-        .btn-power { background: #440000; border-color: #ff3333; color: #ff3333; font-size: 12px; font-weight: bold; border-radius: 8px; width: 65px; }
-        .btn-power:active { background: #ff3333; color: #000; }
         
         .hud-overlay {
             position: absolute; top: 15px; left: 15px; pointer-events: none; color: #33ff33;
             z-index: 4; display: flex; flex-direction: column; gap: 4px;
         }
-        #hud-lvl { font-size: 16px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #hud-log { font-size: 12px; background: rgba(0,0,0,0.85); padding: 5px 10px; border: 1px solid #33ff33; border-radius: 4px; max-width: 500px; }
+        #hud-lvl { font-size: 14px; font-weight: bold; text-shadow: 2px 2px #000; }
+        #hud-log { font-size: 11px; background: rgba(0,0,0,0.85); padding: 5px 10px; border: 1px solid #33ff33; border-radius: 4px; max-width: 80%; }
     </style>
 </head>
 <body>
@@ -92,7 +86,7 @@
     <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
+        <p id="menu-desc" style="text-align:center; max-width:500px; font-size:14px; line-height:1.5; padding: 0 15px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
@@ -104,37 +98,26 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Screen 2: Fixed Ad Simulator Screen to avoid YouTube Embed Errors -->
+    <!-- Screen 2: Fixed Ad Simulator Screen -->
     <div id="revival-ad-container" class="overlay-screen">
-        <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:20px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
-        <p id="ad-timer-text" style="font-size:14px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
+        <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:18px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION: RETRO AD LAUNCH</div>
+        <p id="ad-timer-text" style="font-size:13px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 20s remaining</p>
         
         <div class="youtube-video-frame-container">
             <div class="fallback-ad-graphics">
-                <div style="font-size: 28px; margin-bottom: 10px;">🌌</div>
+                <div style="font-size: 24px; margin-bottom: 10px;">🌌</div>
                 <div>SIMULATING SPACE CORE ARCHIVE</div>
                 <div style="font-size: 11px; color: #00ffff; margin-top: 5px; font-family: monospace;">[STREAM BUFFER ACTIVE]</div>
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:13px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING CHIP...</button>
-            <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:13px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL Instead</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button id="claim-resume-btn" class="btn-action" style="border-color:#33ff33; color:#33ff33; background:#002200; font-size:12px; padding:8px 20px;" onclick="claimVideoRevival()" disabled>LOCKING CHIP...</button>
+            <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000; font-size:12px; padding:8px 20px;" onclick="resetToLevelBeginning()">RESTART LEVEL</button>
         </div>
     </div>
 
     <div id="game-container"></div>
-    
-    <div class="mobile-controls">
-        <div class="dir-pad">
-            <div class="ctrl-btn" id="btn-left">◀</div>
-            <div class="ctrl-btn" id="btn-right">▶</div>
-        </div>
-        <div class="action-pad">
-            <div class="ctrl-btn" id="btn-jump">▲</div>
-            <div class="ctrl-btn btn-power" id="btn-fire">FIRE</div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -143,6 +126,10 @@
         width: 800,
         height: 450,
         parent: 'game-container',
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
         physics: {
             default: 'arcade',
             arcade: { gravity: { y: 1400 }, debug: false }
@@ -158,7 +145,6 @@
     let lastDroneFireTime = 0;
     let globalAmbushTimer = null, adCountdownInterval = null;
     let currentBossInstance = null;
-    let currentBossType = 'fire'; 
 
     let sysProgress = {
         stage: 4,
@@ -171,7 +157,7 @@
     const dynamicTitles = [
         "🚀 SPACE EXPLORATION: NASA RETRO LAUNCHES",
         "🎬 OPEN ANIMATION: RETRO ARCADE TRAILER",
-        "🎨 CYBERNETIC GRID: VECTOR VECTOR GRAPHICS"
+        "🎨 CYBERNETIC GRID: VECTOR GRAPHICS"
     ];
 
     function preload() {
@@ -294,25 +280,19 @@
         this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
         this.physics.add.overlap(susiLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
 
-        // CRITICAL UPDATE: Boss damage control logic
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
-            
-            // If the boss is currently in its recovery frame, ignore damage
             if (boss.isInvulnerable) return;
 
-            boss.health -= 5; // Reduced damage value to increase survival runtime
-            
+            boss.health -= 5; 
             if (boss.health <= 0) {
                 boss.destroy();
                 currentBossInstance = null;
                 document.getElementById('hud-log').innerText = "🏆 MECHA BOSS DEFEATED! Core vector cleared!";
             } else {
                 document.getElementById('hud-log').innerText = `Boss Health: ${boss.health}% | Combat Mode: EVADE & FIGHT`;
-                
-                // Set temporary invulnerability to avoid instance melt down
                 boss.isInvulnerable = true;
-                boss.setTint(0xff0000); // Visual flashing indicators
+                boss.setTint(0xff0000);
                 
                 this.time.delayedCall(300, () => {
                     if (boss && boss.active) {
@@ -323,7 +303,6 @@
             }
         });
 
-        // Cat companion project hit handling
         this.physics.add.overlap(susiLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
             if (boss.isInvulnerable) return;
@@ -346,18 +325,24 @@
             checkPlayerMortality();
         });
 
-        const bindInput = (id, prop) => {
-            let btn = document.getElementById(id);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); window[prop] = true; });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); window[prop] = false; });
-            btn.addEventListener('mousedown', () => window[prop] = true);
-            btn.addEventListener('mouseup', () => window[prop] = false);
+        // NATIVE PHASER VIRTUAL CONTROLS SYSTEM (Eliminates HTML input lags and clipping)
+        let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
+            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
+            let btnTxt = this.add.text(x, y, label, { font: 'bold 16px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+            
+            btnBg.on('pointerdown', pointerDownCallback);
+            btnBg.on('pointerup', pointerUpCallback);
+            btnBg.on('pointerout', pointerUpCallback);
         };
-        bindInput('btn-left', 'moveLeft');
-        bindInput('btn-right', 'moveRight');
-        bindInput('btn-jump', 'doJump');
 
-        document.getElementById('btn-fire').addEventListener('click', triggerKaliLaser);
+        // Left controls layout matrix mapping
+        createVirtualBtn(60, 390, 28, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(130, 390, 28, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        
+        // Right side control actions
+        createVirtualBtn(660, 390, 28, '▲', 0x004400, () => { doJump = true; }, () => { doJump = false; });
+        createVirtualBtn(735, 390, 32, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
 
         document.getElementById('start-menu').style.display = 'flex';
@@ -448,7 +433,7 @@
             currentBossInstance.setVelocityX(-120);
             currentBossInstance.setCollideWorldBounds(true);
             currentBossInstance.setBounce(0.2);
-            currentBossInstance.isInvulnerable = false; // Initialized flag state
+            currentBossInstance.isInvulnerable = false; 
             
             game.scene.scenes[0].time.addEvent({
                 delay: Phaser.Math.Between(1500, 2500),
@@ -457,7 +442,7 @@
                     if (currentBossInstance && currentBossInstance.active) {
                         let choice = Phaser.Math.Between(0, 2);
                         if (choice === 0 && currentBossInstance.body.touching.down) {
-                            currentBossInstance.setVelocityY(-580); // Jump over player laser shots
+                            currentBossInstance.setVelocityY(-580); 
                         } else if (choice === 1) {
                             let dir = player.x < currentBossInstance.x ? -350 : 350;
                             currentBossInstance.setVelocityX(dir);
@@ -494,16 +479,17 @@
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 4, 0.2);
 
-        if (cursors.left.isDown || window.moveLeft) {
+        if (cursors.left.isDown || moveLeft) {
             player.setVelocityX(-240); facingDirection = 'left';
-        } else if (cursors.right.isDown || window.moveRight) {
+        } else if (cursors.right.isDown || moveRight) {
             player.setVelocityX(240); facingDirection = 'right';
         } else {
             player.setVelocityX(0);
         }
 
-        if ((cursors.up.isDown || window.doJump) && player.body.touching.down) {
+        if ((cursors.up.isDown || doJump) && player.body.touching.down) {
             player.setVelocityY(-620);
+            doJump = false; // Reset instant virtual switch
         }
 
         if (time > lastDroneFireTime + 700) {
