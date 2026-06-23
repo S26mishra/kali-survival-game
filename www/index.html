@@ -140,6 +140,7 @@
     const game = new Phaser.Game(config);
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers, enemyLasers;
+    let cloudsGroup;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0;
@@ -239,6 +240,12 @@
         });
         
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
+
+        generateVectorGraphic('matrix_cloud', 96, 32, (ctx) => {
+            ctx.fillStyle = 'rgba(30, 80, 30, 0.35)';
+            ctx.beginPath(); ctx.arc(24, 20, 12, 0, Math.PI * 2); ctx.arc(48, 14, 16, 0, Math.PI * 2); ctx.arc(72, 20, 12, 0, Math.PI * 2); ctx.fillRect(24, 12, 48, 18); ctx.fill();
+            ctx.strokeStyle = 'rgba(51, 255, 51, 0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
+        });
     }
 
     function create() {
@@ -248,6 +255,14 @@
         for (let y = 0; y <= 434; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
 
         this.physics.world.setBounds(0, 0, 4000, 434);
+        
+        cloudsGroup = this.add.group();
+        for (let c = 0; c < 25; c++) {
+            let cloudImg = this.add.image(Phaser.Math.Between(0, 4000), Phaser.Math.Between(20, 130), 'matrix_cloud');
+            cloudImg.setScrollFactor(0.4); 
+            cloudsGroup.add(cloudImg);
+        }
+
         mapPlatforms = this.physics.add.staticGroup();
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
@@ -262,8 +277,11 @@
 
         for (let pX = 250; pX < 3800; pX += 300) {
             let pY = Phaser.Math.Between(200, 300);
-            mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
-            mapPlatforms.create(pX + 100, pY - 80, 'cyber_platform').refreshBody();
+            let plat1 = mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
+            let plat2 = mapPlatforms.create(pX + 100, pY - 80, 'cyber_platform').refreshBody();
+            
+            plat1.baseY = pY; plat1.moveRange = Phaser.Math.Between(30, 65); plat1.moveSpeed = Phaser.Math.FloatBetween(0.001, 0.002); plat1.seed = Phaser.Math.FloatBetween(0, 5);
+            plat2.baseY = pY - 80; plat2.moveRange = Phaser.Math.Between(30, 65); plat2.moveSpeed = Phaser.Math.FloatBetween(0.001, 0.002); plat2.seed = Phaser.Math.FloatBetween(0, 5);
         }
 
         player = this.physics.add.sprite(150, 320, 'kali_humanoid').setCollideWorldBounds(true);
@@ -350,21 +368,20 @@
 
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
             let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
-            let btnTxt = this.add.text(x, y, label, { font: 'bold 15px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+            let btnTxt = this.add.text(x, y, label, { font: 'bold 18px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
             
             btnBg.on('pointerdown', pointerDownCallback);
             btnBg.on('pointerup', pointerUpCallback);
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Left side layout cluster (Positioned precisely beneath the standard spawn path/player zone line)
-        createVirtualBtn(50, 480, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-        createVirtualBtn(115, 480, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
-        createVirtualBtn(180, 480, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+        // Extra Big Mobile Cluster Layout Setup
+        createVirtualBtn(65, 465, 46, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(170, 465, 46, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        createVirtualBtn(275, 465, 46, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
         
-        // Right side layout cluster
-        createVirtualBtn(655, 480, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-        createVirtualBtn(735, 480, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        createVirtualBtn(595, 465, 46, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+        createVirtualBtn(715, 465, 48, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
 
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
 
@@ -384,14 +401,12 @@
         if (!sysProgress.runtimeActive) return;
         document.getElementById('hud-log').innerText = "💥 LIGHT FLASH: Blasting nearby airborne threats!";
         
-        // Added working active logic to light power alongside fire power
         enemiesGroup.children.entries.forEach((enemy) => {
             if (enemy && enemy.active && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 250) {
                 enemy.destroy();
             }
         });
         
-        // Fires a special purple support projectile backwards or dynamically towards a threat vector
         let offset = facingDirection === 'right' ? -20 : 20;
         let lightShot = susiLasers.create(player.x + offset, player.y - 8, 'laser_purple');
         lightShot.body.allowGravity = false;
@@ -460,6 +475,11 @@
         
         player.x = 150; player.y = 320;
         player.setVelocity(0, 0);
+        
+        // Dynamically configures height based on progress age stages
+        let newHeightScale = 1.0 + (sysProgress.stage * 0.12);
+        player.setScale(1.0, newHeightScale);
+
         partnerSusi.x = 100; partnerSusi.y = 300;
 
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
@@ -534,7 +554,8 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        game.scene.scenes[0].physics.moveToObject(hazard, player, 160);
+        // Balanced tracking layout speed (Down from 160 to 105)
+        game.scene.scenes[0].physics.moveToObject(hazard, player, 105);
 
         game.scene.scenes[0].time.addEvent({
             delay: Phaser.Math.Between(900, 1500),
@@ -550,6 +571,20 @@
 
     function update(time) {
         if (!sysProgress.runtimeActive) return;
+
+        // Process ambient cloud translation matrix mechanics
+        cloudsGroup.children.entries.forEach(cloud => {
+            cloud.x -= 0.35;
+            if (cloud.x < -100) cloud.x = 4100;
+        });
+
+        // Up and down platform calculation sequence
+        mapPlatforms.children.entries.forEach(platform => {
+            if (platform.baseY !== undefined) {
+                platform.y = platform.baseY + Math.sin((time * platform.moveSpeed) + platform.seed) * platform.moveRange;
+                platform.refreshBody();
+            }
+        });
 
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 4, 0.2);
