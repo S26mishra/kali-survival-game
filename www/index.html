@@ -375,13 +375,26 @@
             btnBg.on('pointerout', pointerUpCallback);
         };
 
-        // Extra Big Mobile Cluster Layout Setup
-        createVirtualBtn(65, 465, 46, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
-        createVirtualBtn(170, 465, 46, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
-        createVirtualBtn(275, 465, 46, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
-        
-        createVirtualBtn(595, 465, 46, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-        createVirtualBtn(715, 465, 48, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        // Determine device architecture profile dynamically
+        let isMobileDevice = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
+
+        if (isMobileDevice) {
+            // Enlarged layout config exclusively optimized for responsive Touch Devices
+            createVirtualBtn(65, 465, 46, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+            createVirtualBtn(170, 465, 46, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+            createVirtualBtn(275, 465, 46, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+            
+            createVirtualBtn(595, 465, 46, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(715, 465, 48, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        } else {
+            // Standard small size layouts for Desktop / Computers
+            createVirtualBtn(50, 480, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+            createVirtualBtn(115, 480, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+            createVirtualBtn(180, 480, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
+            
+            createVirtualBtn(655, 480, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(735, 480, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+        }
 
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
 
@@ -476,7 +489,6 @@
         player.x = 150; player.y = 320;
         player.setVelocity(0, 0);
         
-        // Dynamically configures height based on progress age stages
         let newHeightScale = 1.0 + (sysProgress.stage * 0.12);
         player.setScale(1.0, newHeightScale);
 
@@ -554,7 +566,6 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        // Balanced tracking layout speed (Down from 160 to 105)
         game.scene.scenes[0].physics.moveToObject(hazard, player, 105);
 
         game.scene.scenes[0].time.addEvent({
@@ -572,13 +583,11 @@
     function update(time) {
         if (!sysProgress.runtimeActive) return;
 
-        // Process ambient cloud translation matrix mechanics
         cloudsGroup.children.entries.forEach(cloud => {
             cloud.x -= 0.35;
             if (cloud.x < -100) cloud.x = 4100;
         });
 
-        // Up and down platform calculation sequence
         mapPlatforms.children.entries.forEach(platform => {
             if (platform.baseY !== undefined) {
                 platform.y = platform.baseY + Math.sin((time * platform.moveSpeed) + platform.seed) * platform.moveRange;
