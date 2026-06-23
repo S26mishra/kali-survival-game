@@ -383,11 +383,19 @@
     function triggerLightPower() {
         if (!sysProgress.runtimeActive) return;
         document.getElementById('hud-log').innerText = "💥 LIGHT FLASH: Blasting nearby airborne threats!";
+        
+        // Added working active logic to light power alongside fire power
         enemiesGroup.children.entries.forEach((enemy) => {
             if (enemy && enemy.active && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 250) {
                 enemy.destroy();
             }
         });
+        
+        // Fires a special purple support projectile backwards or dynamically towards a threat vector
+        let offset = facingDirection === 'right' ? -20 : 20;
+        let lightShot = susiLasers.create(player.x + offset, player.y - 8, 'laser_purple');
+        lightShot.body.allowGravity = false;
+        lightShot.setVelocityX(facingDirection === 'right' ? -600 : 600);
     }
 
     function checkPlayerMortality() {
