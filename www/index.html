@@ -22,18 +22,25 @@
         }
         #game-wrapper {
             position: relative; 
-            width: 800px;
-            height: 550px;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
         #game-container {
             width: 100%;
             height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         #game-container canvas {
             display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
             border: 2px solid #33ff33;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
@@ -44,36 +51,6 @@
         #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
         #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
         
-        /* Mobile Overlay Layer - Positioned comfortably above screen bounds */
-        .mobile-touch-bar {
-            position: absolute; bottom: 20px; left: 15px; right: 15px;
-            pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
-            box-sizing: border-box;
-        }
-        .touch-group-left, .touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
-        
-        /* Calibrated Compact Buttons: Clearly visible circles, clean centering */
-        .huge-btn {
-            width: 54px; height: 54px; background: rgba(0, 44, 0, 0.85); border: 2px solid #33ff33;
-            border-radius: 50%; color: #fff; font-size: 20px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 10px rgba(51, 255, 51, 0.4);
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-        .huge-btn:active { background: #33ff33; color: #000; }
-        
-        /* Action buttons scaled down precisely to fit text inside the bounds */
-        .huge-action-btn {
-            width: 60px; height: 60px; font-size: 11px; text-transform: uppercase;
-            border-radius: 50%; text-align: center;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-light-shock { background: rgba(102, 102, 0, 0.85); border-color: #ffff33; color: #ffff33; }
-        .btn-light-shock:active { background: #ffff33; color: #000; }
-        .btn-fire-burst { background: rgba(102, 0, 0, 0.85); border-color: #ff3333; color: #ff3333; }
-        .btn-fire-burst:active { background: #ff3333; color: #000; }
-
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 5, 15, 0.96);
@@ -85,24 +62,11 @@
         .btn-action {
             background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 14px; color: #33ff33;
             cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
-            border-radius: 4px; min-width: 220px; text-align: center;
+            border-radius: 4px;
         }
         .btn-action:hover { background: #33ff33; color: #000; }
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
-
-        /* Mobile Scale Adjustment: Shrinks down layout workspace on mobile displays */
-        @media screen and (max-width: 1024px) {
-            #game-wrapper {
-                width: 400px;
-                height: 275px;
-            }
-            .mobile-touch-bar {
-                bottom: 10px;
-                left: 8px;
-                right: 8px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -110,21 +74,10 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 4 | Level: 4 | Shield: 100%</div>
-        <div id="hud-log">Layout updated. Mobile environment configuration initialized.</div>
+        <div id="hud-log">System Optimized. Aggression parameters updated.</div>
     </div>
 
-    <div class="mobile-touch-bar">
-        <div class="touch-group-left">
-            <div class="huge-btn" id="pad-left">◀</div>
-            <div class="huge-btn" id="pad-right">▶</div>
-            <div class="huge-btn" id="pad-jump">▲</div>
-        </div>
-        <div class="touch-group-right">
-            <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">Light</div>
-            <div class="huge-btn huge-action-btn btn-fire-burst" id="pad-fire">Fire</div>
-        </div>
-    </div>
-
+    <!-- UI Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title">🟩 WEAPONS CALIBRATED 🟩</div>
         <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">
@@ -133,15 +86,13 @@
         <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE COMBAT</button>
     </div>
 
+    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 CORE DEACTIVATED 💀</div>
-        <p style="text-align:center; font-size:13px; color:#ffaaaa; margin-bottom:15px; max-width:320px;">
-            Boss Monster critical link verified! Choose termination pathway.
-        </p>
-        <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 START OVER</button>
+        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 CORE VAPORIZED 💀</div>
+        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">RELOAD CORE</button>
     </div>
 
+    <!-- Victory Screen -->
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE CLEARED 🏆</div>
         <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Boss has been dismantled! Stage 4 Securitization Complete.</p>
@@ -170,14 +121,14 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
+    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, susiLasers, enemyLasers;
     let cloudsGroup;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
+    let lastDroneFireTime = 0;
     let globalAmbushTimer = null;
     let bossAttackTimer = null;
     let currentBossInstance = null;
-    let lastBossHitTime = 0; 
     
     let keyF, keyE, keyL, keySpace;
 
@@ -255,12 +206,20 @@
             ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(7, 7, 7, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#ffaaaa'; ctx.beginPath(); ctx.arc(7, 7, 3, 0, Math.PI * 2); ctx.fill();
         });
+        generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
         generateVectorGraphic('matrix_cloud', 96, 32, (ctx) => {
             ctx.fillStyle = 'rgba(30, 80, 30, 0.35)'; ctx.beginPath(); ctx.arc(24, 20, 12, 0, Math.PI * 2); ctx.arc(48, 14, 16, 0, Math.PI * 2); ctx.arc(72, 20, 12, 0, Math.PI * 2); ctx.fill();
         });
     }
 
     function create() {
+        this.input.addPointer(3);
+
+        this.gridGraphic = this.add.graphics();
+        this.gridGraphic.lineStyle(1, 0x114411, 0.6);
+        for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
+        for (let y = 0; y <= 434; y += 40) { this.gridGraphic.lineBetween(0, y, 4000, y); }
+
         this.physics.world.setBounds(0, 0, 4000, 434);
         
         cloudsGroup = this.add.group();
@@ -272,6 +231,7 @@
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
         kaliLasers = this.physics.add.group();
+        susiLasers = this.physics.add.group();
         enemyLasers = this.physics.add.group();
 
         for (let x = 0; x < 4000; x += 32) {
@@ -297,6 +257,7 @@
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         cursors = this.input.keyboard.createCursorKeys();
+        
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
@@ -308,6 +269,7 @@
             projectile.destroy();
             boss.health -= 5;
             document.getElementById('hud-log').innerText = `⚡ DIRECT HIT! Boss Health: ${boss.health}%`;
+            
             if (boss.health <= 0) { 
                 boss.destroy(); 
                 currentBossInstance = null; 
@@ -315,52 +277,33 @@
             }
         });
 
-        this.physics.add.overlap(player, bossGroup, (pl, boss) => {
-            let now = this.time.now;
-            if (now - lastBossHitTime > 1500) { 
-                lastBossHitTime = now;
-                if (sysProgress.shield > 50) {
-                    sysProgress.shield = 50; 
-                    document.getElementById('hud-log').innerText = "💥 CONTACT! Shield holding at 50%. Next structural hit is FATAL!";
-                    player.setTint(0xff0000);
-                    this.time.delayedCall(500, () => { player.clearTint(); });
-                    refreshTerminalHUD();
-                } else {
-                    sysProgress.shield = 0; 
-                    refreshTerminalHUD();
-                    checkPlayerMortality();
-                }
-            }
-        });
-
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); 
-            sysProgress.shield -= 10; 
-            refreshTerminalHUD(); 
-            checkPlayerMortality();
+            laser.destroy(); sysProgress.shield -= 12; refreshTerminalHUD(); checkPlayerMortality();
         });
 
-        setupMobileInputListeners();
+        // ENLARGED TOUCH UI: Re-engineered with larger active radiuses for mobile ease-of-use
+        let createVirtualBtn = (x, y, radius, label, color, fontSize, pointerDownCallback, pointerUpCallback) => {
+            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.55);
+            this.add.text(x, y, label, { font: `bold ${fontSize} Arial`, color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+            
+            btnBg.on('pointerdown', pointerDownCallback);
+            if(pointerUpCallback) {
+                btnBg.on('pointerup', pointerUpCallback);
+                btnBg.on('pointerout', pointerUpCallback);
+            }
+        };
+
+        // Left, Right, Jump Buttons resized up to 34 radius for fat-finger prevention
+        createVirtualBtn(70, 475, 34, '◀', '18px', () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(155, 475, 34, '▶', '18px', () => { moveRight = true; }, () => { moveRight = false; });
+        createVirtualBtn(240, 475, 34, '▲', '18px', () => { doJump = true; }, () => { doJump = false; });
+        
+        // Attack keys scaled heavily to 45 radius so you never miss a tap while fighting
+        createVirtualBtn(615, 475, 45, 'LIGHT', '15px', () => { triggerElectricShockPower(); });
+        createVirtualBtn(725, 475, 45, 'FIRE', '15px', () => { triggerKaliFire(); });
 
         document.getElementById('start-menu').style.display = 'flex';
         this.physics.pause();
-    }
-
-    function setupMobileInputListeners() {
-        const binding = (id, startCallback, endCallback) => {
-            const el = document.getElementById(id);
-            if(!el) return;
-            el.addEventListener('pointerdown', (e) => { e.preventDefault(); startCallback(); });
-            if(endCallback) {
-                el.addEventListener('pointerup', (e) => { e.preventDefault(); endCallback(); });
-                el.addEventListener('pointerout', (e) => { e.preventDefault(); endCallback(); });
-            }
-        };
-        binding('pad-left', () => { moveLeft = true; }, () => { moveLeft = false; });
-        binding('pad-right', () => { moveRight = true; }, () => { moveRight = false; });
-        binding('pad-jump', () => { doJump = true; }, () => { doJump = false; });
-        binding('pad-light', () => { triggerElectricShockPower(); });
-        binding('pad-fire', () => { triggerKaliFire(); });
     }
 
     function triggerKaliFire() {
@@ -369,6 +312,7 @@
         let shot = kaliLasers.create(player.x + offset, player.y - 6, 'laser_fire');
         shot.body.allowGravity = false;
         shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
+        document.getElementById('hud-log').innerText = "🔥 FIRE POWER: Burst tracking launched.";
     }
 
     function triggerElectricShockPower() {
@@ -378,6 +322,7 @@
         shockWave.body.allowGravity = false;
         shockWave.setVelocityX(facingDirection === 'right' ? 900 : -900);
         shockWave.setTint(0xffff00);
+        document.getElementById('hud-log').innerText = "⚡ ELECTRIC POWER: Shockwave surge deployed!";
     }
 
     function checkPlayerMortality() {
@@ -400,16 +345,6 @@
         cleanTimers();
         document.getElementById('victory-menu').style.display = 'flex';
     }
-
-    window.handleAdRetrieval = function() {
-        document.getElementById('defeat-menu').style.display = 'none';
-        sysProgress.shield = 100;
-        sysProgress.runtimeActive = true;
-        game.scene.scenes[0].physics.resume();
-        player.y -= 40; 
-        startTimerLoops(false); 
-        refreshTerminalHUD();
-    };
 
     window.restartStage = function() {
         document.getElementById('victory-menu').style.display = 'none';
@@ -437,17 +372,11 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
+        // SPEED INCREASE: Tuned up to 85 for an active, engaging encounter pace
         currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
         currentBossInstance.health = 100;
-        currentBossInstance.setVelocityX(-85); 
+        currentBossInstance.setVelocityX(-85);
         currentBossInstance.setCollideWorldBounds(true);
-
-        startTimerLoops(true);
-        refreshTerminalHUD();
-    }
-
-    function startTimerLoops(createNewBoss) {
-        cleanTimers();
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
             delay: 2000, loop: true, callback: () => {
@@ -464,9 +393,12 @@
                     let blast = enemyLasers.create(currentBossInstance.x, currentBossInstance.y - 15, 'laser_red');
                     blast.body.allowGravity = false;
                     game.scene.scenes[0].physics.moveToObject(blast, player, 260);
+                    document.getElementById('hud-log').innerText = "⚠️ WARNING: Boss has launched a targeting weapon projectile!";
                 }
             }
         });
+        
+        refreshTerminalHUD();
     }
 
     function update(time) {
@@ -487,9 +419,14 @@
             player.setVelocityY(-620); doJump = false; 
         }
 
-        if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
-        if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
+        if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) {
+            triggerKaliFire();
+        }
+        if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) {
+            triggerElectricShockPower();
+        }
 
+        // Velocity maintenance checks running at the upgraded 85 index
         if (currentBossInstance && currentBossInstance.active) {
             if (currentBossInstance.body.velocity.x === 0) {
                 currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -85 : 85);
