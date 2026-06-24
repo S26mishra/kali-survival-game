@@ -201,7 +201,7 @@
         shield: 100,
         runtimeActive: false,
         selectedOutfitHex: 0x00ffff,
-        coins: 0 // Secured coin tracking
+        coins: 0
     };
 
     window.selectOutfit = function(id, hexStr) {
@@ -220,10 +220,33 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        generateVectorGraphic('kali_humanoid', 32, 44, (ctx) => {
-            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 10, 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 18, 20, 22); 
-            ctx.fillStyle = '#222222'; ctx.fillRect(10, 36, 12, 8);
+        // Redesigned: Human Anatomy Character Frame Vector Graphic Mapping
+        generateVectorGraphic('kali_humanoid', 36, 46, (ctx) => {
+            // Head / Hair Profile
+            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(18, 10, 7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#4a2f13'; ctx.fillRect(13, 3, 10, 4); 
+
+            // Neck Line
+            ctx.fillStyle = '#e0b58b'; ctx.fillRect(16, 16, 4, 3);
+
+            // Broad Shoulders & Torso Body Core (Reacts to selected outfit tint color)
+            ctx.fillStyle = '#ffffff'; 
+            ctx.fillRect(8, 19, 20, 14); 
+
+            // Left and Right Arms
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(4, 19, 4, 10);  // Left arm
+            ctx.fillRect(28, 19, 4, 10); // Right arm
+
+            // Hips & Separate Human Moving Legs
+            ctx.fillStyle = '#222222'; 
+            ctx.fillRect(8, 33, 8, 10);  // Left pant leg
+            ctx.fillRect(20, 33, 8, 10); // Right pant leg
+
+            // Tactical Boots / Combat Feet
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(7, 43, 9, 3);   // Left shoe
+            ctx.fillRect(20, 43, 9, 3);  // Right shoe
         });
 
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
@@ -307,7 +330,6 @@
         partnerSusi.body.allowGravity = false;
         targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
-        // Earn +10 coins on regular enemy shot down
         this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
             p.destroy(); 
             enemy.destroy(); 
@@ -316,7 +338,6 @@
             refreshTerminalHUD();
         });
 
-        // Earn +10 coins on every hit lands safely on boss combat shield link
         this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
             p.destroy();
             boss.health -= 5;
@@ -367,24 +388,21 @@
         binding('pad-fire', () => { triggerKaliFire(); });
     }
 
-    // Dynamic weapon tier spread calculations based on the current active Stage configuration numbers
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
         
         let weaponTier = sysProgress.stage;
         if (weaponTier === 1) {
-            let shot = kaliLasers.create(player.x, player.y - 20, 'laser_fire');
+            let shot = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
             shot.setVelocityY(-450);
         } else if (weaponTier === 2) {
-            // Dual Burst Weapon Upgrade
-            let s1 = kaliLasers.create(player.x - 10, player.y - 20, 'laser_fire');
-            let s2 = kaliLasers.create(player.x + 10, player.y - 20, 'laser_fire');
+            let s1 = kaliLasers.create(player.x - 10, player.y - 25, 'laser_fire');
+            let s2 = kaliLasers.create(player.x + 10, player.y - 25, 'laser_fire');
             s1.setVelocityY(-470); s2.setVelocityY(-470);
         } else {
-            // Triple Threat Spread Cannon Upgrade
-            let s1 = kaliLasers.create(player.x - 15, player.y - 20, 'laser_fire');
-            let s2 = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
-            let s3 = kaliLasers.create(player.x + 15, player.y - 20, 'laser_fire');
+            let s1 = kaliLasers.create(player.x - 15, player.y - 25, 'laser_fire');
+            let s2 = kaliLasers.create(player.x, player.y - 30, 'laser_fire');
+            let s3 = kaliLasers.create(player.x + 15, player.y - 25, 'laser_fire');
             s1.setVelocity(-60, -500);
             s2.setVelocity(0, -520);
             s3.setVelocity(60, -500);
@@ -396,12 +414,11 @@
         
         let weaponTier = sysProgress.stage;
         if (weaponTier === 1) {
-            let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
+            let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
             wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
         } else {
-            // Amplified Shockwave patterns for upgraded higher stages
             for (let i = 0; i < Math.min(weaponTier, 4); i++) {
-                let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
+                let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
                 wave.setVelocity(-200 + (i * 130), -520);
             }
         }
@@ -436,7 +453,7 @@
         sysProgress.level += 1; 
         if (sysProgress.level > 5) {
             sysProgress.level = 1;
-            sysProgress.stage += 1; // Stage increases trigger automatic weapon upgrade mapping
+            sysProgress.stage += 1; 
         }
         initRuntimeLevel();
     };
