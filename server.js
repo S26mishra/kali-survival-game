@@ -6,7 +6,6 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// In-Memory Player Database Save Room
 let playerData = {
     level: 1,
     combatPower: 10,
@@ -15,15 +14,12 @@ let playerData = {
     logMessage: "System standby. Ready to receive commands..."
 };
 
-// Item drops pools for battle rewards
 const itemDrops = ["Iron Sword", "Steel Shield", "Survival Boots", "Ruby Ring", "Shadow Cloak"];
 
-// Route to get current player numbers
 app.get('/api/game', (req, res) => {
     res.json(playerData);
 });
 
-// Route to process dashboard click events
 app.post('/api/game', (req, res) => {
     const { action } = req.body;
 
