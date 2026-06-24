@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kali's Legend: True Cat Companion</title>
+    <title>Kali's Legend: Battle Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
         html, body {
@@ -44,7 +44,7 @@
         #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
         #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
         
-        /* Mobile Overlay Layer - Default Desktop Constraints */
+        /* Mobile Overlay Layer - Tactical Control Bar Mapping */
         .mobile-touch-bar {
             position: absolute; bottom: 20px; left: 15px; right: 15px;
             pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
@@ -90,14 +90,20 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
 
-        /* Mobile Layout Isolation Override - Safely re-allocates elements on mobile viewports */
+        /* Outfit Customizer Panel Grid */
+        .outfit-grid {
+            display: flex; gap: 15px; margin: 15px 0;
+        }
+        .outfit-card {
+            border: 2px dashed #33ff33; padding: 10px; font-size: 11px; cursor: pointer; text-align: center; min-width: 90px;
+            background: rgba(0,20,0,0.4);
+        }
+        .outfit-card.active {
+            border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33;
+        }
+
         @media screen and (max-width: 1024px) {
-            #game-wrapper {
-                width: 100vw;
-                height: 100vh;
-                max-width: 100%;
-                max-height: 100%;
-            }
+            #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
             .mobile-touch-bar {
                 position: fixed;
                 bottom: calc(15px + env(safe-area-inset-bottom));
@@ -112,7 +118,7 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 1 | Level: 1 | Shield: 100%</div>
-        <div id="hud-log">Mobile compatibility configuration complete. No structural changes to desktop mode.</div>
+        <div id="hud-log">Tactical Arena System Active. Choose Outfit and deploy strategies.</div>
     </div>
 
     <div class="mobile-touch-bar">
@@ -128,26 +134,31 @@
     </div>
 
     <div id="start-menu" class="overlay-screen">
-        <div class="menu-title">🟩 WEAPONS CALIBRATED 🟩</div>
-        <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">
-            Fire: [SPACE / F]<br>Electric Shock: [L / E]
+        <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
+        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
+        
+        <div class="outfit-grid">
+            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#00ffff')">🩵 Cyber Neon</div>
+            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33')">💛 Gilded Pekka</div>
+            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333')">❤️ Void Crimson</div>
+            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff')">💜 Shadow Elixir</div>
+        </div>
+
+        <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 15px;">
+            Move Arena Base: [ARROW KEYS]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
         </p>
-        <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE COMBAT</button>
+        <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
     </div>
 
     <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 CORE DEACTIVATED 💀</div>
-        <p style="text-align:center; font-size:13px; color:#ffaaaa; margin-bottom:15px; max-width:320px;">
-            Boss Monster critical link verified! Choose termination pathway.
-        </p>
+        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
         <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 START OVER</button>
+        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
     </div>
 
     <div id="victory-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE CLEARED 🏆</div>
-        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Boss has been dismantled! Stage Securitization Complete.</p>
-        <button class="btn-action" onclick="restartStage()">PLAY AGAIN</button>
+        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
+        <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
     </div>
 
     <div id="game-container"></div>
@@ -159,13 +170,10 @@
         width: 800,
         height: 550, 
         parent: 'game-container',
-        scale: {
-            mode: Phaser.Scale.FIT,
-            autoCenter: Phaser.Scale.CENTER_BOTH
-        },
+        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         physics: {
             default: 'arcade',
-            arcade: { gravity: { y: 1400 }, debug: false }
+            arcade: { gravity: { y: 0 }, debug: false } // Gravity disabled for Top-Down Arena Mode
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -183,12 +191,19 @@
     
     let keyF, keyE, keyL, keySpace;
 
-    // Decreased default state progression settings downward safely
     let sysProgress = {
         stage: 1,
         level: 1,
         shield: 100,
-        runtimeActive: false
+        runtimeActive: false,
+        selectedOutfitHex: 0x00ffff
+    };
+
+    // Global selector callback for user outfits
+    window.selectOutfit = function(id, hexStr) {
+        document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
+        document.getElementById(`skin-${id}`).classList.add('active');
+        sysProgress.selectedOutfitHex = parseInt(hexStr.replace('#', '0x'));
     };
 
     function preload() {
@@ -201,123 +216,122 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        generateVectorGraphic('kali_humanoid', 32, 48, (ctx) => {
-            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 8, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#00ffff'; ctx.fillRect(13, 6, 7, 2);
-            ctx.fillStyle = '#3366cc'; ctx.fillRect(10, 14, 12, 16);
-            ctx.fillStyle = '#ffdbac'; ctx.fillRect(6, 15, 4, 12); ctx.fillRect(22, 15, 4, 12);
-            ctx.fillStyle = '#222222'; ctx.fillRect(10, 30, 5, 14); ctx.fillRect(17, 30, 5, 14);
+        // Player model base outfit frame mapping
+        generateVectorGraphic('kali_humanoid', 32, 44, (ctx) => {
+            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 10, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 18, 20, 22); // Main customizable armor plate
+            ctx.fillStyle = '#222222'; ctx.fillRect(10, 36, 12, 8);
         });
 
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 28, 28);
+            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
             ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
 
-        generateVectorGraphic('susi_drone', 32, 32, (ctx) => {
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 14, 18, 12); 
-            ctx.fillStyle = '#ffaa66'; ctx.fillRect(16, 6, 10, 10);  
-            ctx.fillStyle = '#00ffff'; ctx.fillRect(18, 9, 2, 2);
+        generateVectorGraphic('susi_drone', 28, 28, (ctx) => {
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 10, 20, 10); 
+            ctx.fillStyle = '#ffaa66'; ctx.beginPath(); ctx.arc(14, 8, 5, 0, Math.PI*2); ctx.fill();
         });
 
-        generateVectorGraphic('matrix_floor', 32, 32, (ctx) => {
-            ctx.fillStyle = '#0d260d'; ctx.fillRect(0, 0, 32, 32);
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 32, 32);
+        // Top Down Clash Arena Map Sprites
+        generateVectorGraphic('matrix_floor', 40, 40, (ctx) => {
+            ctx.fillStyle = '#1b3d1b'; ctx.fillRect(0, 0, 40, 40);
+            ctx.strokeStyle = '#2d5a2d'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 40, 40);
         });
 
-        generateVectorGraphic('cyber_platform', 64, 16, (ctx) => {
-            ctx.fillStyle = '#114411'; ctx.fillRect(0, 0, 64, 16);
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 64, 16);
+        generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
+            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24); // Bridge / Lane separators
+            ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
         });
 
-        generateVectorGraphic('virus_hazard', 36, 36, (ctx) => {
-            ctx.translate(18, 18); ctx.fillStyle = '#ff0055';
-            for (let i = 0; i < 8; i++) { ctx.rotate(Math.PI / 4); ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(0, -18); ctx.lineTo(4, -6); ctx.fill(); }
+        // Pekka inspired mega boss vector graphic model mapping
+        generateVectorGraphic('humanoid_boss', 56, 76, (ctx) => {
+            ctx.fillStyle = '#2c3e50'; ctx.fillRect(4, 16, 48, 54); // Iron plating
+            ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.moveTo(10, 16); ctx.lineTo(2, 2); ctx.lineTo(18, 12); ctx.fill(); // Curved horn left
+            ctx.beginPath(); ctx.moveTo(46, 16); ctx.lineTo(54, 2); ctx.lineTo(38, 12); ctx.fill(); // Curved horn right
+            ctx.fillStyle = '#ff00ff'; ctx.fillRect(16, 26, 6, 6); ctx.fillRect(34, 26, 6, 6); // Neon glowing eyes
         });
 
-        generateVectorGraphic('alien_hazard', 36, 36, (ctx) => {
-            ctx.fillStyle = '#00ffff'; ctx.fillRect(6, 6, 24, 24);
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(10, 12, 4, 4); ctx.fillRect(20, 12, 4, 4);
+        generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
+            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(16, 16, 12, 0, Math.PI * 2); ctx.fill();
         });
 
-        generateVectorGraphic('humanoid_boss', 48, 72, (ctx) => {
-            ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(24, 12, 10, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#220044'; ctx.fillRect(12, 22, 24, 26);
-            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 2; ctx.strokeRect(12, 22, 24, 26);
+        generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
+            ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
 
-        generateVectorGraphic('laser_fire', 26, 10, (ctx) => { 
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 18, 6);
-            ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 26, 10);
+        generateVectorGraphic('laser_fire', 16, 16, (ctx) => { 
+            ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(8, 8, 8, 0, Math.PI*2); ctx.fill();
         });
 
-        generateVectorGraphic('laser_electric', 30, 14, (ctx) => { 
-            ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2;
-            ctx.shadowBlur = 4; ctx.shadowColor = '#ffff00';
-            ctx.beginPath();
-            ctx.moveTo(0, 7); ctx.lineTo(8, 2); ctx.lineTo(14, 12); ctx.lineTo(22, 2); ctx.lineTo(30, 7);
-            ctx.stroke();
+        generateVectorGraphic('laser_electric', 20, 20, (ctx) => { 
+            ctx.fillStyle = '#ffff33'; ctx.fillRect(2, 2, 16, 16);
         });
         
-        generateVectorGraphic('laser_red', 14, 14, (ctx) => {
-            ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(7, 7, 7, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffaaaa'; ctx.beginPath(); ctx.arc(7, 7, 3, 0, Math.PI * 2); ctx.fill();
+        generateVectorGraphic('laser_red', 12, 12, (ctx) => {
+            ctx.fillStyle = '#ff3333'; ctx.beginPath(); ctx.arc(6, 6, 6, 0, Math.PI * 2); ctx.fill();
         });
-        generateVectorGraphic('matrix_cloud', 96, 32, (ctx) => {
-            ctx.fillStyle = 'rgba(30, 80, 30, 0.35)'; ctx.beginPath(); ctx.arc(24, 20, 12, 0, Math.PI * 2); ctx.arc(48, 14, 16, 0, Math.PI * 2); ctx.arc(72, 20, 12, 0, Math.PI * 2); ctx.fill();
+
+        generateVectorGraphic('matrix_cloud', 80, 30, (ctx) => {
+            ctx.fillStyle = 'rgba(20, 50, 20, 0.25)'; ctx.fillRect(0,0,80,30);
         });
-        generateVectorGraphic('game_cloud_element', 120, 40, (ctx) => {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-            ctx.beginPath();
-            ctx.arc(30, 25, 15, 0, Math.PI * 2);
-            ctx.arc(60, 20, 20, 0, Math.PI * 2);
-            ctx.arc(90, 25, 15, 0, Math.PI * 2);
-            ctx.fill();
+        generateVectorGraphic('game_cloud_element', 90, 30, (ctx) => {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'; ctx.fillRect(0,0,90,30);
         });
     }
 
     function create() {
-        this.physics.world.setBounds(0, 0, 4000, 434);
+        // Formulating standard Top-Down tactical battlefield grid dimensions
+        this.physics.world.setBounds(0, 0, 800, 550);
         
-        cloudsGroup = this.add.group();
-        for (let c = 0; c < 15; c++) {
-            cloudsGroup.add(this.add.image(Phaser.Math.Between(0, 4000), Phaser.Math.Between(20, 130), 'matrix_cloud').setScrollFactor(0.4));
-        }
-
-        cloudElementsGroup = this.add.group();
-        for(let i = 0; i < 10; i++) {
-            let cloudImg = this.add.image(Phaser.Math.Between(0, 4000), Phaser.Math.Between(40, 180), 'game_cloud_element');
-            cloudImg.setScrollFactor(0.6);
-            cloudElementsGroup.add(cloudImg);
-        }
-
         mapPlatforms = this.physics.add.staticGroup();
+        // Drawing tactical battlefield tiling arena
+        for (let x = 0; x < 800; x += 40) {
+            for(let y = 0; y < 550; y += 40) {
+                mapPlatforms.create(x, y, 'matrix_floor').setOrigin(0, 0).refreshBody();
+            }
+        }
+
+        // Draw structural river / trench separation bridges across arena midsection
+        for (let bx = 120; bx < 800; bx += 240) {
+            mapPlatforms.create(bx, 260, 'cyber_platform').refreshBody();
+        }
+
+        cloudsGroup = this.add.group();
+        cloudElementsGroup = this.add.group();
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
         kaliLasers = this.physics.add.group();
         enemyLasers = this.physics.add.group();
 
-        for (let x = 0; x < 4000; x += 32) {
-            mapPlatforms.create(x, 418, 'matrix_floor').setOrigin(0, 0).refreshBody();
-        }
-
-        for (let pX = 250; pX < 3800; pX += 300) {
-            let pY = Phaser.Math.Between(200, 300);
-            mapPlatforms.create(pX, pY, 'cyber_platform').refreshBody();
-        }
-
-        player = this.physics.add.sprite(150, 320, 'kali_humanoid').setCollideWorldBounds(true);
-        partnerSusi = this.physics.add.sprite(100, 300, 'susi_drone').setCollideWorldBounds(true);
+        // Player starting base at bottom side deck position
+        player = this.physics.add.sprite(400, 460, 'kali_humanoid').setCollideWorldBounds(true);
+        partnerSusi = this.physics.add.sprite(360, 470, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
-        targetKitty = this.physics.add.sprite(450, 380, 'kitty_node').setCollideWorldBounds(true);
+        targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
-        this.physics.add.collider(player, mapPlatforms);
-        this.physics.add.collider(targetKitty, mapPlatforms);
-        this.physics.add.collider(enemiesGroup, mapPlatforms);
-        this.physics.add.collider(bossGroup, mapPlatforms);
+        // Bind standard overlapping collisions logic
+        this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { p.destroy(); enemy.destroy(); });
+        this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
+            p.destroy();
+            boss.health -= 5;
+            document.getElementById('hud-log').innerText = `⚡ HIT BATTLE BOSS! Core Shield: ${boss.health}%`;
+            if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
+        });
 
-        this.cameras.main.setBounds(0, 0, 4000, 434);
-        this.cameras.main.startFollow(player, true, 0.1, 0.1);
+        this.physics.add.overlap(player, bossGroup, (pl, boss) => {
+            let now = this.time.now;
+            if (now - lastBossHitTime > 1500) { 
+                lastBossHitTime = now;
+                sysProgress.shield -= 50;
+                refreshTerminalHUD();
+                checkPlayerMortality();
+            }
+        });
+
+        this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
+            laser.destroy(); sysProgress.shield -= 10; refreshTerminalHUD(); checkPlayerMortality();
+        });
 
         cursors = this.input.keyboard.createCursorKeys();
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -325,54 +339,14 @@
         keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
         keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-        this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
-        
-        this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
-            projectile.destroy();
-            boss.health -= 5;
-            document.getElementById('hud-log').innerText = `⚡ DIRECT HIT! Boss Health: ${boss.health}%`;
-            if (boss.health <= 0) { 
-                boss.destroy(); 
-                currentBossInstance = null; 
-                triggerVictorySequence();
-            }
-        });
-
-        this.physics.add.overlap(player, bossGroup, (pl, boss) => {
-            let now = this.time.now;
-            if (now - lastBossHitTime > 1500) { 
-                lastBossHitTime = now;
-                if (sysProgress.shield > 50) {
-                    sysProgress.shield = 50; 
-                    document.getElementById('hud-log').innerText = "💥 CONTACT! Shield holding at 50%. Next structural hit is FATAL!";
-                    player.setTint(0xff0000);
-                    this.time.delayedCall(500, () => { player.clearTint(); });
-                    refreshTerminalHUD();
-                } else {
-                    sysProgress.shield = 0; 
-                    refreshTerminalHUD();
-                    checkPlayerMortality();
-                }
-            }
-        });
-
-        this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); 
-            sysProgress.shield -= 10; 
-            refreshTerminalHUD(); 
-            checkPlayerMortality();
-        });
-
         setupMobileInputListeners();
-
         document.getElementById('start-menu').style.display = 'flex';
         this.physics.pause();
     }
 
     function setupMobileInputListeners() {
         const binding = (id, startCallback, endCallback) => {
-            const el = document.getElementById(id);
-            if(!el) return;
+            const el = document.getElementById(id); if(!el) return;
             el.addEventListener('pointerdown', (e) => { e.preventDefault(); startCallback(); });
             if(endCallback) {
                 el.addEventListener('pointerup', (e) => { e.preventDefault(); endCallback(); });
@@ -388,27 +362,20 @@
 
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
-        let offset = facingDirection === 'right' ? 25 : -25;
-        let shot = kaliLasers.create(player.x + offset, player.y - 6, 'laser_fire');
-        shot.body.allowGravity = false;
-        shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
+        let shot = kaliLasers.create(player.x, player.y - 20, 'laser_fire');
+        shot.setVelocityY(-450);
     }
 
     function triggerElectricShockPower() {
         if (!sysProgress.runtimeActive) return;
-        let offset = facingDirection === 'right' ? 25 : -25;
-        let shockWave = kaliLasers.create(player.x + offset, player.y - 6, 'laser_electric');
-        shockWave.body.allowGravity = false;
-        shockWave.setVelocityX(facingDirection === 'right' ? 900 : -900);
-        shockWave.setTint(0xffff00);
+        let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
+        wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
     }
 
     function checkPlayerMortality() {
         if (sysProgress.shield <= 0) {
-            sysProgress.runtimeActive = false;
-            game.scene.scenes[0].physics.pause();
-            cleanTimers();
-            document.getElementById('defeat-menu').style.display = 'flex';
+            sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
+            cleanTimers(); document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
 
@@ -418,37 +385,24 @@
     }
 
     function triggerVictorySequence() {
-        sysProgress.runtimeActive = false;
-        game.scene.scenes[0].physics.pause();
-        cleanTimers();
-        document.getElementById('victory-menu').style.display = 'flex';
+        sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
+        cleanTimers(); document.getElementById('victory-menu').style.display = 'flex';
     }
 
     window.handleAdRetrieval = function() {
         document.getElementById('defeat-menu').style.display = 'none';
-        sysProgress.shield = 100;
-        sysProgress.runtimeActive = true;
-        game.scene.scenes[0].physics.resume();
-        player.y -= 40; 
-        startTimerLoops(false); 
-        refreshTerminalHUD();
+        sysProgress.shield = 100; sysProgress.runtimeActive = true;
+        game.scene.scenes[0].physics.resume(); startTimerLoops(); refreshTerminalHUD();
     };
 
     window.restartStage = function() {
         document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.shield = 100;
-        sysProgress.level += 1;
-        if(sysProgress.level > 10) {
-            sysProgress.level = 1;
-            sysProgress.stage += 1;
-        }
-        initRuntimeLevel();
+        sysProgress.shield = 100; sysProgress.level += 1; initRuntimeLevel();
     };
 
     window.resetToLevelBeginning = function() {
         document.getElementById('defeat-menu').style.display = 'none';
-        sysProgress.shield = 100;
-        initRuntimeLevel(); 
+        sysProgress.shield = 100; initRuntimeLevel(); 
     };
 
     function initRuntimeLevel() {
@@ -457,115 +411,77 @@
         scene.physics.resume();
         sysProgress.runtimeActive = true;
 
-        cleanTimers();
-        
-        player.x = 150; player.y = 320; player.setVelocity(0, 0);
-        partnerSusi.x = 100; partnerSusi.y = 300;
+        // Apply selected design costume color transformation onto sprite sheet instance
+        player.setTint(sysProgress.selectedOutfitHex);
 
-        enemiesGroup.clear(true, true);
-        bossGroup.clear(true, true);
-        enemyLasers.clear(true, true);
+        player.setPosition(400, 460); player.setVelocity(0, 0);
+        enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
 
-        // Every 3 levels change the background color layout theme
-        let styleTier = Math.floor((sysProgress.level - 1) / 3) % 4;
-        let backgroundTints = [0xffffff, 0xbb33ff, 0xffff33, 0xff3333];
-        let platformTints = [0xffffff, 0x8811cc, 0xcc9900, 0x990000];
-        
-        mapPlatforms.children.entries.forEach(platform => {
-            platform.setTint(platformTints[styleTier]);
-        });
-        cloudsGroup.children.entries.forEach(bgCloud => {
-            bgCloud.setTint(backgroundTints[styleTier]);
-        });
-
-        currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
+        // Spawn Pekka Boss Unit on northern base platform location
+        currentBossInstance = bossGroup.create(400, 110, 'humanoid_boss');
         currentBossInstance.health = 100 + (sysProgress.stage * 15);
-        currentBossInstance.setVelocityX(-85 - (sysProgress.stage * 10)); 
         currentBossInstance.setCollideWorldBounds(true);
 
-        startTimerLoops(true);
+        startTimerLoops();
         refreshTerminalHUD();
     }
 
-    function startTimerLoops(createNewBoss) {
+    function startTimerLoops() {
         cleanTimers();
         let scene = game.scene.scenes[0];
 
-        // Progressive Difficulty Calculation across Stages
-        let basicInterval = Math.max(700, 2000 - (sysProgress.stage * 250));
-        let attackInterval = Math.max(600, 1800 - (sysProgress.stage * 200));
-
         globalAmbushTimer = scene.time.addEvent({
-            delay: basicInterval, loop: true, callback: () => {
+            delay: 1500, loop: true, callback: () => {
                 if (!sysProgress.runtimeActive) return;
-                
-                // Shift enemy positioning layouts and texture keys every 3 levels
-                let levelLayoutTier = Math.floor((sysProgress.level - 1) / 3) % 2;
-                let enemyGraphicKey = (levelLayoutTier === 0) ? 'virus_hazard' : 'alien_hazard';
-                
-                let spawnX = Phaser.Math.Between(player.x - 200, player.x + 500);
-                let spawnY = (levelLayoutTier === 0) ? 60 : Phaser.Math.Between(150, 300); // Alternative platform levels
-                
-                let hazard = enemiesGroup.create(spawnX, spawnY, enemyGraphicKey);
-                hazard.body.allowGravity = false;
-                
-                let speedScale = 40 + (sysProgress.stage * 12);
-                scene.physics.moveToObject(hazard, player, speedScale);
+                // Waves spawn from dynamic top lane coordinates
+                let spawnX = Phaser.Math.Between(50, 750);
+                let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
+                let subUnit = enemiesGroup.create(spawnX, 40, enemyKey);
+                scene.physics.moveToObject(subUnit, player, 90 + (sysProgress.stage * 10));
             }
         });
 
         bossAttackTimer = scene.time.addEvent({
-            delay: attackInterval, loop: true, callback: () => {
+            delay: 1400, loop: true, callback: () => {
                 if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
-                    let blast = enemyLasers.create(currentBossInstance.x, currentBossInstance.y - 15, 'laser_red');
-                    blast.body.allowGravity = false;
-                    let fireSpeed = 260 + (sysProgress.stage * 25);
-                    scene.physics.moveToObject(blast, player, fireSpeed);
+                    let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 20, 'laser_red');
+                    scene.physics.moveToObject(projectile, player, 240);
                 }
             }
         });
     }
 
-    function update(time) {
+    function update() {
         if (!sysProgress.runtimeActive) return;
 
-        // Animate floating responsive sky cloud elements
-        cloudElementsGroup.children.entries.forEach(cloud => {
-            cloud.x -= 0.6;
-            if(cloud.x < player.x - 600) {
-                cloud.x = player.x + 800;
-                cloud.y = Phaser.Math.Between(40, 180);
-            }
-        });
+        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 30, 0.15);
+        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
 
-        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 10, 0.2);
+        // Top-Down arena full 4-directional layout tracking
+        let speed = 250;
+        player.setVelocity(0, 0);
 
-        if (cursors.left.isDown || moveLeft) {
-            player.setVelocityX(-240); facingDirection = 'left';
-        } else if (cursors.right.isDown || moveRight) {
-            player.setVelocityX(240); facingDirection = 'right';
-        } else {
-            player.setVelocityX(0);
-        }
-
-        if ((cursors.up.isDown || doJump) && player.body.touching.down) {
-            player.setVelocityY(-620); doJump = false; 
-        }
+        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); }
+        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); }
+        
+        if (cursors.up.isDown || doJump) { player.setVelocityY(-speed); }
+        else if (cursors.down.isDown) { player.setVelocityY(speed); }
 
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
 
+        // Strategic pathing for Pekka Boss Unit
         if (currentBossInstance && currentBossInstance.active) {
-            if (currentBossInstance.body.velocity.x === 0) {
-                let currentBossSpeed = 85 + (sysProgress.stage * 10);
-                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -currentBossSpeed : currentBossSpeed);
+            if (Math.abs(currentBossInstance.x - player.x) > 20) {
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -70 : 70);
+            } else {
+                currentBossInstance.setVelocityX(0);
             }
         }
     }
 
     function refreshTerminalHUD() {
-        document.getElementById('hud-lvl').innerText = `Stage: ${sysProgress.stage} | Level: ${sysProgress.level} | Shield: ${sysProgress.shield}%`;
+        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Battle Match: ${sysProgress.level} | Shield: ${sysProgress.shield}%`;
     }
 </script>
 </body>
