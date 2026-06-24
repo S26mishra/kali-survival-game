@@ -149,9 +149,20 @@
     let globalAmbushTimer = null, adCountdownInterval = null;
     let currentBossInstance = null;
 
+    // Load progress from LocalStorage if available
+    let savedGlobalLevel = localStorage.getItem('kalis_legend_high_level');
+    let startingStage = 4;
+    let startingLevel = 4;
+
+    if (savedGlobalLevel) {
+        let numericGlobal = parseInt(savedGlobalLevel, 10);
+        startingStage = Math.floor((numericGlobal - 1) / 4) + 1;
+        startingLevel = ((numericGlobal - 1) % 4) + 1;
+    }
+
     let sysProgress = {
-        stage: 4,
-        level: 4,
+        stage: startingStage,
+        level: startingLevel,
         maxLevels: 350,
         shield: 100,
         runtimeActive: false
@@ -209,17 +220,29 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(8, 6, 48, 4);
         });
 
-        generateVectorGraphic('virus_hazard', 32, 36, (ctx) => {
-            ctx.fillStyle = '#990000';
-            ctx.beginPath(); ctx.moveTo(4, 10); ctx.lineTo(8, 0); ctx.lineTo(12, 10); ctx.fill(); 
-            ctx.beginPath(); ctx.moveTo(28, 10); ctx.lineTo(24, 0); ctx.lineTo(20, 10); ctx.fill(); 
-            ctx.fillStyle = '#ee2222';
-            ctx.fillRect(4, 10, 24, 22);
+        // NEW REDESIGNED LOOK: Cybernetic Spike Mine obstacle
+        generateVectorGraphic('virus_hazard', 36, 36, (ctx) => {
+            ctx.translate(18, 18);
+            ctx.fillStyle = '#ff0055';
+            for (let i = 0; i < 8; i++) {
+                ctx.rotate(Math.PI / 4);
+                ctx.beginPath();
+                ctx.moveTo(-4, -6);
+                ctx.lineTo(0, -18);
+                ctx.lineTo(4, -6);
+                ctx.fill();
+            }
+            ctx.fillStyle = '#220011';
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
             ctx.fillStyle = '#ffff00';
-            ctx.fillRect(7, 15, 5, 5); 
-            ctx.fillRect(20, 15, 5, 5); 
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(11, 25, 10, 3);
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fill();
         });
 
         generateVectorGraphic('humanoid_boss', 48, 72, (ctx) => {
@@ -572,7 +595,14 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        game.scene.scenes[0].physics.moveToObject(hazard, player, 45);
+        // ADAPTIVE MONSTER SPEED ADJUSTMENT
+        let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+        let targetSpeed = 45; 
+        if (currentGlobal > 10) {
+            targetSpeed = 30; // Slow down speed after level 10
+        }
+        
+        game.scene.scenes[0].physics.moveToObject(hazard, player, targetSpeed);
 
         game.scene.scenes[0].time.addEvent({
             delay: Phaser.Math.Between(1100, 1800),
@@ -632,11 +662,23 @@
                 currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -100 : 100);
             }
         }
+        
+        // Add subtle rotational spinning to our custom cyber-mine obstacles
+        enemiesGroup.children.entries.forEach((hazard) => {
+            if (hazard && hazard.active) {
+                hazard.angle += 1.5;
+            }
+        });
     }
 
     function advanceNextMatrixSegment() {
         sysProgress.level++;
         if (sysProgress.level > 4) { sysProgress.level = 1; sysProgress.stage++; }
+        
+        // LOCAL STORAGE SAVE TRACKING
+        let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
+        localStorage.setItem('kalis_legend_high_level', currentGlobal.toString());
+        
         initRuntimeLevel();
     }
 
