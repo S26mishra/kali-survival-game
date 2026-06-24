@@ -74,7 +74,7 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 4 | Level: 4 | Shield: 100%</div>
-        <div id="hud-log">System Optimized. Aggression parameters updated.</div>
+        <div id="hud-log">Dual Elemental Engine Online. Boss weapon systems unlocked.</div>
     </div>
 
     <!-- UI Start Menu -->
@@ -281,10 +281,9 @@
             laser.destroy(); sysProgress.shield -= 12; refreshTerminalHUD(); checkPlayerMortality();
         });
 
-        // ENLARGED TOUCH UI: Re-engineered with larger active radiuses for mobile ease-of-use
-        let createVirtualBtn = (x, y, radius, label, color, fontSize, pointerDownCallback, pointerUpCallback) => {
-            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.55);
-            this.add.text(x, y, label, { font: `bold ${fontSize} Arial`, color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
+        let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
+            let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
+            this.add.text(x, y, label, { font: 'bold 14px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
             
             btnBg.on('pointerdown', pointerDownCallback);
             if(pointerUpCallback) {
@@ -293,14 +292,12 @@
             }
         };
 
-        // Left, Right, Jump Buttons resized up to 34 radius for fat-finger prevention
-        createVirtualBtn(70, 475, 34, '◀', '18px', () => { moveLeft = true; }, () => { moveLeft = false; });
-        createVirtualBtn(155, 475, 34, '▶', '18px', () => { moveRight = true; }, () => { moveRight = false; });
-        createVirtualBtn(240, 475, 34, '▲', '18px', () => { doJump = true; }, () => { doJump = false; });
+        createVirtualBtn(60, 485, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
+        createVirtualBtn(125, 485, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
+        createVirtualBtn(190, 485, 26, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
         
-        // Attack keys scaled heavily to 45 radius so you never miss a tap while fighting
-        createVirtualBtn(615, 475, 45, 'LIGHT', '15px', () => { triggerElectricShockPower(); });
-        createVirtualBtn(725, 475, 45, 'FIRE', '15px', () => { triggerKaliFire(); });
+        createVirtualBtn(645, 485, 34, 'LIGHT', 0x666600, () => { triggerElectricShockPower(); });
+        createVirtualBtn(735, 485, 34, 'FIRE', 0x660000, () => { triggerKaliFire(); });
 
         document.getElementById('start-menu').style.display = 'flex';
         this.physics.pause();
@@ -372,10 +369,10 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
-        // SPEED INCREASE: Tuned up to 85 for an active, engaging encounter pace
+        // BALANCED RECALIBRATION: Speed slightly increased to a comfortable 55
         currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
         currentBossInstance.health = 100;
-        currentBossInstance.setVelocityX(-85);
+        currentBossInstance.setVelocityX(-55);
         currentBossInstance.setCollideWorldBounds(true);
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
@@ -387,6 +384,7 @@
             }
         });
 
+        // NEW: Boss firing routine tracking the player's position
         bossAttackTimer = game.scene.scenes[0].time.addEvent({
             delay: 1800, loop: true, callback: () => {
                 if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
@@ -426,10 +424,10 @@
             triggerElectricShockPower();
         }
 
-        // Velocity maintenance checks running at the upgraded 85 index
+        // Tracking loop maintaining the moderate balanced speed
         if (currentBossInstance && currentBossInstance.active) {
             if (currentBossInstance.body.velocity.x === 0) {
-                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -85 : 85);
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -55 : 55);
             }
         }
     }
