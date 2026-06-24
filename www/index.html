@@ -74,7 +74,7 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 4 | Level: 4 | Shield: 100%</div>
-        <div id="hud-log">Dual Elemental Engine Online. Boss metrics recalibrated.</div>
+        <div id="hud-log">Dual Elemental Engine Online. Boss weapon systems unlocked.</div>
     </div>
 
     <!-- UI Start Menu -->
@@ -95,7 +95,7 @@
     <!-- Victory Screen -->
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE CLEARED 🏆</div>
-        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Humanoid Boss has been completely dismantled!</p>
+        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Boss has been dismantled! Stage 4 Securitization Complete.</p>
         <button class="btn-action" onclick="restartStage()">PLAY AGAIN</button>
     </div>
 
@@ -121,12 +121,13 @@
 
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, bossLasers, kaliLasers, susiLasers, enemyLasers;
+    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, susiLasers, enemyLasers;
     let cloudsGroup;
     let moveLeft = false, moveRight = false, doJump = false;
     let facingDirection = 'right';
     let lastDroneFireTime = 0;
     let globalAmbushTimer = null;
+    let bossAttackTimer = null;
     let currentBossInstance = null;
     
     let keyF, keyE, keyL, keySpace;
@@ -201,8 +202,9 @@
             ctx.stroke();
         });
         
-        generateVectorGraphic('laser_red', 12, 12, (ctx) => {
-            ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(6, 6, 6, 0, Math.PI * 2); ctx.fill();
+        generateVectorGraphic('laser_red', 14, 14, (ctx) => {
+            ctx.fillStyle = '#ff0000'; ctx.beginPath(); ctx.arc(7, 7, 7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffaaaa'; ctx.beginPath(); ctx.arc(7, 7, 3, 0, Math.PI * 2); ctx.fill();
         });
         generateVectorGraphic('laser_purple', 10, 10, (ctx) => { ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(5,5,5,0,Math.PI*2); ctx.fill(); });
         generateVectorGraphic('matrix_cloud', 96, 32, (ctx) => {
@@ -263,11 +265,10 @@
 
         this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
         
-        // Weapon impact handler for Boss encounters
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
             boss.health -= 5;
-            document.getElementById('hud-log').innerText = `⚡ DIRECT IMPACT! Boss Structural Integrity: ${boss.health}%`;
+            document.getElementById('hud-log').innerText = `⚡ DIRECT HIT! Boss Health: ${boss.health}%`;
             
             if (boss.health <= 0) { 
                 boss.destroy(); 
@@ -277,7 +278,7 @@
         });
 
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); sysProgress.shield -= 10; refreshTerminalHUD(); checkPlayerMortality();
+            laser.destroy(); sysProgress.shield -= 12; refreshTerminalHUD(); checkPlayerMortality();
         });
 
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
@@ -325,15 +326,20 @@
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false;
             game.scene.scenes[0].physics.pause();
-            if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+            cleanTimers();
             document.getElementById('defeat-menu').style.display = 'flex';
         }
+    }
+
+    function cleanTimers() {
+        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+        if (bossAttackTimer) { bossAttackTimer.destroy(); bossAttackTimer = null; }
     }
 
     function triggerVictorySequence() {
         sysProgress.runtimeActive = false;
         game.scene.scenes[0].physics.pause();
-        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+        cleanTimers();
         document.getElementById('victory-menu').style.display = 'flex';
     }
 
@@ -354,7 +360,7 @@
         game.scene.scenes[0].physics.resume();
         sysProgress.runtimeActive = true;
 
-        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+        cleanTimers();
         
         player.x = 150; player.y = 320; player.setVelocity(0, 0);
         partnerSusi.x = 100; partnerSusi.y = 300;
@@ -363,10 +369,10 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
-        // SLOWED DOWN: Initial horizontal velocity lowered significantly to 25
+        // BALANCED RECALIBRATION: Speed slightly increased to a comfortable 55
         currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
         currentBossInstance.health = 100;
-        currentBossInstance.setVelocityX(-25);
+        currentBossInstance.setVelocityX(-55);
         currentBossInstance.setCollideWorldBounds(true);
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
@@ -375,6 +381,18 @@
                 let hazard = enemiesGroup.create(Phaser.Math.Between(player.x - 200, player.x + 400), 60, 'virus_hazard');
                 hazard.body.allowGravity = false;
                 game.scene.scenes[0].physics.moveToObject(hazard, player, 40);
+            }
+        });
+
+        // NEW: Boss firing routine tracking the player's position
+        bossAttackTimer = game.scene.scenes[0].time.addEvent({
+            delay: 1800, loop: true, callback: () => {
+                if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
+                    let blast = enemyLasers.create(currentBossInstance.x, currentBossInstance.y - 15, 'laser_red');
+                    blast.body.allowGravity = false;
+                    game.scene.scenes[0].physics.moveToObject(blast, player, 260);
+                    document.getElementById('hud-log').innerText = "⚠️ WARNING: Boss has launched a targeting weapon projectile!";
+                }
             }
         });
         
@@ -406,10 +424,10 @@
             triggerElectricShockPower();
         }
 
-        // SLOWED DOWN: Maintains steady, relaxed velocity when altering pathways
+        // Tracking loop maintaining the moderate balanced speed
         if (currentBossInstance && currentBossInstance.active) {
             if (currentBossInstance.body.velocity.x === 0) {
-                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -25 : 25);
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -55 : 55);
             }
         }
     }
