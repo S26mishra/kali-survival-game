@@ -86,15 +86,17 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 4 | Level: 4 (Global: 16/350) | Shield: 100%</div>
-        <div id="hud-log">System Initialized. Cat Companion deployed.</div>
+        <div id="hud-log">System Initialized. Dual elemental nodes loaded.</div>
     </div>
 
+    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
-        <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
+        <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Use Fire (SPACE/F) & Light (L/E) weapons concurrently while moving!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
+    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -102,6 +104,7 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
+    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -148,8 +151,10 @@
     let lastDroneFireTime = 0;
     let globalAmbushTimer = null, adCountdownInterval = null;
     let currentBossInstance = null;
+    
+    // Supplementary Key Registrations for fluid simultaneous inputs
+    let keyF, keyE, keyL;
 
-    // Load progress from LocalStorage if available
     let savedGlobalLevel = localStorage.getItem('kalis_legend_high_level');
     let startingStage = 4;
     let startingLevel = 4;
@@ -220,7 +225,6 @@
             ctx.fillStyle = '#33ff33'; ctx.fillRect(8, 6, 48, 4);
         });
 
-        // NEW REDESIGNED LOOK: Cybernetic Spike Mine obstacle
         generateVectorGraphic('virus_hazard', 36, 36, (ctx) => {
             ctx.translate(18, 18);
             ctx.fillStyle = '#ff0055';
@@ -256,7 +260,13 @@
 
         generateVectorGraphic('laser_fire', 24, 10, (ctx) => { 
             ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 16, 6);
-            ctx.strokeStyle = '#ff6600'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
+            ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
+        });
+
+        // DISTINCT PROJECTILE VECTOR FOR LIGHT POWER
+        generateVectorGraphic('laser_light', 24, 10, (ctx) => { 
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(2, 2, 20, 6);
+            ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 24, 10);
         });
         
         generateVectorGraphic('laser_red', 12, 12, (ctx) => {
@@ -274,6 +284,9 @@
     }
 
     function create() {
+        // ENABLING MULTI-TOUCH POINTER PROCESSING
+        this.input.addPointer(3);
+
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
         for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
@@ -324,6 +337,11 @@
         this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
         cursors = this.input.keyboard.createCursorKeys();
+        
+        // Custom Key Assignments to allow simultaneous keydowns alongside movement
+        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+        keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
 
         this.physics.add.overlap(player, targetKitty, () => {
             if (sysProgress.runtimeActive) {
@@ -407,18 +425,22 @@
             createVirtualBtn(170, 502, 48, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(275, 502, 48, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
             
-            createVirtualBtn(595, 502, 48, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-            createVirtualBtn(715, 502, 50, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+            createVirtualBtn(595, 502, 48, 'LIGHT', 0x555500, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(715, 502, 50, 'FIRE', 0x550000, () => { triggerKaliLaser(); }, () => {});
         } else {
             createVirtualBtn(60, 485, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(125, 485, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(190, 485, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
             
-            createVirtualBtn(665, 485, 24, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
-            createVirtualBtn(740, 485, 30, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
+            createVirtualBtn(665, 485, 24, 'LIGHT', 0x555500, () => { triggerLightPower(); }, () => {});
+            createVirtualBtn(740, 485, 30, 'FIRE', 0x550000, () => { triggerKaliLaser(); }, () => {});
         }
 
+        // Listeners for weapon activations
         this.input.keyboard.on('keydown-SPACE', triggerKaliLaser);
+        this.input.keyboard.on('keydown-F', triggerKaliLaser);
+        this.input.keyboard.on('keydown-L', triggerLightPower);
+        this.input.keyboard.on('keydown-E', triggerLightPower);
 
         document.getElementById('start-menu').style.display = 'flex';
         this.physics.pause();
@@ -430,22 +452,20 @@
         let shot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_fire');
         shot.body.allowGravity = false;
         shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
+        document.getElementById('hud-log').innerText = "🔥 FIRE POWER: Incinerating combat path forward.";
     }
 
     function triggerLightPower() {
         if (!sysProgress.runtimeActive) return;
-        document.getElementById('hud-log').innerText = "💥 LIGHT FLASH: Blasting nearby airborne threats!";
+        let offset = facingDirection === 'right' ? 20 : -20;
         
-        enemiesGroup.children.entries.forEach((enemy) => {
-            if (enemy && enemy.active && Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 250) {
-                enemy.destroy();
-            }
-        });
-        
-        let offset = facingDirection === 'right' ? -20 : 20;
-        let lightShot = susiLasers.create(player.x + offset, player.y - 8, 'laser_purple');
+        // FIRING AN ACTIONABLE LIGHT BEAM COMPLEMENTING THE FIRE POWER
+        let lightShot = kaliLasers.create(player.x + offset, player.y - 8, 'laser_light');
         lightShot.body.allowGravity = false;
-        lightShot.setVelocityX(facingDirection === 'right' ? -600 : 600);
+        lightShot.setVelocityX(facingDirection === 'right' ? 850 : -850);
+        lightShot.setTint(0xffff77);
+
+        document.getElementById('hud-log').innerText = "⚡ LIGHT BEAM: High-frequency beam discharged!";
     }
 
     function checkPlayerMortality() {
@@ -595,11 +615,10 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        // ADAPTIVE MONSTER SPEED ADJUSTMENT
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
         let targetSpeed = 45; 
         if (currentGlobal > 10) {
-            targetSpeed = 30; // Slow down speed after level 10
+            targetSpeed = 30;
         }
         
         game.scene.scenes[0].physics.moveToObject(hazard, player, targetSpeed);
@@ -663,7 +682,6 @@
             }
         }
         
-        // Add subtle rotational spinning to our custom cyber-mine obstacles
         enemiesGroup.children.entries.forEach((hazard) => {
             if (hazard && hazard.active) {
                 hazard.angle += 1.5;
@@ -675,7 +693,6 @@
         sysProgress.level++;
         if (sysProgress.level > 4) { sysProgress.level = 1; sysProgress.stage++; }
         
-        // LOCAL STORAGE SAVE TRACKING
         let currentGlobal = ((sysProgress.stage - 1) * 4) + sysProgress.level;
         localStorage.setItem('kalis_legend_high_level', currentGlobal.toString());
         
