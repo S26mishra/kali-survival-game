@@ -117,10 +117,11 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 1 | Level: 1 | Shield: 100%</div>
+        <div id="hud-lvl">Stage: 1 | Battle Match: 1 | Shield: 100% | Coins: 0 | Weapon: Lv.1</div>
         <div id="hud-log">Tactical Arena System Active. Choose Outfit and deploy strategies.</div>
     </div>
 
+    <!-- UI Responsive Touch Layout Interface Layer -->
     <div class="mobile-touch-bar">
         <div class="touch-group-left">
             <div class="huge-btn" id="pad-left">◀</div>
@@ -133,6 +134,7 @@
         </div>
     </div>
 
+    <!-- UI Start Menu with Custom Outfit Selection Grid -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
         <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
@@ -150,12 +152,14 @@
         <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
     </div>
 
+    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
         <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
     </div>
 
+    <!-- Victory Screen -->
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
         <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
@@ -173,7 +177,7 @@
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         physics: {
             default: 'arcade',
-            arcade: { gravity: { y: 0 }, debug: false } // Gravity disabled for Top-Down Arena Mode
+            arcade: { gravity: { y: 0 }, debug: false }
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -196,10 +200,10 @@
         level: 1,
         shield: 100,
         runtimeActive: false,
-        selectedOutfitHex: 0x00ffff
+        selectedOutfitHex: 0x00ffff,
+        coins: 0 // Secured coin tracking
     };
 
-    // Global selector callback for user outfits
     window.selectOutfit = function(id, hexStr) {
         document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`skin-${id}`).classList.add('active');
@@ -216,10 +220,9 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Player model base outfit frame mapping
         generateVectorGraphic('kali_humanoid', 32, 44, (ctx) => {
             ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(16, 10, 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 18, 20, 22); // Main customizable armor plate
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(6, 18, 20, 22); 
             ctx.fillStyle = '#222222'; ctx.fillRect(10, 36, 12, 8);
         });
 
@@ -233,23 +236,21 @@
             ctx.fillStyle = '#ffaa66'; ctx.beginPath(); ctx.arc(14, 8, 5, 0, Math.PI*2); ctx.fill();
         });
 
-        // Top Down Clash Arena Map Sprites
         generateVectorGraphic('matrix_floor', 40, 40, (ctx) => {
             ctx.fillStyle = '#1b3d1b'; ctx.fillRect(0, 0, 40, 40);
             ctx.strokeStyle = '#2d5a2d'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 40, 40);
         });
 
         generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
-            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24); // Bridge / Lane separators
+            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24); 
             ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
         });
 
-        // Pekka inspired mega boss vector graphic model mapping
         generateVectorGraphic('humanoid_boss', 56, 76, (ctx) => {
-            ctx.fillStyle = '#2c3e50'; ctx.fillRect(4, 16, 48, 54); // Iron plating
-            ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.moveTo(10, 16); ctx.lineTo(2, 2); ctx.lineTo(18, 12); ctx.fill(); // Curved horn left
-            ctx.beginPath(); ctx.moveTo(46, 16); ctx.lineTo(54, 2); ctx.lineTo(38, 12); ctx.fill(); // Curved horn right
-            ctx.fillStyle = '#ff00ff'; ctx.fillRect(16, 26, 6, 6); ctx.fillRect(34, 26, 6, 6); // Neon glowing eyes
+            ctx.fillStyle = '#2c3e50'; ctx.fillRect(4, 16, 48, 54); 
+            ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.moveTo(10, 16); ctx.lineTo(2, 2); ctx.lineTo(18, 12); ctx.fill(); 
+            ctx.beginPath(); ctx.moveTo(46, 16); ctx.lineTo(54, 2); ctx.lineTo(38, 12); ctx.fill(); 
+            ctx.fillStyle = '#ff00ff'; ctx.fillRect(16, 26, 6, 6); ctx.fillRect(34, 26, 6, 6); 
         });
 
         generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
@@ -281,18 +282,15 @@
     }
 
     function create() {
-        // Formulating standard Top-Down tactical battlefield grid dimensions
         this.physics.world.setBounds(0, 0, 800, 550);
         
         mapPlatforms = this.physics.add.staticGroup();
-        // Drawing tactical battlefield tiling arena
         for (let x = 0; x < 800; x += 40) {
             for(let y = 0; y < 550; y += 40) {
                 mapPlatforms.create(x, y, 'matrix_floor').setOrigin(0, 0).refreshBody();
             }
         }
 
-        // Draw structural river / trench separation bridges across arena midsection
         for (let bx = 120; bx < 800; bx += 240) {
             mapPlatforms.create(bx, 260, 'cyber_platform').refreshBody();
         }
@@ -304,19 +302,28 @@
         kaliLasers = this.physics.add.group();
         enemyLasers = this.physics.add.group();
 
-        // Player starting base at bottom side deck position
         player = this.physics.add.sprite(400, 460, 'kali_humanoid').setCollideWorldBounds(true);
         partnerSusi = this.physics.add.sprite(360, 470, 'susi_drone').setCollideWorldBounds(true);
         partnerSusi.body.allowGravity = false;
         targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
-        // Bind standard overlapping collisions logic
-        this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { p.destroy(); enemy.destroy(); });
+        // Earn +10 coins on regular enemy shot down
+        this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
+            p.destroy(); 
+            enemy.destroy(); 
+            sysProgress.coins += 10;
+            document.getElementById('hud-log').innerText = `🪙 +10 Coins Collected!`;
+            refreshTerminalHUD();
+        });
+
+        // Earn +10 coins on every hit lands safely on boss combat shield link
         this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
             p.destroy();
             boss.health -= 5;
-            document.getElementById('hud-log').innerText = `⚡ HIT BATTLE BOSS! Core Shield: ${boss.health}%`;
+            sysProgress.coins += 10;
+            document.getElementById('hud-log').innerText = `⚡ HIT BATTLE BOSS! Core Shield: ${boss.health}% (+10 Coins)`;
             if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
+            refreshTerminalHUD();
         });
 
         this.physics.add.overlap(player, bossGroup, (pl, boss) => {
@@ -360,16 +367,44 @@
         binding('pad-fire', () => { triggerKaliFire(); });
     }
 
+    // Dynamic weapon tier spread calculations based on the current active Stage configuration numbers
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
-        let shot = kaliLasers.create(player.x, player.y - 20, 'laser_fire');
-        shot.setVelocityY(-450);
+        
+        let weaponTier = sysProgress.stage;
+        if (weaponTier === 1) {
+            let shot = kaliLasers.create(player.x, player.y - 20, 'laser_fire');
+            shot.setVelocityY(-450);
+        } else if (weaponTier === 2) {
+            // Dual Burst Weapon Upgrade
+            let s1 = kaliLasers.create(player.x - 10, player.y - 20, 'laser_fire');
+            let s2 = kaliLasers.create(player.x + 10, player.y - 20, 'laser_fire');
+            s1.setVelocityY(-470); s2.setVelocityY(-470);
+        } else {
+            // Triple Threat Spread Cannon Upgrade
+            let s1 = kaliLasers.create(player.x - 15, player.y - 20, 'laser_fire');
+            let s2 = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
+            let s3 = kaliLasers.create(player.x + 15, player.y - 20, 'laser_fire');
+            s1.setVelocity(-60, -500);
+            s2.setVelocity(0, -520);
+            s3.setVelocity(60, -500);
+        }
     }
 
     function triggerElectricShockPower() {
         if (!sysProgress.runtimeActive) return;
-        let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
-        wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
+        
+        let weaponTier = sysProgress.stage;
+        if (weaponTier === 1) {
+            let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
+            wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
+        } else {
+            // Amplified Shockwave patterns for upgraded higher stages
+            for (let i = 0; i < Math.min(weaponTier, 4); i++) {
+                let wave = kaliLasers.create(player.x, player.y - 20, 'laser_electric');
+                wave.setVelocity(-200 + (i * 130), -520);
+            }
+        }
     }
 
     function checkPlayerMortality() {
@@ -397,7 +432,13 @@
 
     window.restartStage = function() {
         document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.shield = 100; sysProgress.level += 1; initRuntimeLevel();
+        sysProgress.shield = 100; 
+        sysProgress.level += 1; 
+        if (sysProgress.level > 5) {
+            sysProgress.level = 1;
+            sysProgress.stage += 1; // Stage increases trigger automatic weapon upgrade mapping
+        }
+        initRuntimeLevel();
     };
 
     window.resetToLevelBeginning = function() {
@@ -411,13 +452,10 @@
         scene.physics.resume();
         sysProgress.runtimeActive = true;
 
-        // Apply selected design costume color transformation onto sprite sheet instance
         player.setTint(sysProgress.selectedOutfitHex);
-
         player.setPosition(400, 460); player.setVelocity(0, 0);
         enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
 
-        // Spawn Pekka Boss Unit on northern base platform location
         currentBossInstance = bossGroup.create(400, 110, 'humanoid_boss');
         currentBossInstance.health = 100 + (sysProgress.stage * 15);
         currentBossInstance.setCollideWorldBounds(true);
@@ -433,7 +471,6 @@
         globalAmbushTimer = scene.time.addEvent({
             delay: 1500, loop: true, callback: () => {
                 if (!sysProgress.runtimeActive) return;
-                // Waves spawn from dynamic top lane coordinates
                 let spawnX = Phaser.Math.Between(50, 750);
                 let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
                 let subUnit = enemiesGroup.create(spawnX, 40, enemyKey);
@@ -457,7 +494,6 @@
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 30, 0.15);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
 
-        // Top-Down arena full 4-directional layout tracking
         let speed = 250;
         player.setVelocity(0, 0);
 
@@ -470,7 +506,6 @@
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
 
-        // Strategic pathing for Pekka Boss Unit
         if (currentBossInstance && currentBossInstance.active) {
             if (Math.abs(currentBossInstance.x - player.x) > 20) {
                 currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -70 : 70);
@@ -481,7 +516,7 @@
     }
 
     function refreshTerminalHUD() {
-        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Battle Match: ${sysProgress.level} | Shield: ${sysProgress.shield}%`;
+        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Battle Match: ${sysProgress.level} | Shield: ${sysProgress.shield}% | Coins: ${sysProgress.coins} | Weapon: Lv.${sysProgress.stage}`;
     }
 </script>
 </body>
