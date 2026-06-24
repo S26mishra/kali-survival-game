@@ -111,7 +111,7 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 4 | Level: 4 | Shield: 100%</div>
+        <div id="hud-lvl">Stage: 1 | Level: 1 | Shield: 100%</div>
         <div id="hud-log">Mobile compatibility configuration complete. No structural changes to desktop mode.</div>
     </div>
 
@@ -146,7 +146,7 @@
 
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE CLEARED 🏆</div>
-        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Boss has been dismantled! Stage 4 Securitization Complete.</p>
+        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Boss has been dismantled! Stage Securitization Complete.</p>
         <button class="btn-action" onclick="restartStage()">PLAY AGAIN</button>
     </div>
 
@@ -183,9 +183,10 @@
     
     let keyF, keyE, keyL, keySpace;
 
+    // Decreased default state progression settings downward safely
     let sysProgress = {
-        stage: 4,
-        level: 4,
+        stage: 1,
+        level: 1,
         shield: 100,
         runtimeActive: false
     };
