@@ -29,26 +29,23 @@ app.post('/api/game', (req, res) => {
 
     if (action === 'complete') {
         playerData.level += 1;
-        playerData.combatPower += 7;
-        playerData.gold += 25; // Gives 25 Gold per level completion!
-        playerData.logMessage = `✨ Level Complete! Advanced successfully to level ${playerData.level}. (+25g)`;
-    } 
-    else if (action === 'battle') {
-        // Drop a random piece of gear from our array pool
+        playerData.combatPower += 5;
+        playerData.gold += Math.floor(Math.random() * 50) + 10;
+        
         const randomItem = itemDrops[Math.floor(Math.random() * itemDrops.length)];
-        
-        if (!playerData.equipment.includes(randomItem)) {
-            playerData.equipment.push(randomItem);
-        }
-        
-        playerData.gold += 50; // Gives 50 Gold for winning a battle
-        playerData.combatPower += 15;
-        playerData.logMessage = `⚔️ Battle Won! Found [${randomItem}] and looted 50 gold coins!`;
+        playerData.equipment.push(randomItem);
+        playerData.logMessage = `Success! Advanced to Level ${playerData.level}. Dropped: ${randomItem}`;
+    } else if (action === 'reset') {
+        playerData.level = 1;
+        playerData.combatPower = 10;
+        playerData.gold = 0;
+        playerData.equipment = [];
+        playerData.logMessage = "System reset initialized. Values returned to starting standard.";
     }
 
     res.json(playerData);
 });
 
-app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
-    console.log(`Backend server running live!`);
+app.listen(PORT, () => {
+    console.log(`Server executing successfully on port http://localhost:${PORT}`);
 });
