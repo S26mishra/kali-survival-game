@@ -17,6 +17,8 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            box-sizing: border-box;
         }
         #game-wrapper {
             position: relative; 
@@ -87,14 +89,12 @@
         <div id="hud-log">System Initialized. Cat Companion deployed.</div>
     </div>
 
-    <!-- UI Main Start Menu -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title" id="menu-header">🟩 HARDWARE SYNC LOCKED 🟩</div>
         <p id="menu-desc" style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 20px;">Your Cat Companion is ready next to Kali. Battle vectors operational!</p>
         <button id="main-menu-btn" class="btn-action" onclick="initRuntimeLevel()">START GAME</button>
     </div>
 
-    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 SHIELD VAPORIZED 💀</div>
         <p id="defeat-info-text" style="color:#fff; font-size:13px; margin-bottom:20px;">Defeated at Stage 4, Level 4.</p>
@@ -102,7 +102,6 @@
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">START AGAIN</button>
     </div>
 
-    <!-- Ad Screen -->
     <div id="revival-ad-container" class="overlay-screen">
         <div id="ad-player-title" class="menu-title" style="color:#ffcc00; font-size:16px; text-shadow: 0 0 10px #ffcc00; margin-bottom:5px;">🚀 SPACE EXPLORATION</div>
         <p id="ad-timer-text" style="font-size:12px; margin:0 0 10px 0; color:#ffcc00; font-weight: bold;">Video stream active: 5s remaining</p>
@@ -127,7 +126,7 @@
     const config = {
         type: Phaser.AUTO,
         width: 800,
-        height: 550, // Expanded canvas viewport height to fully clear the grid border
+        height: 550, 
         parent: 'game-container',
         scale: {
             mode: Phaser.Scale.FIT,
@@ -252,7 +251,6 @@
     }
 
     function create() {
-        // Grid bounds limited to game action view height (434px)
         this.gridGraphic = this.add.graphics();
         this.gridGraphic.lineStyle(1, 0x114411, 0.6);
         for (let x = 0; x <= 4000; x += 40) { this.gridGraphic.lineBetween(x, 0, x, 434); }
@@ -382,7 +380,6 @@
         let isMobileDevice = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
         if (isMobileDevice) {
-            // Positioned lower at Y=502 (completely separated down below the 434px grid perimeter) + kept at 5% size bump
             createVirtualBtn(65, 502, 48, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(170, 502, 48, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(275, 502, 48, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -390,7 +387,6 @@
             createVirtualBtn(595, 502, 48, 'LIGHT', 0x444400, () => { triggerLightPower(); }, () => {});
             createVirtualBtn(715, 502, 50, 'FIRE', 0x440000, () => { triggerKaliLaser(); }, () => {});
         } else {
-            // Original legacy desktop mapping untouched
             createVirtualBtn(60, 485, 24, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
             createVirtualBtn(125, 485, 24, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
             createVirtualBtn(190, 485, 24, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -506,7 +502,6 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
-        // Constant Cloud Retention Logic across all segments
         if (cloudsGroup && cloudsGroup.children) {
             cloudsGroup.children.entries.forEach(cloud => {
                 cloud.x = Phaser.Math.Between(0, 4000);
@@ -517,7 +512,7 @@
         if (currentGlobal % 4 === 0) {
             currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
             currentBossInstance.health = 100;
-            currentBossInstance.setVelocityX(-100); // Slowed boss tracking vector
+            currentBossInstance.setVelocityX(-100); 
             currentBossInstance.setCollideWorldBounds(true);
             currentBossInstance.setBounce(0.2);
             currentBossInstance.isInvulnerable = false; 
@@ -547,7 +542,7 @@
         }
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
-            delay: 1800, loop: true, callback: spawnOmniDirectionalThreat // Slightly increased interval window for easier evasion
+            delay: 1800, loop: true, callback: spawnOmniDirectionalThreat 
         });
         
         refreshTerminalHUD();
@@ -560,16 +555,16 @@
         let sX, sY;
         let cam = game.scene.scenes[0].cameras.main;
 
-        if (side === 0) { // Top
+        if (side === 0) { 
             sX = Phaser.Math.Between(cam.scrollX, cam.scrollX + 800);
             sY = -40;
-        } else if (side === 1) { // Bottom
+        } else if (side === 1) { 
             sX = Phaser.Math.Between(cam.scrollX, cam.scrollX + 800);
             sY = 400;
-        } else if (side === 2) { // Left
+        } else if (side === 2) { 
             sX = cam.scrollX - 40;
             sY = Phaser.Math.Between(50, 350);
-        } else { // Right
+        } else { 
             sX = cam.scrollX + 840;
             sY = Phaser.Math.Between(50, 350);
         }
@@ -577,7 +572,6 @@
         let hazard = enemiesGroup.create(sX, sY, 'virus_hazard');
         hazard.body.allowGravity = false;
         
-        // Speed significantly decreased from 75 to 45 units for standard tracking monsters
         game.scene.scenes[0].physics.moveToObject(hazard, player, 45);
 
         game.scene.scenes[0].time.addEvent({
@@ -586,7 +580,7 @@
                 if (hazard && hazard.active) {
                     let blast = enemyLasers.create(hazard.x, hazard.y, 'laser_red');
                     blast.body.allowGravity = false;
-                    game.scene.scenes[0].physics.moveToObject(blast, player, 240); // Slowed down red laser velocity
+                    game.scene.scenes[0].physics.moveToObject(blast, player, 240); 
                 }
             }
         });
