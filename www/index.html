@@ -66,6 +66,7 @@
         }
         .btn-action:hover { background: #33ff33; color: #000; }
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
+        #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
     </style>
 </head>
 <body>
@@ -73,7 +74,7 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Stage: 4 | Level: 4 | Shield: 100%</div>
-        <div id="hud-log">Dual Elemental Engine Online.</div>
+        <div id="hud-log">Dual Elemental Engine Online. Boss metrics recalibrated.</div>
     </div>
 
     <!-- UI Start Menu -->
@@ -89,6 +90,13 @@
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 CORE VAPORIZED 💀</div>
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">RELOAD CORE</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-menu" class="overlay-screen">
+        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE CLEARED 🏆</div>
+        <p style="text-align:center; font-size:14px; margin-bottom: 20px;">The Humanoid Boss has been completely dismantled!</p>
+        <button class="btn-action" onclick="restartStage()">PLAY AGAIN</button>
     </div>
 
     <div id="game-container"></div>
@@ -121,7 +129,6 @@
     let globalAmbushTimer = null;
     let currentBossInstance = null;
     
-    // Independent key setups
     let keyF, keyE, keyL, keySpace;
 
     let sysProgress = {
@@ -181,13 +188,11 @@
             ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 2; ctx.strokeRect(12, 22, 24, 26);
         });
 
-        // Fire Power Graphic
         generateVectorGraphic('laser_fire', 26, 10, (ctx) => { 
             ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 2, 18, 6);
             ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 26, 10);
         });
 
-        // NEW: Electric Shock Power Vector Graphic
         generateVectorGraphic('laser_electric', 30, 14, (ctx) => { 
             ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2;
             ctx.shadowBlur = 4; ctx.shadowColor = '#ffff00';
@@ -206,7 +211,6 @@
     }
 
     function create() {
-        // Enforce Multi-touch capacity
         this.input.addPointer(3);
 
         this.gridGraphic = this.add.graphics();
@@ -252,24 +256,30 @@
 
         cursors = this.input.keyboard.createCursorKeys();
         
-        // Setup separate Key bindings to avoid overwriting inputs
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
         keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
         this.physics.add.overlap(kaliLasers, enemiesGroup, (projectile, enemy) => { projectile.destroy(); enemy.destroy(); });
+        
+        // Weapon impact handler for Boss encounters
         this.physics.add.overlap(kaliLasers, bossGroup, (projectile, boss) => {
             projectile.destroy();
             boss.health -= 5;
-            if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; }
+            document.getElementById('hud-log').innerText = `⚡ DIRECT IMPACT! Boss Structural Integrity: ${boss.health}%`;
+            
+            if (boss.health <= 0) { 
+                boss.destroy(); 
+                currentBossInstance = null; 
+                triggerVictorySequence();
+            }
         });
 
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
             laser.destroy(); sysProgress.shield -= 10; refreshTerminalHUD(); checkPlayerMortality();
         });
 
-        // Interface Button HUD Assembly
         let createVirtualBtn = (x, y, radius, label, color, pointerDownCallback, pointerUpCallback) => {
             let btnBg = this.add.circle(x, y, radius, color).setScrollFactor(0).setInteractive().setDepth(10).setAlpha(0.6);
             this.add.text(x, y, label, { font: 'bold 14px Arial', color: '#ffffff' }).setScrollFactor(0).setOrigin(0.5).setDepth(11);
@@ -281,7 +291,6 @@
             }
         };
 
-        // UI Buttons laid out cleanly
         createVirtualBtn(60, 485, 26, '◀', 0x004400, () => { moveLeft = true; }, () => { moveLeft = false; });
         createVirtualBtn(125, 485, 26, '▶', 0x004400, () => { moveRight = true; }, () => { moveRight = false; });
         createVirtualBtn(190, 485, 26, '▲', 0x006600, () => { doJump = true; }, () => { doJump = false; });
@@ -299,7 +308,7 @@
         let shot = kaliLasers.create(player.x + offset, player.y - 6, 'laser_fire');
         shot.body.allowGravity = false;
         shot.setVelocityX(facingDirection === 'right' ? 750 : -750);
-        document.getElementById('hud-log').innerText = "🔥 FIRE POWER: Unleashed flame core spike!";
+        document.getElementById('hud-log').innerText = "🔥 FIRE POWER: Burst tracking launched.";
     }
 
     function triggerElectricShockPower() {
@@ -307,11 +316,8 @@
         let offset = facingDirection === 'right' ? 25 : -25;
         let shockWave = kaliLasers.create(player.x + offset, player.y - 6, 'laser_electric');
         shockWave.body.allowGravity = false;
-        
-        // Faster moving projectile with an electric tint
         shockWave.setVelocityX(facingDirection === 'right' ? 900 : -900);
         shockWave.setTint(0xffff00);
-        
         document.getElementById('hud-log').innerText = "⚡ ELECTRIC POWER: Shockwave surge deployed!";
     }
 
@@ -323,6 +329,19 @@
             document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
+
+    function triggerVictorySequence() {
+        sysProgress.runtimeActive = false;
+        game.scene.scenes[0].physics.pause();
+        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
+        document.getElementById('victory-menu').style.display = 'flex';
+    }
+
+    window.restartStage = function() {
+        document.getElementById('victory-menu').style.display = 'none';
+        sysProgress.shield = 100;
+        initRuntimeLevel();
+    };
 
     window.resetToLevelBeginning = function() {
         document.getElementById('defeat-menu').style.display = 'none';
@@ -344,10 +363,10 @@
         bossGroup.clear(true, true);
         enemyLasers.clear(true, true);
 
-        // Instantiating Stage 4 Boss
+        // SLOWED DOWN: Initial horizontal velocity lowered significantly to 25
         currentBossInstance = bossGroup.create(650, 300, 'humanoid_boss');
         currentBossInstance.health = 100;
-        currentBossInstance.setVelocityX(-80);
+        currentBossInstance.setVelocityX(-25);
         currentBossInstance.setCollideWorldBounds(true);
 
         globalAmbushTimer = game.scene.scenes[0].time.addEvent({
@@ -355,7 +374,7 @@
                 if (!sysProgress.runtimeActive) return;
                 let hazard = enemiesGroup.create(Phaser.Math.Between(player.x - 200, player.x + 400), 60, 'virus_hazard');
                 hazard.body.allowGravity = false;
-                game.scene.scenes[0].physics.moveToObject(hazard, player, 50);
+                game.scene.scenes[0].physics.moveToObject(hazard, player, 40);
             }
         });
         
@@ -368,7 +387,6 @@
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - (facingDirection === 'right' ? 35 : -35), 0.2);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y - 10, 0.2);
 
-        // Standard Keyboard Input Handling matching buttons cleanly
         if (cursors.left.isDown || moveLeft) {
             player.setVelocityX(-240); facingDirection = 'left';
         } else if (cursors.right.isDown || moveRight) {
@@ -381,12 +399,18 @@
             player.setVelocityY(-620); doJump = false; 
         }
 
-        // Dedicated individual checking for keys to ensure simultaneous actions execute
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) {
             triggerKaliFire();
         }
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) {
             triggerElectricShockPower();
+        }
+
+        // SLOWED DOWN: Maintains steady, relaxed velocity when altering pathways
+        if (currentBossInstance && currentBossInstance.active) {
+            if (currentBossInstance.body.velocity.x === 0) {
+                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -25 : 25);
+            }
         }
     }
 
