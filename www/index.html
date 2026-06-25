@@ -204,15 +204,15 @@
                     gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1); break;
                 case 'fire':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(350, now);
-                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2); break;
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(60, now + 0.3);
+                    gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3); break;
                 case 'shock':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.linearRampToValueAtTime(200, now + 0.25); osc.frequency.setValueAtTime(600, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25); break;
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.35); osc.frequency.setValueAtTime(700, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now); osc.stop(now + 0.35); break;
                 case 'monster_hit':
                     osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
                     osc.frequency.linearRampToValueAtTime(44, now + 0.15);
@@ -254,7 +254,7 @@
     const game = new Phaser.Game(config);
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let weatherParticles;
+    let weatherParticles, fireParticleEmitter;
     let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
     let lastMoveSoundTime = 0, lastFireTime = 0;
     let globalAmbushTimer = null, bossAttackTimer = null;
@@ -359,14 +359,28 @@
         generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
-        generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
-            let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
-            gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(1, '#ff3300');
-            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
+        
+        // Realistic Multi-Layer Hot Plasma Fireball Texture
+        generateVectorGraphic('laser_fire', 24, 24, (ctx) => { 
+            let grad = ctx.createRadialGradient(12, 12, 2, 12, 12, 12);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.2, '#ffff33');
+            grad.addColorStop(0.5, '#ff6600');
+            grad.addColorStop(0.9, '#cc0000');
+            grad.addColorStop(1, 'rgba(200,0,0,0)');
+            ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(12, 12, 12, 0, Math.PI*2); ctx.fill();
         });
-        generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
-            ctx.fillStyle = 'rgba(255, 255, 51, 0.4)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
+        
+        // Realistic Electric Blast Core
+        generateVectorGraphic('laser_electric', 30, 30, (ctx) => { 
+            let grad = ctx.createRadialGradient(15, 15, 3, 15, 15, 15);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.4, '#33ffff');
+            grad.addColorStop(0.8, '#0000ff');
+            grad.addColorStop(1, 'rgba(0,0,255,0)');
+            ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(15, 15, 15, 0, Math.PI*2); ctx.fill();
         });
+        
         generateVectorGraphic('laser_red', 16, 16, (ctx) => {
             let gradient = ctx.createRadialGradient(8, 8, 2, 8, 8, 8);
             gradient.addColorStop(0, '#ffff99'); gradient.addColorStop(1, '#ff0000');
@@ -377,6 +391,11 @@
         });
         generateVectorGraphic('rain_drop', 2, 10, (ctx) => {
             ctx.fillStyle = '#6699ff'; ctx.fillRect(0, 0, 2, 10);
+        });
+        
+        // Particle particle texture block for projectile trailing sparkles
+        generateVectorGraphic('sparkle_dot', 6, 6, (ctx) => {
+            ctx.fillStyle = '#ffaa44'; ctx.fillRect(0, 0, 6, 6);
         });
     }
 
@@ -397,6 +416,12 @@
             x: { min: 0, max: 800 }, y: 0, lifespan: 3000, speedY: { min: 100, max: 200 }, scale: { start: 0.5, end: 1 }, quantity: 2, frequency: 100
         });
         weatherParticles.stop();
+
+        // Fire particle trail engine
+        fireParticleEmitter = this.add.particles(0, 0, 'sparkle_dot', {
+            lifespan: 350, speedY: { min: 40, max: 120 }, speedX: { min: -30, max: 30 },
+            scale: { start: 1.5, end: 0 }, blendMode: 'ADD', frequency: -1
+        });
 
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
@@ -482,28 +507,34 @@
         lastFireTime = sceneTime;
 
         SoundFX.play('fire');
+        
+        let createFireball = (x, y, vx, vy) => {
+            let fb = kaliLasers.create(x, y, 'laser_fire');
+            fb.setVelocity(vx, vy);
+            fb.isFireBall = true; // flag to process trail emission in update loop
+            return fb;
+        };
+
         if (sysProgress.level === 1) {
-            kaliLasers.create(player.x, player.y - 25, 'laser_fire').setVelocityY(-450);
+            createFireball(player.x, player.y - 25, 0, -480);
         } else if (sysProgress.level === 2) {
-            let s1 = kaliLasers.create(player.x - 12, player.y - 25, 'laser_fire');
-            let s2 = kaliLasers.create(player.x + 12, player.y - 25, 'laser_fire');
-            s1.setVelocityY(-470); s2.setVelocityY(-470);
+            createFireball(player.x - 12, player.y - 25, 0, -500);
+            createFireball(player.x + 12, player.y - 25, 0, -500);
         } else {
-            // Weapon Level 3+ gets an upgraded 3-projectile spread burst!
-            let s1 = kaliLasers.create(player.x - 15, player.y - 25, 'laser_fire');
-            let s2 = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
-            let s3 = kaliLasers.create(player.x + 15, player.y - 25, 'laser_fire');
-            s1.setVelocity(-80, -480);
-            s2.setVelocity(0, -500);
-            s3.setVelocity(80, -480);
+            createFireball(player.x - 18, player.y - 25, -90, -520);
+            createFireball(player.x, player.y - 25, 0, -550);
+            createFireball(player.x + 18, player.y - 25, 90, -520);
         }
     }
 
     function triggerElectricShockPower() {
         if (!sysProgress.runtimeActive) return;
         SoundFX.play('shock');
-        let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
-        wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
+        
+        let bolt = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
+        bolt.setVelocity(Phaser.Math.Between(-180, 180), -520);
+        bolt.isLightning = true;
+        bolt.lightningPoints = []; // Stores point historical offset for custom render layout
     }
 
     function checkPlayerMortality() {
@@ -654,6 +685,34 @@
 
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
+
+        // Process advanced projectile particle rendering pipeline loops
+        kaliLasers.children.iterate((projectile) => {
+            if (!projectile || !projectile.active) return;
+            
+            // Fireball realistic smoke trailing effect
+            if (projectile.isFireBall) {
+                fireParticleEmitter.emitParticleAt(projectile.x, projectile.y + 4, 1);
+                projectile.alpha = Phaser.Math.Between(8, 10) / 10;
+            }
+            
+            // Electric Shock crackling lightning logic
+            if (projectile.isLightning) {
+                // Periodically save dynamic offsets to draw jagged lightning paths
+                if (!projectile.lightningPoints || projectile.lightningPoints.length < 5) {
+                    projectile.lightningPoints = [];
+                    for(let i = 0; i < 4; i++) {
+                        projectile.lightningPoints.push({
+                            dx: Phaser.Math.Between(-14, 14),
+                            dy: Phaser.Math.Between(-10, 10)
+                        });
+                    }
+                }
+                // Rapid flicker behavior
+                projectile.tint = (Math.random() > 0.4) ? 0xffff00 : 0x00ffff;
+                projectile.scaleX = Phaser.Math.FloatBetween(1.0, 1.4);
+            }
+        });
 
         enemiesGroup.children.iterate((enemy) => {
             if (enemy && enemy.active && enemy.body) {
