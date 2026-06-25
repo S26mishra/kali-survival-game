@@ -2,575 +2,193 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kali's Legend: Battle Arena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kali's Legend: Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: #000;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            box-sizing: border-box;
-        }
-        #game-wrapper {
-            position: relative; 
-            width: 800px;
-            height: 550px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #game-container {
-            width: 100%;
-            height: 100%;
-        }
-        #game-container canvas {
-            display: block;
-            border: 2px solid #33ff33;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-        .hud-overlay {
-            position: absolute; top: 10px; left: 10px; right: 10px; pointer-events: none; color: #33ff33;
-            z-index: 4; display: flex; flex-direction: column; gap: 6px;
-        }
-        #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
-        
-        .mobile-touch-bar {
-            position: absolute; bottom: 20px; left: 15px; right: 15px;
-            pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
-            box-sizing: border-box;
-        }
-        .touch-group-left, .touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
-        
-        .huge-btn {
-            width: 54px; height: 54px; background: rgba(0, 44, 0, 0.85); border: 2px solid #33ff33;
-            border-radius: 50%; color: #fff; font-size: 20px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 10px rgba(51, 255, 51, 0.4);
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-        .huge-btn:active { background: #33ff33; color: #000; }
-        
-        .huge-action-btn {
-            width: 65px; height: 65px; font-size: 10px; text-transform: uppercase;
-            border-radius: 50%; text-align: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 2px; font-weight: bold;
-        }
-        .btn-light-shock { background: rgba(102, 102, 0, 0.85); border-color: #ffff33; color: #ffff33; }
-        .btn-light-shock:active { background: #ffff33; color: #000; }
-        .btn-fire-burst { background: rgba(102, 0, 0, 0.85); border-color: #ff3333; color: #ff3333; }
-        .btn-fire-burst:active { background: #ff3333; color: #000; }
-
-        .overlay-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 15, 0.96);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 999; color: #33ff33; border: 2px solid #33ff33; box-sizing: border-box;
-            padding: 20px;
-        }
-        .menu-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
-        .btn-action {
-            background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 14px; color: #33ff33;
-            cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
-            border-radius: 4px; min-width: 220px; text-align: center;
-        }
-        .btn-action:hover { background: #33ff33; color: #000; }
-        #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
-        #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
-
-        .outfit-grid { display: flex; gap: 15px; margin: 15px 0; }
-        .outfit-card {
-            border: 2px dashed #33ff33; padding: 10px; font-size: 11px; cursor: pointer; text-align: center; min-width: 90px;
-            background: rgba(0,20,0,0.4);
-        }
-        .outfit-card.active { border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33; }
-
-        @media screen and (max-width: 1024px) {
-            #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
-            .mobile-touch-bar {
-                position: fixed;
-                bottom: calc(15px + env(safe-area-inset-bottom));
-                left: calc(15px + env(safe-area-inset-left));
-                right: calc(15px + env(safe-area-inset-right));
-            }
-        }
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: monospace; overflow: hidden; }
+        #wrapper { position: relative; width: 800px; height: 550px; }
+        .hud { position: absolute; top: 10px; left: 10px; right: 10px; color: #3f3; pointer-events: none; font-size: 13px; font-weight: bold; text-shadow: 1px 1px #000; }
+        .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,5,20,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #3f3; border: 2px solid #3f3; box-sizing: border-box; z-index: 10; }
+        .btn { background: #040; border: 2px solid #3f3; padding: 10px 30px; color: #3f3; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .btn:hover { background: #3f3; color: #000; }
+        .controls { position: absolute; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; pointer-events: none; }
+        .btn-group { display: flex; gap: 10px; pointer-events: auto; }
+        .c-btn { width: 50px; height: 50px; background: rgba(0,40,0,0.8); border: 2px solid #3f3; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; }
+        .c-btn:active { background: #3f3; color: #000; }
     </style>
 </head>
 <body>
 
-<div id="game-wrapper">
-    <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 1 | Environment: Cyber | Shield: 100% | Coins: 0 | Weapon: Lv.1</div>
-        <div id="hud-log">Tactical Arena System Active. Grid environment synced.</div>
-    </div>
-
-    <div class="mobile-touch-bar">
-        <div class="touch-group-left">
-            <div class="huge-btn" id="pad-left">◀</div>
-            <div class="huge-btn" id="pad-right">▶</div>
-            <div class="huge-btn" id="pad-jump">▲</div>
+<div id="wrapper">
+    <div class="hud" id="hud">Stage: 1 | Level: 1 | Env: Cyber Grid | Shield: 100% | Kills: 0/5</div>
+    
+    <div class="controls">
+        <div class="btn-group">
+            <div class="c-btn" id="m-left">◀</div>
+            <div class="c-btn" id="m-right">▶</div>
+            <div class="c-btn" id="m-up">▲</div>
+            <div class="c-btn" id="m-down">▼</div>
         </div>
-        <div class="touch-group-right">
-            <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">
-                <span style="font-size: 16px;">⚡</span>
-                <span>Shock</span>
-            </div>
-            <div class="huge-btn huge-action-btn btn-fire-burst" id="pad-fire">
-                <span style="font-size: 16px;">🔥</span>
-                <span>Fire</span>
-            </div>
+        <div class="btn-group">
+            <div class="c-btn" id="m-fire" style="border-color:#f33; color:#f33;">🔥</div>
         </div>
     </div>
 
-    <div id="start-menu" class="overlay-screen">
-        <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
-        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
-        
-        <div class="outfit-grid">
-            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#00ffff')">🩵 Cyber Neon</div>
-            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33')">💛 Gilded Armor</div>
-            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333')">❤️ Void Crimson</div>
-            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff')">💜 Shadow Elixir</div>
-        </div>
-
-        <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 15px;">
-            Move Arena Base: [ARROW KEYS]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
-        </p>
-        <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
-    </div>
-
-    <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
-        <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
-    </div>
-
-    <div id="victory-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
-        <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
+    <div id="menu" class="menu">
+        <h2 id="menu-title">⚔️ KALI'S LEGEND ARENA ⚔️</h2>
+        <button class="btn" onclick="startLevel()">START MATCH</button>
     </div>
 
     <div id="game-container"></div>
 </div>
 
 <script>
-    const SoundFX = {
-        ctx: null,
-        init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-        play(type) {
-            this.init(); if (!this.ctx) return;
-            let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            let now = this.ctx.currentTime;
-            switch(type) {
-                case 'move':
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(110, now);
-                    gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1); break;
-                case 'jump':
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'fire':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(350, now);
-                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2); break;
-                case 'shock':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.linearRampToValueAtTime(200, now + 0.25); osc.frequency.setValueAtTime(600, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25); break;
-                case 'monster_hit':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
-                    osc.frequency.linearRampToValueAtTime(44, now + 0.15);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'boss_shoot':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(550, now);
-                    osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
-                    gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'gameover':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.linearRampToValueAtTime(110, now + 0.6);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6); break;
-                case 'win':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(293.66, now);
-                    osc.frequency.setValueAtTime(392.00, now + 0.1); osc.frequency.setValueAtTime(493.88, now + 0.2);
-                    osc.frequency.setValueAtTime(587.33, now + 0.3); gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.2, now + 0.3); gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
-                    osc.start(now); osc.stop(now + 0.55); break;
-            }
-        }
-    };
-
     const config = {
-        type: Phaser.AUTO,
-        width: 800, height: 550, parent: 'game-container',
-        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-        physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
-        scene: { preload: preload, create: create, update: update }
+        type: Phaser.AUTO, width: 800, height: 550, parent: 'game-container',
+        physics: { default: 'arcade' }, scene: { preload: preload, create: create, update: update }
     };
-
     const game = new Phaser.Game(config);
 
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let weatherParticles;
-    let moveLeft = false, moveRight = false, doJump = false;
-    let lastMoveSoundTime = 0;
-    let globalAmbushTimer = null, bossAttackTimer = null;
-    let currentBossInstance = null, lastBossHitTime = 0; 
-    let keyF, keyE, keyL, keySpace;
-
-    let sysProgress = {
-        stage: 1, level: 1, shield: 100, runtimeActive: false,
-        selectedOutfitColorStr: '#00ffff', coins: 0, currentEnv: 'Cyber Grid'
-    };
-
-    window.selectOutfit = function(id, hexStr) {
-        document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
-        document.getElementById(`skin-${id}`).classList.add('active');
-        sysProgress.selectedOutfitColorStr = hexStr;
-    };
-
-    function updateEnvironmentAssets() {
-        let st = sysProgress.stage;
-        if (st >= 12) sysProgress.currentEnv = 'Desert Airspace';
-        else if (st >= 8) sysProgress.currentEnv = 'Rain Flood';
-        else if (st >= 4) sysProgress.currentEnv = 'Snow Area';
-        else sysProgress.currentEnv = 'Cyber Grid';
-
-        let floorC, borderC;
-        if (sysProgress.currentEnv === 'Snow Area') { floorC = '#1e2d3d'; borderC = '#00ffff'; }
-        else if (sysProgress.currentEnv === 'Rain Flood') { floorC = '#111b24'; borderC = '#3366ff'; }
-        else if (sysProgress.currentEnv === 'Desert Airspace') { floorC = '#4a2f1b'; borderC = '#ff9933'; }
-        else { floorC = '#1b3d1b'; borderC = '#2d5a2d'; }
-
-        if (game.textures.exists('matrix_floor')) {
-            let canvas = game.textures.get('matrix_floor').source[0].image;
-            let ctx = canvas.getContext('2d');
-            ctx.fillStyle = floorC; ctx.fillRect(0, 0, 40, 40);
-            ctx.strokeStyle = borderC; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 40, 40);
-            game.textures.get('matrix_floor').update();
-        }
-    }
-
-    function generateHumanPlayerTexture(shirtColor) {
-        let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
-        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
-        ctx.fillStyle = '#221100'; ctx.fillRect(11, 2, 14, 6);
-        ctx.fillStyle = '#e8beac'; ctx.fillRect(9, 10, 2, 4); ctx.fillRect(25, 10, 2, 4);
-        ctx.beginPath(); ctx.arc(18, 12, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(13, 10, 3, 2); ctx.fillRect(20, 10, 3, 2);
-        ctx.fillStyle = shirtColor; ctx.fillRect(7, 21, 22, 14);
-        ctx.fillStyle = '#1f3044'; ctx.fillRect(7, 35, 10, 11); ctx.fillRect(19, 35, 10, 11);
-        if (game.textures.exists('kali_humanoid')) {
-            game.textures.get('kali_humanoid').source[0].image = canvas; game.textures.get('kali_humanoid').update();
-        } else { game.textures.addCanvas('kali_humanoid', canvas); }
-    }
+    let player, enemies, boss, lasers, enemyLasers, map;
+    let keys, activeKeys = { left: false, right: false, up: false, down: false };
+    
+    // Track both dynamic stage levels and environmental base stages
+    let state = { stage: 1, level: 1, shield: 100, kills: 0, reqKills: 5, active: false, env: 'Cyber Grid' };
+    let timers = [];
 
     function preload() {
-        let generateVectorGraphic = (key, w, h, drawCallback) => {
-            let canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
-            let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, w, h); drawCallback(ctx);
-            game.textures.addCanvas(key, canvas);
+        let draw = (key, w, h, cb) => {
+            let c = document.createElement('canvas'); c.width = w; c.height = h;
+            cb(c.getContext('2d')); game.textures.addCanvas(key, c);
         };
-
-        generateHumanPlayerTexture('#00ffff');
-        generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
-        });
-        generateVectorGraphic('susi_drone', 28, 28, (ctx) => {
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 10, 20, 10);
-        });
-        
-        // Initial Grid Texture Generation Setup
-        let canvasFloor = document.createElement('canvas'); canvasFloor.width = 40; canvasFloor.height = 40;
-        let ctxFloor = canvasFloor.getContext('2d'); ctxFloor.fillStyle = '#1b3d1b'; ctxFloor.fillRect(0, 0, 40, 40);
-        game.textures.addCanvas('matrix_floor', canvasFloor);
-
-        generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
-            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24);
-            ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
-        });
-        generateVectorGraphic('humanoid_boss', 60, 80, (ctx) => {
-            ctx.fillStyle = '#5c2c91'; ctx.fillRect(5, 15, 50, 60);
-            ctx.fillStyle = '#ff0055'; ctx.fillRect(15, 25, 8, 8); ctx.fillRect(37, 25, 8, 8);
-        });
-        generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(16, 16, 12, 0, Math.PI * 2); ctx.fill();
-        });
-        generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
-        });
-        generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
-            let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
-            gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(1, '#ff3300');
-            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
-        });
-        generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
-            ctx.fillStyle = 'rgba(255, 255, 51, 0.4)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
-        });
-        generateVectorGraphic('laser_red', 16, 16, (ctx) => {
-            let gradient = ctx.createRadialGradient(8, 8, 2, 8, 8, 8);
-            gradient.addColorStop(0, '#ffff99'); gradient.addColorStop(1, '#ff0000');
-            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(8, 8, 8, 0, Math.PI * 2); ctx.fill();
-        });
-        generateVectorGraphic('snow_flake', 6, 6, (ctx) => {
-            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(3, 3, 3, 0, Math.PI*2); ctx.fill();
-        });
-        generateVectorGraphic('rain_drop', 2, 10, (ctx) => {
-            ctx.fillStyle = '#6699ff'; ctx.fillRect(0, 0, 2, 10);
-        });
+        draw('floor', 40, 40, ctx => { ctx.fillStyle = '#142514'; ctx.fillRect(0,0,40,40); ctx.strokeStyle = '#254025'; ctx.strokeRect(0,0,40,40); });
+        draw('player', 32, 40, ctx => { ctx.fillStyle = '#0ff'; ctx.fillRect(4, 10, 24, 30); ctx.fillStyle = '#ffcc99'; ctx.beginPath(); ctx.arc(16, 10, 8, 0, Math.PI*2); ctx.fill(); });
+        draw('grunt', 24, 24, ctx => { ctx.fillStyle = '#e74c3c'; ctx.fillRect(0, 0, 24, 24); });
+        draw('boss', 60, 70, ctx => { ctx.fillStyle = '#5c2c91'; ctx.fillRect(0, 0, 60, 70); ctx.fillStyle = '#f05'; ctx.fillRect(12, 15, 8, 8); ctx.fillRect(40, 15, 8, 8); });
+        draw('laser', 12, 12, ctx => { ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(6,6,6,0,Math.PI*2); ctx.fill(); });
+        draw('fireball', 16, 16, ctx => { ctx.fillStyle = '#f30'; ctx.beginPath(); ctx.arc(8,8,8,0,Math.PI*2); ctx.fill(); });
     }
 
     function create() {
-        this.physics.world.setBounds(0, 0, 800, 550);
-        mapPlatforms = this.physics.add.staticGroup();
+        map = this.physics.add.staticGroup();
         for (let x = 0; x < 800; x += 40) {
-            for(let y = 0; y < 550; y += 40) {
-                mapPlatforms.create(x, y, 'matrix_floor').setOrigin(0, 0).refreshBody();
-            }
-        }
-        for (let bx = 120; bx < 800; bx += 240) {
-            mapPlatforms.create(bx, 260, 'cyber_platform').refreshBody();
+            for (let y = 0; y < 550; y += 40) map.create(x, y, 'floor').setOrigin(0).refreshBody();
         }
 
-        weatherParticles = this.add.particles(0, 0, 'snow_flake', {
-            x: { min: 0, max: 800 }, y: 0, lifspan: 3000, speedY: { min: 100, max: 200 }, scale: { start: 0.5, end: 1 }, quantity: 2, frequency: 100
-        });
-        weatherParticles.stop();
-
-        enemiesGroup = this.physics.add.group();
-        bossGroup = this.physics.add.group();
-        kaliLasers = this.physics.add.group();
+        player = this.physics.add.sprite(400, 450, 'player').setCollideWorldBounds(true);
+        enemies = this.physics.add.group();
+        boss = this.physics.add.group();
+        lasers = this.physics.add.group();
         enemyLasers = this.physics.add.group();
 
-        player = this.physics.add.sprite(400, 460, 'kali_humanoid').setCollideWorldBounds(true);
-        partnerSusi = this.physics.add.sprite(360, 470, 'susi_drone').setCollideWorldBounds(true);
-        partnerSusi.body.allowGravity = false;
-        targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
+        this.physics.add.overlap(lasers, enemies, (l, e) => { l.destroy(); e.destroy(); state.kills++; checkWin(); updateHUD(); });
+        this.physics.add.overlap(lasers, boss, (l, b) => { l.destroy(); b.health -= 10; if(b.health<=0) { b.destroy(); winMatch(); } });
+        this.physics.add.overlap(enemyLasers, player, (p, el) => { el.destroy(); takeDamage(15); });
+        this.physics.add.overlap(player, enemies, (p, e) => { e.destroy(); takeDamage(20); });
 
-        this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
-            p.destroy(); enemy.destroy(); SoundFX.play('monster_hit');
-            sysProgress.coins += 10; refreshTerminalHUD();
-        });
+        keys = this.input.keyboard.addKeys('W,A,S,D,SPACE,UP,DOWN,LEFT,RIGHT');
+        this.input.keyboard.on('keydown-SPACE', fireLaser);
 
-        this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
-            p.destroy(); boss.health -= 5; SoundFX.play('monster_hit');
-            if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
-            refreshTerminalHUD();
-        });
-
-        this.physics.add.overlap(player, bossGroup, (pl, boss) => {
-            let now = this.time.now;
-            if (now - lastBossHitTime > 1500) { 
-                lastBossHitTime = now; sysProgress.shield -= 40;
-                SoundFX.play('monster_hit'); refreshTerminalHUD(); checkPlayerMortality();
-            }
-        });
-
-        this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); sysProgress.shield -= 15; SoundFX.play('monster_hit');
-            refreshTerminalHUD(); checkPlayerMortality();
-        });
-
-        cursors = this.input.keyboard.createCursorKeys();
-        keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-        keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
-        keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-
-        setupMobileInputListeners();
-        document.getElementById('start-menu').style.display = 'flex';
+        setupMobileControls();
         this.physics.pause();
     }
 
-    function setupMobileInputListeners() {
-        const binding = (id, startCallback, endCallback) => {
-            const el = document.getElementById(id); if(!el) return;
-            el.addEventListener('pointerdown', (e) => { e.preventDefault(); startCallback(); });
-            if(endCallback) {
-                el.addEventListener('pointerup', (e) => { e.preventDefault(); endCallback(); });
-                el.addEventListener('pointerout', (e) => { e.preventDefault(); endCallback(); });
-            }
+    function setupMobileControls() {
+        const bind = (id, k) => {
+            let el = document.getElementById(id);
+            el.onpointerdown = (e) => { e.preventDefault(); activeKeys[k] = true; };
+            el.onpointerup = el.onpointerout = (e) => { e.preventDefault(); activeKeys[k] = false; };
         };
-        binding('pad-left', () => { moveLeft = true; }, () => { moveLeft = false; });
-        binding('pad-right', () => { moveRight = true; }, () => { moveRight = false; });
-        binding('pad-jump', () => { doJump = true; }, () => { doJump = false; });
-        binding('pad-light', () => { triggerElectricShockPower(); });
-        binding('pad-fire', () => { triggerKaliFire(); });
+        bind('m-left', 'left'); bind('m-right', 'right'); bind('m-up', 'up'); bind('m-down', 'down');
+        document.getElementById('m-fire').onpointerdown = (e) => { e.preventDefault(); fireLaser(); };
     }
 
-    function triggerKaliFire() {
-        if (!sysProgress.runtimeActive) return;
-        SoundFX.play('fire');
-        let weaponTier = sysProgress.stage;
-        if (weaponTier === 1) {
-            kaliLasers.create(player.x, player.y - 25, 'laser_fire').setVelocityY(-450);
-        } else {
-            let s1 = kaliLasers.create(player.x - 12, player.y - 25, 'laser_fire');
-            let s2 = kaliLasers.create(player.x + 12, player.y - 25, 'laser_fire');
-            s1.setVelocityY(-470); s2.setVelocityY(-470);
-        }
-    }
+    function startLevel() {
+        document.getElementById('menu').style.display = 'none';
+        state.active = true; game.scene.scenes[0].physics.resume();
+        state.kills = 0; player.setPosition(400, 450);
+        enemies.clear(true, true); boss.clear(true, true); enemyLasers.clear(true, true);
+        timers.forEach(t => t.destroy()); timers = [];
 
-    function triggerElectricShockPower() {
-        if (!sysProgress.runtimeActive) return;
-        SoundFX.play('shock');
-        let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
-        wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
-    }
-
-    function checkPlayerMortality() {
-        if (sysProgress.shield <= 0) {
-            sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-            cleanTimers(); SoundFX.play('gameover');
-            document.getElementById('defeat-menu').style.display = 'flex';
-        }
-    }
-
-    function cleanTimers() {
-        if (globalAmbushTimer) { globalAmbushTimer.destroy(); globalAmbushTimer = null; }
-        if (bossAttackTimer) { bossAttackTimer.destroy(); bossAttackTimer = null; }
-    }
-
-    function triggerVictorySequence() {
-        sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-        cleanTimers(); SoundFX.play('win');
-        document.getElementById('victory-menu').style.display = 'flex';
-    }
-
-    window.handleAdRetrieval = function() {
-        document.getElementById('defeat-menu').style.display = 'none';
-        sysProgress.shield = 100; sysProgress.runtimeActive = true;
-        game.scene.scenes[0].physics.resume(); startTimerLoops(); refreshTerminalHUD();
-    };
-
-    window.restartStage = function() {
-        document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.shield = 100; sysProgress.stage += 1;
-        initRuntimeLevel();
-    };
-
-    window.resetToLevelBeginning = function() {
-        document.getElementById('defeat-menu').style.display = 'none';
-        sysProgress.shield = 100; initRuntimeLevel(); 
-    };
-
-    function initRuntimeLevel() {
-        document.getElementById('start-menu').style.display = 'none';
-        let scene = game.scene.scenes[0];
-        scene.physics.resume();
-        sysProgress.runtimeActive = true;
-
-        updateEnvironmentAssets();
-        generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr);
+        let st = state.stage;
+        state.env = st >= 12 ? 'Desert Airspace' : st >= 8 ? 'Rain Flood' : st >= 4 ? 'Snow Area' : 'Cyber Grid';
         
-        player.setPosition(400, 460); player.setVelocity(0, 0);
-        enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
+        let colors = { 'Cyber Grid': '#142514', 'Snow Area': '#1a2a3a', 'Rain Flood': '#0f1520', 'Desert Airspace': '#4a3015' };
+        let canvas = game.textures.get('floor').source[0].image;
+        let ctx = canvas.getContext('2d');
+        ctx.fillStyle = colors[state.env]; ctx.fillRect(0,0,40,40);
+        ctx.strokeStyle = '#3f3'; ctx.strokeRect(0,0,40,40);
+        game.textures.get('floor').update();
 
-        // Weather Engine Configuration Updates
-        weatherParticles.stop();
-        if (sysProgress.currentEnv === 'Snow Area') {
-            weatherParticles.setTexture('snow_flake'); weatherParticles.start();
-        } else if (sysProgress.currentEnv === 'Rain Flood') {
-            weatherParticles.setTexture('rain_drop'); weatherParticles.start();
+        let scene = game.scene.scenes[0];
+        timers.push(scene.time.addEvent({ delay: 1000, loop: true, callback: spawnEnemy }));
+
+        if (state.stage % 4 === 0) {
+            let b = boss.create(400, 120, 'boss').setCollideWorldBounds(true);
+            b.health = 100 + (state.stage * 10);
+            timers.push(scene.time.addEvent({ delay: 1200, loop: true, callback: () => bossShoot(b) }));
         }
-
-        // BOSS SYSTEM triggers every 4 stages explicitly
-        if (sysProgress.stage % 4 === 0) {
-            currentBossInstance = bossGroup.create(400, 110, 'humanoid_boss');
-            currentBossInstance.health = 100 + (sysProgress.stage * 20);
-            currentBossInstance.setCollideWorldBounds(true);
-        } else {
-            currentBossInstance = null;
-        }
-
-        startTimerLoops();
-        refreshTerminalHUD();
+        updateHUD();
     }
 
-    function startTimerLoops() {
-        cleanTimers();
-        let scene = game.scene.scenes[0];
+    function spawnEnemy() {
+        if (!state.active || state.stage % 4 === 0) return;
+        let rx = Phaser.Math.Between(0, 1) === 0 ? 40 : 760;
+        let ry = Phaser.Math.Between(40, 500);
+        enemies.create(rx, ry, 'grunt');
+    }
 
-        globalAmbushTimer = scene.time.addEvent({
-            delay: 1200, loop: true, callback: () => {
-                if (!sysProgress.runtimeActive) return;
-                let spawnX = Phaser.Math.Between(5, 4) > 2 ? 30 : 770;
-                let spawnY = Phaser.Math.Between(40, 500);
-                let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
-                let subUnit = enemiesGroup.create(spawnX, spawnY, enemyKey);
-                scene.physics.moveToObject(subUnit, player, 100 + (sysProgress.stage * 5));
-            }
-        });
+    function bossShoot(b) {
+        if (!state.active || !b.active) return;
+        let fireball = enemyLasers.create(b.x, b.y + 30, 'fireball');
+        game.scene.scenes[0].physics.moveToObject(fireball, player, 250);
+    }
 
-        bossAttackTimer = scene.time.addEvent({
-            delay: 1000, loop: true, callback: () => {
-                if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
-                    // Flame Fire Attack Variant: Targets directly at the player's vector coordinates
-                    let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 25, 'laser_red');
-                    scene.physics.moveToObject(projectile, player, 280);
-                    SoundFX.play('boss_shoot');
-                }
-            }
-        });
+    function fireLaser() {
+        if (!state.active) return;
+        lasers.create(player.x, player.y - 20, 'laser').setVelocityY(-400);
+    }
+
+    function takeDamage(amt) {
+        state.shield -= amt; updateHUD();
+        if (state.shield <= 0) {
+            state.active = false; game.scene.scenes[0].physics.pause();
+            document.getElementById('menu-title').innerText = "💀 ARENA CRASHED";
+            document.getElementById('menu').style.display = 'flex';
+            state.stage = 1; state.level = 1; state.shield = 100;
+        }
+    }
+
+    function checkWin() {
+        if (state.stage % 4 !== 0 && state.kills >= state.reqKills) winMatch();
+    }
+
+    function winMatch() {
+        state.active = false; game.scene.scenes[0].physics.pause();
+        state.stage++; state.level++; state.shield = 100;
+        document.getElementById('menu-title').innerText = "🏆 STAGE SECURED!";
+        document.getElementById('menu').style.display = 'flex';
     }
 
     function update() {
-        if (!sysProgress.runtimeActive) return;
+        if (!state.active) return;
+        player.setVelocity(0);
+        let speed = 250;
 
-        partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 30, 0.15);
-        partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
+        if (keys.A.isDown || keys.LEFT.isDown || activeKeys.left) player.setVelocityX(-speed);
+        else if (keys.D.isDown || keys.RIGHT.isDown || activeKeys.right) player.setVelocityX(speed);
 
-        let speed = 250; let isMoving = false;
-        player.setVelocity(0, 0);
+        if (keys.W.isDown || keys.UP.isDown || activeKeys.up) player.setVelocityY(-speed);
+        else if (keys.S.isDown || keys.DOWN.isDown || activeKeys.down) player.setVelocityY(speed);
 
-        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); intentX = -1; isMoving = true; }
-        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); intentX = 1; isMoving = true; }
-        
-        if (cursors.up.isDown || doJump) { 
-            if(player.body.velocity.y === 0) SoundFX.play('jump');
-            player.setVelocityY(-speed); isMoving = true; 
-        }
-        else if (cursors.down.isDown) { player.setVelocityY(speed); isMoving = true; }
-
-        if (isMoving && this.time.now - lastMoveSoundTime > 220) {
-            SoundFX.play('move'); lastMoveSoundTime = this.time.now;
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
-        if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
-
-        // Standard omni-directional pathfinding mapping logic across all dimensions
-        enemiesGroup.children.iterate((enemy) => {
-            if (enemy && enemy.active && enemy.body) {
-                this.physics.moveToObject(enemy, player, 100 + (sysProgress.stage * 5));
-            }
-        });
-
-        if (currentBossInstance && currentBossInstance.active) {
-            this.physics.moveToObject(currentBossInstance, player, 60);
-        }
+        enemies.children.iterate(e => { if (e && e.body) game.scene.scenes[0].physics.moveToObject(e, player, 120); });
+        boss.children.iterate(b => { if (b && b.body) game.scene.scenes[0].physics.moveToObject(b, player, 40); });
     }
 
-    function refreshTerminalHUD() {
-        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Environment: ${sysProgress.currentEnv} | Shield: ${sysProgress.shield}% | Coins: ${sysProgress.coins} | Weapon: Lv.${sysProgress.stage}`;
+    function updateHUD() {
+        let tgt = state.stage % 4 === 0 ? "BOSS FIGHT" : `${state.kills}/${state.reqKills}`;
+        document.getElementById('hud').innerText = `Stage: ${state.stage} | Level: ${state.level} | Env: ${state.env} | Shield: ${state.shield}% | Kills: ${tgt}`;
     }
 </script>
 </body>
