@@ -121,7 +121,6 @@
         <div id="hud-log">Tactical Arena System Active. Choose Outfit and deploy strategies.</div>
     </div>
 
-    <!-- UI Responsive Touch Layout Interface Layer -->
     <div class="mobile-touch-bar">
         <div class="touch-group-left">
             <div class="huge-btn" id="pad-left">◀</div>
@@ -134,7 +133,6 @@
         </div>
     </div>
 
-    <!-- UI Start Menu with Custom Outfit Selection Grid -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
         <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
@@ -152,14 +150,12 @@
         <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
     </div>
 
-    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
         <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
     </div>
 
-    <!-- Victory Screen -->
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
         <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
@@ -220,33 +216,42 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Redesigned: Human Anatomy Character Frame Vector Graphic Mapping
+        // Complete Human Body Proportions Vector Art Map
         generateVectorGraphic('kali_humanoid', 36, 46, (ctx) => {
-            // Head / Hair Profile
-            ctx.fillStyle = '#ffdbac'; ctx.beginPath(); ctx.arc(18, 10, 7, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#4a2f13'; ctx.fillRect(13, 3, 10, 4); 
+            // Head (Round Human Face Structure)
+            ctx.fillStyle = '#ffdbac'; 
+            ctx.beginPath(); 
+            ctx.arc(18, 10, 7, 0, Math.PI * 2); 
+            ctx.fill();
 
-            // Neck Line
-            ctx.fillStyle = '#e0b58b'; ctx.fillRect(16, 16, 4, 3);
+            // Hair Line Profile
+            ctx.fillStyle = '#4a2f13'; 
+            ctx.fillRect(13, 3, 10, 4); 
 
-            // Broad Shoulders & Torso Body Core (Reacts to selected outfit tint color)
+            // Neck Line Segment
+            ctx.fillStyle = '#e0b58b'; 
+            ctx.fillRect(16, 16, 4, 3);
+
+            // Torso & Upper Chest Area (Will adapt cleanly to your outfit customization tinter)
             ctx.fillStyle = '#ffffff'; 
             ctx.fillRect(8, 19, 20, 14); 
 
-            // Left and Right Arms
+            // Left Human Arm Vector
             ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(4, 19, 4, 10);  // Left arm
-            ctx.fillRect(28, 19, 4, 10); // Right arm
+            ctx.fillRect(4, 19, 4, 11);
 
-            // Hips & Separate Human Moving Legs
+            // Right Human Arm Vector
+            ctx.fillRect(28, 19, 4, 11);
+
+            // Hips & Two Separate Moving Legs
             ctx.fillStyle = '#222222'; 
-            ctx.fillRect(8, 33, 8, 10);  // Left pant leg
-            ctx.fillRect(20, 33, 8, 10); // Right pant leg
+            ctx.fillRect(8, 33, 8, 10);  // Left Leg
+            ctx.fillRect(20, 33, 8, 10); // Right Leg
 
-            // Tactical Boots / Combat Feet
+            // Heavy Duty Field Boots / Combat Feet bases
             ctx.fillStyle = '#111111';
-            ctx.fillRect(7, 43, 9, 3);   // Left shoe
-            ctx.fillRect(20, 43, 9, 3);  // Right shoe
+            ctx.fillRect(7, 43, 9, 3);   // Left shoe base
+            ctx.fillRect(20, 43, 9, 3);  // Right shoe base
         });
 
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
