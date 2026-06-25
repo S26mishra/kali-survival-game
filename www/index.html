@@ -44,6 +44,13 @@
         #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
         #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
         
+        /* Audio Control Button */
+        #audio-toggle {
+            position: absolute; top: 10px; right: 10px; background: rgba(0, 44, 0, 0.85);
+            border: 1px solid #33ff33; color: #33ff33; padding: 5px 10px; font-size: 14px;
+            border-radius: 4px; cursor: pointer; pointer-events: auto; z-index: 5;
+        }
+
         .mobile-touch-bar {
             position: absolute; bottom: 20px; left: 15px; right: 15px;
             pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
@@ -96,6 +103,14 @@
         }
         .outfit-card.active { border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33; }
 
+        /* Shop Custom Layout Components */
+        .shop-shelf { display: flex; gap: 20px; margin: 15px 0; }
+        .shop-item-btn {
+            background: rgba(0, 30, 0, 0.9); border: 2px solid #33ff33; padding: 10px;
+            color: #33ff33; font-family: monospace; cursor: pointer; width: 160px; text-align: center;
+        }
+        .shop-item-btn:disabled { border-color: #555; color: #555; cursor: not-allowed; }
+
         @media screen and (max-width: 1024px) {
             #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
             .mobile-touch-bar {
@@ -112,8 +127,10 @@
 <div id="game-wrapper">
     <div class="hud-overlay">
         <div id="hud-lvl">Arena Stage: 1 | Environment: Cyber Grid | Shield: 100% | Coins: 30 | Weapon: Lv.1 | Kills: 0/5</div>
-        <div id="hud-log">Tactical Arena System Active. Grid environment synced.</div>
+        <div id="hud-log">Tactical Arena System Active. Grid environment synced. HighScore Stage: 1</div>
     </div>
+
+    <button id="audio-toggle" onclick="toggleSystemAudio()">🔊 Mute</button>
 
     <div class="mobile-touch-bar">
         <div class="touch-group-left">
@@ -158,8 +175,15 @@
     </div>
 
     <div id="victory-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
-        <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
+        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 STAGE OVERRUN COMPLETE 🏆</div>
+        <p style="margin: 0; font-size: 13px;" id="shop-coin-count">Available Vault Balance: 30 Coins</p>
+        
+        <div class="shop-shelf">
+            <button class="shop-item-btn" id="shop-opt-shield" onclick="purchaseShopItem('shield')">🛡️ Fix Shield<br><span style="color:#ffff33;">(Costs 20c)</span></button>
+            <button class="shop-item-btn" id="shop-opt-weapon" onclick="purchaseShopItem('weapon')">⚔️ Upgrade Gun<br><span style="color:#ffff33;">(Costs 40c)</span></button>
+        </div>
+
+        <button class="btn-action" onclick="restartStage()">ENTER NEXT SECTOR</button>
     </div>
 
     <div id="game-container"></div>
@@ -168,8 +192,10 @@
 <script>
     const SoundFX = {
         ctx: null,
+        muted: false,
         init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
         play(type) {
+            if (this.muted) return;
             this.init(); if (!this.ctx) return;
             let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.connect(gain); gain.connect(this.ctx.destination);
@@ -179,11 +205,6 @@
                     osc.type = 'triangle'; osc.frequency.setValueAtTime(110, now);
                     gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1); break;
-                case 'jump':
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
                 case 'fire':
                     osc.type = 'sawtooth'; osc.frequency.setValueAtTime(350, now);
                     osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
@@ -219,6 +240,11 @@
         }
     };
 
+    window.toggleSystemAudio = function() {
+        SoundFX.muted = !SoundFX.muted;
+        document.getElementById('audio-toggle').innerText = SoundFX.muted ? "🔇 Unmute" : "🔊 Mute";
+    };
+
     const config = {
         type: Phaser.AUTO,
         width: 800, height: 550, parent: 'game-container',
@@ -232,7 +258,7 @@
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
     let weatherParticles;
     let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
-    let lastMoveSoundTime = 0;
+    let lastMoveSoundTime = 0, lastFireTime = 0;
     let globalAmbushTimer = null, bossAttackTimer = null;
     let currentBossInstance = null, lastBossHitTime = 0; 
     let keyF, keyE, keyL, keySpace, keysWASD;
@@ -240,8 +266,13 @@
     let sysProgress = {
         stage: 1, level: 1, shield: 100, runtimeActive: false,
         selectedOutfitColorStr: '#e67e22', selectedHairColorStr: '#4a2f1b', coins: 30, currentEnv: 'Cyber Grid',
-        stageKills: 0, requiredKills: 5
+        stageKills: 0, requiredKills: 5, highScore: 1
     };
+
+    // Load Highscore on startup
+    if (localStorage.getItem('kali_highscore')) {
+        sysProgress.highScore = parseInt(localStorage.getItem('kali_highscore'), 10);
+    }
 
     window.selectOutfit = function(id, hexShirt, hexHair) {
         document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
@@ -444,9 +475,15 @@
 
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
+        
+        // Cooldown configuration based on level
+        let attackCooldown = Math.max(150, 400 - (sysProgress.level * 30));
+        let sceneTime = game.scene.scenes[0].time.now;
+        if (sceneTime - lastFireTime < attackCooldown) return; 
+        lastFireTime = sceneTime;
+
         SoundFX.play('fire');
-        let weaponTier = sysProgress.level;
-        if (weaponTier === 1) {
+        if (sysProgress.level === 1) {
             kaliLasers.create(player.x, player.y - 25, 'laser_fire').setVelocityY(-450);
         } else {
             let s1 = kaliLasers.create(player.x - 12, player.y - 25, 'laser_fire');
@@ -478,8 +515,34 @@
     function triggerVictorySequence() {
         sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
         cleanTimers(); SoundFX.play('win');
+
+        // Check and save Highscore
+        if (sysProgress.stage > sysProgress.highScore) {
+            sysProgress.highScore = sysProgress.stage;
+            localStorage.setItem('kali_highscore', sysProgress.highScore);
+        }
+
+        // Render Upgradable Menu details
+        document.getElementById('shop-coin-count').innerText = `Available Vault Balance: ${sysProgress.coins} Coins`;
+        document.getElementById('shop-opt-shield').disabled = sysProgress.coins < 20;
+        document.getElementById('shop-opt-weapon').disabled = sysProgress.coins < 40;
+        
         document.getElementById('victory-menu').style.display = 'flex';
     }
+
+    window.purchaseShopItem = function(itemType) {
+        if (itemType === 'shield' && sysProgress.coins >= 20) {
+            sysProgress.coins -= 20;
+            sysProgress.shield = Math.min(100, sysProgress.shield + 25);
+        } else if (itemType === 'weapon' && sysProgress.coins >= 40) {
+            sysProgress.coins -= 40;
+            sysProgress.level += 1;
+        }
+        document.getElementById('shop-coin-count').innerText = `Available Vault Balance: ${sysProgress.coins} Coins`;
+        document.getElementById('shop-opt-shield').disabled = sysProgress.coins < 20;
+        document.getElementById('shop-opt-weapon').disabled = sysProgress.coins < 40;
+        refreshTerminalHUD();
+    };
 
     window.handleAdRetrieval = function() {
         document.getElementById('defeat-menu').style.display = 'none';
@@ -489,9 +552,7 @@
 
     window.restartStage = function() {
         document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.shield = 100; 
         sysProgress.stage += 1;
-        sysProgress.level += 1;
         sysProgress.stageKills = 0; 
         initRuntimeLevel();
     };
@@ -537,13 +598,18 @@
         let scene = game.scene.scenes[0];
 
         globalAmbushTimer = scene.time.addEvent({
-            delay: 1200, loop: true, callback: () => {
+            delay: Math.max(600, 1400 - (sysProgress.stage * 50)), // Speeds up as stages progress
+            loop: true, 
+            callback: () => {
                 if (!sysProgress.runtimeActive) return;
-                let spawnX = Phaser.Math.Between(5, 4) > 2 ? 30 : 770;
+                let spawnX = Phaser.Math.Between(1, 4) > 2 ? 30 : 770;
                 let spawnY = Phaser.Math.Between(40, 500);
                 let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
                 let subUnit = enemiesGroup.create(spawnX, spawnY, enemyKey);
-                scene.physics.moveToObject(subUnit, player, 100 + (sysProgress.stage * 5));
+                
+                // Varied Tracking Speed Mechanics
+                let randomVariance = Phaser.Math.Between(-15, 25);
+                scene.physics.moveToObject(subUnit, player, 100 + (sysProgress.stage * 6) + randomVariance);
             }
         });
 
@@ -582,7 +648,9 @@
 
         enemiesGroup.children.iterate((enemy) => {
             if (enemy && enemy.active && enemy.body) {
-                this.physics.moveToObject(enemy, player, 100 + (sysProgress.stage * 5));
+                // Enemies adjust direction tracking frame-by-frame
+                let currentBaseSpeed = 100 + (sysProgress.stage * 5);
+                this.physics.moveToObject(enemy, player, currentBaseSpeed);
             }
         });
 
@@ -594,6 +662,7 @@
     function refreshTerminalHUD() {
         let killStatus = (sysProgress.stage % 4 === 0) ? "BOSS FIGHT" : `${sysProgress.stageKills}/${sysProgress.requiredKills}`;
         document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Environment: ${sysProgress.currentEnv} | Shield: ${sysProgress.shield}% | Coins: ${sysProgress.coins} | Weapon: Lv.${sysProgress.level} | Kills: ${killStatus}`;
+        document.getElementById('hud-log').innerText = `Tactical Arena System Active. Grid environment synced. HighScore Stage: ${sysProgress.highScore}`;
     }
 </script>
 </body>
