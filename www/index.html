@@ -141,7 +141,7 @@
         
         <div class="outfit-grid">
             <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#00ffff')">🩵 Cyber Neon</div>
-            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33')">💛 Gilded Pekka</div>
+            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33')">💛 Gilded Armor</div>
             <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333')">❤️ Void Crimson</div>
             <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff')">💜 Shadow Elixir</div>
         </div>
@@ -200,15 +200,84 @@
         level: 1,
         shield: 100,
         runtimeActive: false,
-        selectedOutfitHex: 0x00ffff,
+        selectedOutfitColorStr: '#00ffff',
         coins: 0
     };
 
     window.selectOutfit = function(id, hexStr) {
         document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`skin-${id}`).classList.add('active');
-        sysProgress.selectedOutfitHex = parseInt(hexStr.replace('#', '0x'));
+        sysProgress.selectedOutfitColorStr = hexStr;
     };
+
+    // Dynamically generates an actual human canvas sprite frame
+    function generateHumanPlayerTexture(shirtColor) {
+        let canvas = document.createElement('canvas');
+        canvas.width = 36; canvas.height = 48;
+        let ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 36, 48);
+
+        // 1. Hair Profile (Realistic crop trim)
+        ctx.fillStyle = '#221100'; 
+        ctx.fillRect(11, 2, 14, 6);
+        ctx.fillRect(10, 5, 2, 5); // Left Sideburn
+        ctx.fillRect(24, 5, 2, 5); // Right Sideburn
+
+        // 2. Ears (Proportionate side skin nodes)
+        ctx.fillStyle = '#e8beac'; 
+        ctx.fillRect(9, 10, 2, 4);  // Left Ear
+        ctx.fillRect(25, 10, 2, 4); // Right Ear
+
+        // 3. Human Face/Head Tone Structure
+        ctx.beginPath(); 
+        ctx.arc(18, 12, 7, 0, Math.PI * 2); 
+        ctx.fill();
+
+        // 4. Detailed Eyes (White sclera + dark pupils)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(13, 10, 3, 2); // Left Sclera
+        ctx.fillRect(20, 10, 3, 2); // Right Sclera
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(14, 10, 1, 2); // Pupils
+        ctx.fillRect(21, 10, 1, 2);
+
+        // 5. Mouth & Expression Line
+        ctx.strokeStyle = '#b57c67';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(16, 15); ctx.lineTo(20, 15); ctx.stroke();
+
+        // 6. Broad Neck Line
+        ctx.fillStyle = '#d1a390'; 
+        ctx.fillRect(15, 18, 6, 3);
+
+        // 7. Muscular Torso Base Shirt (Only this layer reflects the menu choice!)
+        ctx.fillStyle = shirtColor; 
+        ctx.fillRect(7, 21, 22, 14); 
+
+        // 8. Human Skin Tone Arms
+        ctx.fillStyle = '#e8beac';
+        ctx.fillRect(3, 21, 4, 12);  // Left Arm
+        ctx.fillRect(29, 21, 4, 12); // Right Arm
+
+        // 9. Denim Tactical Pants (Two separate distinct legs)
+        ctx.fillStyle = '#1f3044'; 
+        ctx.fillRect(7, 35, 10, 11);  // Left leg jean
+        ctx.fillRect(19, 35, 10, 11); // Right leg jean
+
+        // 10. Heavy Leather Combat Boots
+        ctx.fillStyle = '#2b1a0e';
+        ctx.fillRect(6, 46, 11, 2);   // Left shoe base
+        ctx.fillRect(19, 46, 2, 2);  // Right shoe base
+        ctx.fillRect(19, 46, 11, 2); 
+
+        // Update texture buffer safely without crashing Phaser cache
+        if (game.textures.exists('kali_humanoid')) {
+            game.textures.get('kali_humanoid').source[0].image = canvas;
+            game.textures.get('kali_humanoid').update();
+        } else {
+            game.textures.addCanvas('kali_humanoid', canvas);
+        }
+    }
 
     function preload() {
         let generateVectorGraphic = (key, w, h, drawCallback) => {
@@ -220,50 +289,8 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Realistic Man Anatomy Canvas Graphic Map
-        generateVectorGraphic('kali_humanoid', 36, 48, (ctx) => {
-            // Short Crop Hair Profile (Brown/Black Masculine Trim)
-            ctx.fillStyle = '#2b1d0c'; 
-            ctx.fillRect(11, 2, 14, 6);
-            ctx.fillRect(10, 5, 2, 6); // Sideburn left
-            ctx.fillRect(24, 5, 2, 6); // Sideburn right
-
-            // Human Face/Head Tone Structure
-            ctx.fillStyle = '#e8beac'; 
-            ctx.beginPath(); 
-            ctx.arc(18, 11, 7, 0, Math.PI * 2); 
-            ctx.fill();
-
-            // Broad Neck Line
-            ctx.fillStyle = '#d1a390'; 
-            ctx.fillRect(15, 17, 6, 3);
-
-            // Broad Male Torso Base (White undershirt layer that absorbs tint smoothly)
-            ctx.fillStyle = '#ffffff'; 
-            ctx.fillRect(7, 20, 22, 14); 
-
-            // Muscular Left Arm (Skin tone exposed)
-            ctx.fillStyle = '#e8beac';
-            ctx.fillRect(3, 20, 4, 12);
-
-            // Muscular Right Arm
-            ctx.fillRect(29, 20, 4, 12);
-
-            // Left & Right Hands
-            ctx.fillStyle = '#d1a390';
-            ctx.fillRect(3, 32, 4, 3);
-            ctx.fillRect(29, 32, 4, 3);
-
-            // Denim Tactical Trousers / Split Legs
-            ctx.fillStyle = '#243447'; 
-            ctx.fillRect(7, 34, 10, 11);  // Left Leg
-            ctx.fillRect(19, 34, 10, 11); // Right Leg
-
-            // Heavy Leather Ranger Boots
-            ctx.fillStyle = '#3d2314';
-            ctx.fillRect(6, 45, 11, 3);   // Left foot base
-            ctx.fillRect(19, 45, 11, 3);  // Right foot base
-        });
+        // Initialize default human frame
+        generateHumanPlayerTexture('#00ffff');
 
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
@@ -485,7 +512,9 @@
         scene.physics.resume();
         sysProgress.runtimeActive = true;
 
-        player.setTint(sysProgress.selectedOutfitHex);
+        // Apply customization via texture layers instead of flattening it with player.setTint()
+        generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr);
+        
         player.setPosition(400, 460); player.setVelocity(0, 0);
         enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
 
