@@ -44,7 +44,6 @@
         #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
         #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
         
-        /* Mobile Overlay Layer - Tactical Control Bar Mapping */
         .mobile-touch-bar {
             position: absolute; bottom: 20px; left: 15px; right: 15px;
             pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
@@ -52,7 +51,6 @@
         }
         .touch-group-left, .touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
         
-        /* Touch Button Styling */
         .huge-btn {
             width: 54px; height: 54px; background: rgba(0, 44, 0, 0.85); border: 2px solid #33ff33;
             border-radius: 50%; color: #fff; font-size: 20px; font-weight: bold;
@@ -63,7 +61,6 @@
         }
         .huge-btn:active { background: #33ff33; color: #000; }
         
-        /* Custom Power Icons for Action Buttons */
         .huge-action-btn {
             width: 65px; height: 65px; font-size: 10px; text-transform: uppercase;
             border-radius: 50%; text-align: center;
@@ -92,17 +89,12 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
 
-        /* Outfit Customizer Panel Grid */
-        .outfit-grid {
-            display: flex; gap: 15px; margin: 15px 0;
-        }
+        .outfit-grid { display: flex; gap: 15px; margin: 15px 0; }
         .outfit-card {
             border: 2px dashed #33ff33; padding: 10px; font-size: 11px; cursor: pointer; text-align: center; min-width: 90px;
             background: rgba(0,20,0,0.4);
         }
-        .outfit-card.active {
-            border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33;
-        }
+        .outfit-card.active { border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33; }
 
         @media screen and (max-width: 1024px) {
             #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
@@ -119,8 +111,8 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Stage: 1 | Battle Match: 1 | Shield: 100% | Coins: 0 | Weapon: Lv.1</div>
-        <div id="hud-log">Tactical Arena System Active. Choose Outfit and deploy strategies.</div>
+        <div id="hud-lvl">Stage: 1 | Environment: Cyber | Shield: 100% | Coins: 0 | Weapon: Lv.1</div>
+        <div id="hud-log">Tactical Arena System Active. Grid environment synced.</div>
     </div>
 
     <div class="mobile-touch-bar">
@@ -173,132 +165,80 @@
 </div>
 
 <script>
-    // Native Web Audio Synthesizer Engine
     const SoundFX = {
         ctx: null,
-        init() {
-            if (!this.ctx) {
-                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        },
+        init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
         play(type) {
-            this.init();
-            if (!this.ctx) return;
-            
-            let osc = this.ctx.createOscillator();
-            let gain = this.ctx.createGain();
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            
+            this.init(); if (!this.ctx) return;
+            let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+            osc.connect(gain); gain.connect(this.ctx.destination);
             let now = this.ctx.currentTime;
-
             switch(type) {
-                case 'move': // Low pitch running ruffle sound
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(110, now);
-                    gain.gain.setValueAtTime(0.08, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1);
-                    break;
-                case 'jump': // Sweeping upwards tone
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(180, now);
+                case 'move':
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(110, now);
+                    gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1); break;
+                case 'jump':
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(180, now);
                     osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15);
-                    break;
-                case 'fire': // Snappy crisp high explosion
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(350, now);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15); break;
+                case 'fire':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(350, now);
                     osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2);
-                    break;
-                case 'shock': // Quick crackling vibrato frequency burst
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.linearRampToValueAtTime(200, now + 0.25);
-                    // Add crackle rhythm modulation
-                    osc.frequency.setValueAtTime(600, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25);
-                    break;
-                case 'monster_hit': // Crunchy bass drop noise impact
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(140, now);
-                    osc.frequency.linearRampToValueAtTime(40, now + 0.15);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15);
-                    break;
-                case 'boss_shoot': // High metallic blip gun shoot
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
-                    gain.gain.setValueAtTime(0.08, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-                    osc.start(now); osc.stop(now + 0.12);
-                    break;
-                case 'gameover': // Melancholic downwards minor layout scale
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(220, now);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2); break;
+                case 'shock':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.linearRampToValueAtTime(200, now + 0.25); osc.frequency.setValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25); break;
+                case 'monster_hit':
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(44, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15); break;
+                case 'boss_shoot':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(550, now);
+                    osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+                    gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15); break;
+                case 'gameover':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(220, now);
                     osc.frequency.linearRampToValueAtTime(110, now + 0.6);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6);
-                    break;
-                case 'win': // Ascending triumphant arcade fanfare
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(293.66, now); // D4
-                    osc.frequency.setValueAtTime(392.00, now + 0.1); // G4
-                    osc.frequency.setValueAtTime(493.88, now + 0.2); // B4
-                    osc.frequency.setValueAtTime(587.33, now + 0.3); // D5
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.2, now + 0.3);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
-                    osc.start(now); osc.stop(now + 0.55);
-                    break;
+                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
+                    osc.start(now); osc.stop(now + 0.6); break;
+                case 'win':
+                    osc.type = 'square'; osc.frequency.setValueAtTime(293.66, now);
+                    osc.frequency.setValueAtTime(392.00, now + 0.1); osc.frequency.setValueAtTime(493.88, now + 0.2);
+                    osc.frequency.setValueAtTime(587.33, now + 0.3); gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.2, now + 0.3); gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now); osc.stop(now + 0.55); break;
             }
         }
     };
 
     const config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 550, 
-        parent: 'game-container',
+        width: 800, height: 550, parent: 'game-container',
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-        physics: {
-            default: 'arcade',
-            arcade: { gravity: { y: 0 }, debug: false }
-        },
+        physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
         scene: { preload: preload, create: create, update: update }
     };
 
     const game = new Phaser.Game(config);
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let cloudsGroup, cloudElementsGroup;
+    let weatherParticles;
     let moveLeft = false, moveRight = false, doJump = false;
     let lastMoveSoundTime = 0;
-    let facingDirection = 'right';
-    let globalAmbushTimer = null;
-    let bossAttackTimer = null;
-    let currentBossInstance = null;
-    let lastBossHitTime = 0; 
-    
+    let globalAmbushTimer = null, bossAttackTimer = null;
+    let currentBossInstance = null, lastBossHitTime = 0; 
     let keyF, keyE, keyL, keySpace;
 
     let sysProgress = {
-        stage: 1,
-        level: 1,
-        shield: 100,
-        runtimeActive: false,
-        selectedOutfitColorStr: '#00ffff',
-        coins: 0
+        stage: 1, level: 1, shield: 100, runtimeActive: false,
+        selectedOutfitColorStr: '#00ffff', coins: 0, currentEnv: 'Cyber Grid'
     };
 
     window.selectOutfit = function(id, hexStr) {
@@ -307,161 +247,114 @@
         sysProgress.selectedOutfitColorStr = hexStr;
     };
 
-    function generateHumanPlayerTexture(shirtColor) {
-        let canvas = document.createElement('canvas');
-        canvas.width = 36; canvas.height = 48;
-        let ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, 36, 48);
+    function updateEnvironmentAssets() {
+        let st = sysProgress.stage;
+        if (st >= 12) sysProgress.currentEnv = 'Desert Airspace';
+        else if (st >= 8) sysProgress.currentEnv = 'Rain Flood';
+        else if (st >= 4) sysProgress.currentEnv = 'Snow Area';
+        else sysProgress.currentEnv = 'Cyber Grid';
 
-        // Hair Profile
-        ctx.fillStyle = '#221100'; 
-        ctx.fillRect(11, 2, 14, 6);
-        ctx.fillRect(10, 5, 2, 5); 
-        ctx.fillRect(24, 5, 2, 5); 
+        let floorC, borderC;
+        if (sysProgress.currentEnv === 'Snow Area') { floorC = '#1e2d3d'; borderC = '#00ffff'; }
+        else if (sysProgress.currentEnv === 'Rain Flood') { floorC = '#111b24'; borderC = '#3366ff'; }
+        else if (sysProgress.currentEnv === 'Desert Airspace') { floorC = '#4a2f1b'; borderC = '#ff9933'; }
+        else { floorC = '#1b3d1b'; borderC = '#2d5a2d'; }
 
-        // Ears
-        ctx.fillStyle = '#e8beac'; 
-        ctx.fillRect(9, 10, 2, 4);  
-        ctx.fillRect(25, 10, 2, 4); 
-
-        // Face
-        ctx.beginPath(); 
-        ctx.arc(18, 12, 7, 0, Math.PI * 2); 
-        ctx.fill();
-
-        // Eyes
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(13, 10, 3, 2); 
-        ctx.fillRect(20, 10, 3, 2); 
-        ctx.fillStyle = '#111111';
-        ctx.fillRect(14, 10, 1, 2); 
-        ctx.fillRect(21, 10, 1, 2);
-
-        // Mouth
-        ctx.strokeStyle = '#b57c67';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(16, 15); ctx.lineTo(20, 15); ctx.stroke();
-
-        // Neck
-        ctx.fillStyle = '#d1a390'; 
-        ctx.fillRect(15, 18, 6, 3);
-
-        // Shirt
-        ctx.fillStyle = shirtColor; 
-        ctx.fillRect(7, 21, 22, 14); 
-
-        // Skin Arms
-        ctx.fillStyle = '#e8beac';
-        ctx.fillRect(3, 21, 4, 12);  
-        ctx.fillRect(29, 21, 4, 12); 
-
-        // Denim Pants
-        ctx.fillStyle = '#1f3044'; 
-        ctx.fillRect(7, 35, 10, 11);  
-        ctx.fillRect(19, 35, 10, 11); 
-
-        // Leather Boots
-        ctx.fillStyle = '#2b1a0e';
-        ctx.fillRect(6, 46, 11, 2);   
-        ctx.fillRect(19, 46, 11, 2); 
-
-        if (game.textures.exists('kali_humanoid')) {
-            game.textures.get('kali_humanoid').source[0].image = canvas;
-            game.textures.get('kali_humanoid').update();
-        } else {
-            game.textures.addCanvas('kali_humanoid', canvas);
+        if (game.textures.exists('matrix_floor')) {
+            let canvas = game.textures.get('matrix_floor').source[0].image;
+            let ctx = canvas.getContext('2d');
+            ctx.fillStyle = floorC; ctx.fillRect(0, 0, 40, 40);
+            ctx.strokeStyle = borderC; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 40, 40);
+            game.textures.get('matrix_floor').update();
         }
+    }
+
+    function generateHumanPlayerTexture(shirtColor) {
+        let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
+        ctx.fillStyle = '#221100'; ctx.fillRect(11, 2, 14, 6);
+        ctx.fillStyle = '#e8beac'; ctx.fillRect(9, 10, 2, 4); ctx.fillRect(25, 10, 2, 4);
+        ctx.beginPath(); ctx.arc(18, 12, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(13, 10, 3, 2); ctx.fillRect(20, 10, 3, 2);
+        ctx.fillStyle = shirtColor; ctx.fillRect(7, 21, 22, 14);
+        ctx.fillStyle = '#1f3044'; ctx.fillRect(7, 35, 10, 11); ctx.fillRect(19, 35, 10, 11);
+        if (game.textures.exists('kali_humanoid')) {
+            game.textures.get('kali_humanoid').source[0].image = canvas; game.textures.get('kali_humanoid').update();
+        } else { game.textures.addCanvas('kali_humanoid', canvas); }
     }
 
     function preload() {
         let generateVectorGraphic = (key, w, h, drawCallback) => {
-            let canvas = document.createElement('canvas');
-            canvas.width = w; canvas.height = h;
-            let ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, w, h);
-            drawCallback(ctx);
+            let canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+            let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, w, h); drawCallback(ctx);
             game.textures.addCanvas(key, canvas);
         };
 
         generateHumanPlayerTexture('#00ffff');
-
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
-            ctx.fillStyle = '#33ff33'; ctx.fillRect(10, 10, 12, 12);
         });
-
         generateVectorGraphic('susi_drone', 28, 28, (ctx) => {
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 10, 20, 10); 
-            ctx.fillStyle = '#ffaa66'; ctx.beginPath(); ctx.arc(14, 8, 5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 10, 20, 10);
         });
-
-        generateVectorGraphic('matrix_floor', 40, 40, (ctx) => {
-            ctx.fillStyle = '#1b3d1b'; ctx.fillRect(0, 0, 40, 40);
-            ctx.strokeStyle = '#2d5a2d'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 40, 40);
-        });
+        
+        // Initial Grid Texture Generation Setup
+        let canvasFloor = document.createElement('canvas'); canvasFloor.width = 40; canvasFloor.height = 40;
+        let ctxFloor = canvasFloor.getContext('2d'); ctxFloor.fillStyle = '#1b3d1b'; ctxFloor.fillRect(0, 0, 40, 40);
+        game.textures.addCanvas('matrix_floor', canvasFloor);
 
         generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
-            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24); 
+            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24);
             ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
         });
-
-        generateVectorGraphic('humanoid_boss', 56, 76, (ctx) => {
-            ctx.fillStyle = '#2c3e50'; ctx.fillRect(4, 16, 48, 54); 
-            ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.moveTo(10, 16); ctx.lineTo(2, 2); ctx.lineTo(18, 12); ctx.fill(); 
-            ctx.beginPath(); ctx.moveTo(46, 16); ctx.lineTo(54, 2); ctx.lineTo(38, 12); ctx.fill(); 
-            ctx.fillStyle = '#ff00ff'; ctx.fillRect(16, 26, 6, 6); ctx.fillRect(34, 26, 6, 6); 
+        generateVectorGraphic('humanoid_boss', 60, 80, (ctx) => {
+            ctx.fillStyle = '#5c2c91'; ctx.fillRect(5, 15, 50, 60);
+            ctx.fillStyle = '#ff0055'; ctx.fillRect(15, 25, 8, 8); ctx.fillRect(37, 25, 8, 8);
         });
-
         generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
             ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(16, 16, 12, 0, Math.PI * 2); ctx.fill();
         });
-
         generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
-
         generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
             let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.3, '#ffaa00');
-            gradient.addColorStop(1, '#ff3300');
+            gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(1, '#ff3300');
             ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
         });
-
         generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
-            ctx.fillStyle = 'rgba(255, 255, 51, 0.3)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(11, 2); ctx.lineTo(6, 12); ctx.lineTo(15, 10); ctx.lineTo(11, 20); ctx.stroke();
+            ctx.fillStyle = 'rgba(255, 255, 51, 0.4)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
         });
-        
-        generateVectorGraphic('laser_red', 12, 12, (ctx) => {
-            ctx.fillStyle = '#ff3333'; ctx.beginPath(); ctx.arc(6, 6, 6, 0, Math.PI * 2); ctx.fill();
+        generateVectorGraphic('laser_red', 16, 16, (ctx) => {
+            let gradient = ctx.createRadialGradient(8, 8, 2, 8, 8, 8);
+            gradient.addColorStop(0, '#ffff99'); gradient.addColorStop(1, '#ff0000');
+            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(8, 8, 8, 0, Math.PI * 2); ctx.fill();
         });
-
-        generateVectorGraphic('matrix_cloud', 80, 30, (ctx) => {
-            ctx.fillStyle = 'rgba(20, 50, 20, 0.25)'; ctx.fillRect(0,0,80,30);
+        generateVectorGraphic('snow_flake', 6, 6, (ctx) => {
+            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(3, 3, 3, 0, Math.PI*2); ctx.fill();
         });
-        generateVectorGraphic('game_cloud_element', 90, 30, (ctx) => {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'; ctx.fillRect(0,0,90,30);
+        generateVectorGraphic('rain_drop', 2, 10, (ctx) => {
+            ctx.fillStyle = '#6699ff'; ctx.fillRect(0, 0, 2, 10);
         });
     }
 
     function create() {
         this.physics.world.setBounds(0, 0, 800, 550);
-        
         mapPlatforms = this.physics.add.staticGroup();
         for (let x = 0; x < 800; x += 40) {
             for(let y = 0; y < 550; y += 40) {
                 mapPlatforms.create(x, y, 'matrix_floor').setOrigin(0, 0).refreshBody();
             }
         }
-
         for (let bx = 120; bx < 800; bx += 240) {
             mapPlatforms.create(bx, 260, 'cyber_platform').refreshBody();
         }
 
-        cloudsGroup = this.add.group();
-        cloudElementsGroup = this.add.group();
+        weatherParticles = this.add.particles(0, 0, 'snow_flake', {
+            x: { min: 0, max: 800 }, y: 0, lifspan: 3000, speedY: { min: 100, max: 200 }, scale: { start: 0.5, end: 1 }, quantity: 2, frequency: 100
+        });
+        weatherParticles.stop();
+
         enemiesGroup = this.physics.add.group();
         bossGroup = this.physics.add.group();
         kaliLasers = this.physics.add.group();
@@ -473,20 +366,12 @@
         targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
         this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
-            p.destroy(); 
-            enemy.destroy(); 
-            SoundFX.play('monster_hit');
-            sysProgress.coins += 10;
-            document.getElementById('hud-log').innerText = `🪙 +10 Coins Collected!`;
-            refreshTerminalHUD();
+            p.destroy(); enemy.destroy(); SoundFX.play('monster_hit');
+            sysProgress.coins += 10; refreshTerminalHUD();
         });
 
         this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
-            p.destroy();
-            boss.health -= 5;
-            sysProgress.coins += 10;
-            SoundFX.play('monster_hit');
-            document.getElementById('hud-log').innerText = `⚡ HIT BATTLE BOSS! Core Shield: ${boss.health}% (+10 Coins)`;
+            p.destroy(); boss.health -= 5; SoundFX.play('monster_hit');
             if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
             refreshTerminalHUD();
         });
@@ -494,20 +379,14 @@
         this.physics.add.overlap(player, bossGroup, (pl, boss) => {
             let now = this.time.now;
             if (now - lastBossHitTime > 1500) { 
-                lastBossHitTime = now;
-                sysProgress.shield -= 50;
-                SoundFX.play('monster_hit');
-                refreshTerminalHUD();
-                checkPlayerMortality();
+                lastBossHitTime = now; sysProgress.shield -= 40;
+                SoundFX.play('monster_hit'); refreshTerminalHUD(); checkPlayerMortality();
             }
         });
 
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); 
-            sysProgress.shield -= 10; 
-            SoundFX.play('monster_hit');
-            refreshTerminalHUD(); 
-            checkPlayerMortality();
+            laser.destroy(); sysProgress.shield -= 15; SoundFX.play('monster_hit');
+            refreshTerminalHUD(); checkPlayerMortality();
         });
 
         cursors = this.input.keyboard.createCursorKeys();
@@ -540,46 +419,27 @@
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
         SoundFX.play('fire');
-        
         let weaponTier = sysProgress.stage;
         if (weaponTier === 1) {
-            let shot = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
-            shot.setVelocityY(-450);
-        } else if (weaponTier === 2) {
-            let s1 = kaliLasers.create(player.x - 10, player.y - 25, 'laser_fire');
-            let s2 = kaliLasers.create(player.x + 10, player.y - 25, 'laser_fire');
-            s1.setVelocityY(-470); s2.setVelocityY(-470);
+            kaliLasers.create(player.x, player.y - 25, 'laser_fire').setVelocityY(-450);
         } else {
-            let s1 = kaliLasers.create(player.x - 15, player.y - 25, 'laser_fire');
-            let s2 = kaliLasers.create(player.x, player.y - 30, 'laser_fire');
-            let s3 = kaliLasers.create(player.x + 15, player.y - 25, 'laser_fire');
-            s1.setVelocity(-60, -500);
-            s2.setVelocity(0, -520);
-            s3.setVelocity(60, -500);
+            let s1 = kaliLasers.create(player.x - 12, player.y - 25, 'laser_fire');
+            let s2 = kaliLasers.create(player.x + 12, player.y - 25, 'laser_fire');
+            s1.setVelocityY(-470); s2.setVelocityY(-470);
         }
     }
 
     function triggerElectricShockPower() {
         if (!sysProgress.runtimeActive) return;
         SoundFX.play('shock');
-        
-        let weaponTier = sysProgress.stage;
-        if (weaponTier === 1) {
-            let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
-            wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
-        } else {
-            for (let i = 0; i < Math.min(weaponTier, 4); i++) {
-                let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
-                wave.setVelocity(-200 + (i * 130), -520);
-            }
-        }
+        let wave = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
+        wave.setVelocity(Phaser.Math.Between(-150, 150), -500);
     }
 
     function checkPlayerMortality() {
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-            cleanTimers(); 
-            SoundFX.play('gameover');
+            cleanTimers(); SoundFX.play('gameover');
             document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
@@ -591,8 +451,7 @@
 
     function triggerVictorySequence() {
         sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-        cleanTimers(); 
-        SoundFX.play('win');
+        cleanTimers(); SoundFX.play('win');
         document.getElementById('victory-menu').style.display = 'flex';
     }
 
@@ -604,12 +463,7 @@
 
     window.restartStage = function() {
         document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.shield = 100; 
-        sysProgress.level += 1; 
-        if (sysProgress.level > 5) {
-            sysProgress.level = 1;
-            sysProgress.stage += 1; 
-        }
+        sysProgress.shield = 100; sysProgress.stage += 1;
         initRuntimeLevel();
     };
 
@@ -624,14 +478,28 @@
         scene.physics.resume();
         sysProgress.runtimeActive = true;
 
+        updateEnvironmentAssets();
         generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr);
         
         player.setPosition(400, 460); player.setVelocity(0, 0);
         enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
 
-        currentBossInstance = bossGroup.create(400, 110, 'humanoid_boss');
-        currentBossInstance.health = 100 + (sysProgress.stage * 15);
-        currentBossInstance.setCollideWorldBounds(true);
+        // Weather Engine Configuration Updates
+        weatherParticles.stop();
+        if (sysProgress.currentEnv === 'Snow Area') {
+            weatherParticles.setTexture('snow_flake'); weatherParticles.start();
+        } else if (sysProgress.currentEnv === 'Rain Flood') {
+            weatherParticles.setTexture('rain_drop'); weatherParticles.start();
+        }
+
+        // BOSS SYSTEM triggers every 4 stages explicitly
+        if (sysProgress.stage % 4 === 0) {
+            currentBossInstance = bossGroup.create(400, 110, 'humanoid_boss');
+            currentBossInstance.health = 100 + (sysProgress.stage * 20);
+            currentBossInstance.setCollideWorldBounds(true);
+        } else {
+            currentBossInstance = null;
+        }
 
         startTimerLoops();
         refreshTerminalHUD();
@@ -642,33 +510,22 @@
         let scene = game.scene.scenes[0];
 
         globalAmbushTimer = scene.time.addEvent({
-            delay: 1500, loop: true, callback: () => {
+            delay: 1200, loop: true, callback: () => {
                 if (!sysProgress.runtimeActive) return;
-                
-                let spawnX, spawnY;
-                let randomBorderSide = Phaser.Math.Between(0, 3);
-                if (randomBorderSide === 0) {
-                    spawnX = Phaser.Math.Between(20, 780); spawnY = 30;
-                } else if (randomBorderSide === 1) {
-                    spawnX = 770; spawnY = Phaser.Math.Between(40, 500);
-                } else if (randomBorderSide === 2) {
-                    spawnX = 30; spawnY = Phaser.Math.Between(40, 500);
-                } else {
-                    spawnX = Phaser.Math.Between(20, 780); spawnY = 200;
-                }
-
+                let spawnX = Phaser.Math.Between(5, 4) > 2 ? 30 : 770;
+                let spawnY = Phaser.Math.Between(40, 500);
                 let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
                 let subUnit = enemiesGroup.create(spawnX, spawnY, enemyKey);
-                
-                scene.physics.moveToObject(subUnit, player, 90 + (sysProgress.stage * 10));
+                scene.physics.moveToObject(subUnit, player, 100 + (sysProgress.stage * 5));
             }
         });
 
         bossAttackTimer = scene.time.addEvent({
-            delay: 1400, loop: true, callback: () => {
+            delay: 1000, loop: true, callback: () => {
                 if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
-                    let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 20, 'laser_red');
-                    scene.physics.moveToObject(projectile, player, 240);
+                    // Flame Fire Attack Variant: Targets directly at the player's vector coordinates
+                    let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 25, 'laser_red');
+                    scene.physics.moveToObject(projectile, player, 280);
                     SoundFX.play('boss_shoot');
                 }
             }
@@ -681,47 +538,39 @@
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 30, 0.15);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
 
-        let speed = 250;
-        let isMoving = false;
+        let speed = 250; let isMoving = false;
         player.setVelocity(0, 0);
 
-        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); isMoving = true; }
-        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); isMoving = true; }
+        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); intentX = -1; isMoving = true; }
+        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); intentX = 1; isMoving = true; }
         
         if (cursors.up.isDown || doJump) { 
-            // Only trigger jump sound when moving upwards dynamically
             if(player.body.velocity.y === 0) SoundFX.play('jump');
-            player.setVelocityY(-speed); 
-            isMoving = true; 
+            player.setVelocityY(-speed); isMoving = true; 
         }
         else if (cursors.down.isDown) { player.setVelocityY(speed); isMoving = true; }
 
-        // Throttle runtime movement/run footstep sounds so it doesn't overlap instantly
         if (isMoving && this.time.now - lastMoveSoundTime > 220) {
-            SoundFX.play('move');
-            lastMoveSoundTime = this.time.now;
+            SoundFX.play('move'); lastMoveSoundTime = this.time.now;
         }
 
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
 
+        // Standard omni-directional pathfinding mapping logic across all dimensions
         enemiesGroup.children.iterate((enemy) => {
             if (enemy && enemy.active && enemy.body) {
-                this.physics.moveToObject(enemy, player, 90 + (sysProgress.stage * 10));
+                this.physics.moveToObject(enemy, player, 100 + (sysProgress.stage * 5));
             }
         });
 
         if (currentBossInstance && currentBossInstance.active) {
-            if (Math.abs(currentBossInstance.x - player.x) > 20) {
-                currentBossInstance.setVelocityX(player.x < currentBossInstance.x ? -70 : 70);
-            } else {
-                currentBossInstance.setVelocityX(0);
-            }
+            this.physics.moveToObject(currentBossInstance, player, 60);
         }
     }
 
     function refreshTerminalHUD() {
-        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Battle Match: ${sysProgress.level} | Shield: ${sysProgress.shield}% | Coins: ${sysProgress.coins} | Weapon: Lv.${sysProgress.stage}`;
+        document.getElementById('hud-lvl').innerText = `Arena Stage: ${sysProgress.stage} | Environment: ${sysProgress.currentEnv} | Shield: ${sysProgress.shield}% | Coins: ${sysProgress.coins} | Weapon: Lv.${sysProgress.stage}`;
     }
 </script>
 </body>
