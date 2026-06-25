@@ -123,7 +123,6 @@
         <div id="hud-log">Tactical Arena System Active. Choose Outfit and deploy strategies.</div>
     </div>
 
-    <!-- UI Responsive Touch Layout Interface Layer -->
     <div class="mobile-touch-bar">
         <div class="touch-group-left">
             <div class="huge-btn" id="pad-left">◀</div>
@@ -131,7 +130,6 @@
             <div class="huge-btn" id="pad-jump">▲</div>
         </div>
         <div class="touch-group-right">
-            <!-- UI Buttons with custom styled power actions -->
             <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">
                 <span style="font-size: 16px;">⚡</span>
                 <span>Shock</span>
@@ -143,7 +141,6 @@
         </div>
     </div>
 
-    <!-- UI Start Menu with Custom Outfit Selection Grid -->
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
         <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
@@ -161,14 +158,12 @@
         <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
     </div>
 
-    <!-- Defeat Screen -->
     <div id="defeat-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
         <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
         <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
     </div>
 
-    <!-- Victory Screen -->
     <div id="victory-menu" class="overlay-screen">
         <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
         <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
@@ -178,6 +173,98 @@
 </div>
 
 <script>
+    // Native Web Audio Synthesizer Engine
+    const SoundFX = {
+        ctx: null,
+        init() {
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        },
+        play(type) {
+            this.init();
+            if (!this.ctx) return;
+            
+            let osc = this.ctx.createOscillator();
+            let gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            let now = this.ctx.currentTime;
+
+            switch(type) {
+                case 'move': // Low pitch running ruffle sound
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(110, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                    break;
+                case 'jump': // Sweeping upwards tone
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                    break;
+                case 'fire': // Snappy crisp high explosion
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                    break;
+                case 'shock': // Quick crackling vibrato frequency burst
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.linearRampToValueAtTime(200, now + 0.25);
+                    // Add crackle rhythm modulation
+                    osc.frequency.setValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                    break;
+                case 'monster_hit': // Crunchy bass drop noise impact
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(40, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                    break;
+                case 'boss_shoot': // High metallic blip gun shoot
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
+                    break;
+                case 'gameover': // Melancholic downwards minor layout scale
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.6);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
+                    osc.start(now); osc.stop(now + 0.6);
+                    break;
+                case 'win': // Ascending triumphant arcade fanfare
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(293.66, now); // D4
+                    osc.frequency.setValueAtTime(392.00, now + 0.1); // G4
+                    osc.frequency.setValueAtTime(493.88, now + 0.2); // B4
+                    osc.frequency.setValueAtTime(587.33, now + 0.3); // D5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.2, now + 0.3);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now); osc.stop(now + 0.55);
+                    break;
+            }
+        }
+    };
+
     const config = {
         type: Phaser.AUTO,
         width: 800,
@@ -196,6 +283,7 @@
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
     let cloudsGroup, cloudElementsGroup;
     let moveLeft = false, moveRight = false, doJump = false;
+    let lastMoveSoundTime = 0;
     let facingDirection = 'right';
     let globalAmbushTimer = null;
     let bossAttackTimer = null;
@@ -332,7 +420,6 @@
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
 
-        // Refined glowing fire ball vector texture
         generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
             let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
             gradient.addColorStop(0, '#ffffff');
@@ -341,7 +428,6 @@
             ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
         });
 
-        // Refined lightning electric shock wave vector texture
         generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
             ctx.fillStyle = 'rgba(255, 255, 51, 0.3)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
@@ -389,6 +475,7 @@
         this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
             p.destroy(); 
             enemy.destroy(); 
+            SoundFX.play('monster_hit');
             sysProgress.coins += 10;
             document.getElementById('hud-log').innerText = `🪙 +10 Coins Collected!`;
             refreshTerminalHUD();
@@ -398,6 +485,7 @@
             p.destroy();
             boss.health -= 5;
             sysProgress.coins += 10;
+            SoundFX.play('monster_hit');
             document.getElementById('hud-log').innerText = `⚡ HIT BATTLE BOSS! Core Shield: ${boss.health}% (+10 Coins)`;
             if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
             refreshTerminalHUD();
@@ -408,13 +496,18 @@
             if (now - lastBossHitTime > 1500) { 
                 lastBossHitTime = now;
                 sysProgress.shield -= 50;
+                SoundFX.play('monster_hit');
                 refreshTerminalHUD();
                 checkPlayerMortality();
             }
         });
 
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
-            laser.destroy(); sysProgress.shield -= 10; refreshTerminalHUD(); checkPlayerMortality();
+            laser.destroy(); 
+            sysProgress.shield -= 10; 
+            SoundFX.play('monster_hit');
+            refreshTerminalHUD(); 
+            checkPlayerMortality();
         });
 
         cursors = this.input.keyboard.createCursorKeys();
@@ -446,6 +539,7 @@
 
     function triggerKaliFire() {
         if (!sysProgress.runtimeActive) return;
+        SoundFX.play('fire');
         
         let weaponTier = sysProgress.stage;
         if (weaponTier === 1) {
@@ -467,6 +561,7 @@
 
     function triggerElectricShockPower() {
         if (!sysProgress.runtimeActive) return;
+        SoundFX.play('shock');
         
         let weaponTier = sysProgress.stage;
         if (weaponTier === 1) {
@@ -483,7 +578,9 @@
     function checkPlayerMortality() {
         if (sysProgress.shield <= 0) {
             sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-            cleanTimers(); document.getElementById('defeat-menu').style.display = 'flex';
+            cleanTimers(); 
+            SoundFX.play('gameover');
+            document.getElementById('defeat-menu').style.display = 'flex';
         }
     }
 
@@ -494,7 +591,9 @@
 
     function triggerVictorySequence() {
         sysProgress.runtimeActive = false; game.scene.scenes[0].physics.pause();
-        cleanTimers(); document.getElementById('victory-menu').style.display = 'flex';
+        cleanTimers(); 
+        SoundFX.play('win');
+        document.getElementById('victory-menu').style.display = 'flex';
     }
 
     window.handleAdRetrieval = function() {
@@ -542,28 +641,25 @@
         cleanTimers();
         let scene = game.scene.scenes[0];
 
-        // Advanced Spawn and Target AI Engine
         globalAmbushTimer = scene.time.addEvent({
             delay: 1500, loop: true, callback: () => {
                 if (!sysProgress.runtimeActive) return;
                 
-                // Monsters can randomly deploy from any edge border window seamlessly
                 let spawnX, spawnY;
                 let randomBorderSide = Phaser.Math.Between(0, 3);
-                if (randomBorderSide === 0) { // Top edge
+                if (randomBorderSide === 0) {
                     spawnX = Phaser.Math.Between(20, 780); spawnY = 30;
-                } else if (randomBorderSide === 1) { // Right side
+                } else if (randomBorderSide === 1) {
                     spawnX = 770; spawnY = Phaser.Math.Between(40, 500);
-                } else if (randomBorderSide === 2) { // Left side
+                } else if (randomBorderSide === 2) {
                     spawnX = 30; spawnY = Phaser.Math.Between(40, 500);
-                } else { // Below platforms
+                } else {
                     spawnX = Phaser.Math.Between(20, 780); spawnY = 200;
                 }
 
                 let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
                 let subUnit = enemiesGroup.create(spawnX, spawnY, enemyKey);
                 
-                // Continuous navigation targeting to hunt the player, even if stationary
                 scene.physics.moveToObject(subUnit, player, 90 + (sysProgress.stage * 10));
             }
         });
@@ -573,6 +669,7 @@
                 if (currentBossInstance && currentBossInstance.active && sysProgress.runtimeActive) {
                     let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 20, 'laser_red');
                     scene.physics.moveToObject(projectile, player, 240);
+                    SoundFX.play('boss_shoot');
                 }
             }
         });
@@ -585,18 +682,29 @@
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
 
         let speed = 250;
+        let isMoving = false;
         player.setVelocity(0, 0);
 
-        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); }
-        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); }
+        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); isMoving = true; }
+        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); isMoving = true; }
         
-        if (cursors.up.isDown || doJump) { player.setVelocityY(-speed); }
-        else if (cursors.down.isDown) { player.setVelocityY(speed); }
+        if (cursors.up.isDown || doJump) { 
+            // Only trigger jump sound when moving upwards dynamically
+            if(player.body.velocity.y === 0) SoundFX.play('jump');
+            player.setVelocityY(-speed); 
+            isMoving = true; 
+        }
+        else if (cursors.down.isDown) { player.setVelocityY(speed); isMoving = true; }
+
+        // Throttle runtime movement/run footstep sounds so it doesn't overlap instantly
+        if (isMoving && this.time.now - lastMoveSoundTime > 220) {
+            SoundFX.play('move');
+            lastMoveSoundTime = this.time.now;
+        }
 
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
 
-        // Always calculate real-time tracker updating vectors for hazards
         enemiesGroup.children.iterate((enemy) => {
             if (enemy && enemy.active && enemy.body) {
                 this.physics.moveToObject(enemy, player, 90 + (sysProgress.stage * 10));
