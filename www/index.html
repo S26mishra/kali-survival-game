@@ -111,7 +111,7 @@
 
 <div id="game-wrapper">
     <div class="hud-overlay">
-        <div id="hud-lvl">Arena Stage: 1 | Environment: Cyber Grid | Shield: 100% | Coins: 0 | Weapon: Lv.1 | Kills: 0/10</div>
+        <div id="hud-lvl">Arena Stage: 1 | Environment: Cyber Grid | Shield: 100% | Coins: 30 | Weapon: Lv.1 | Kills: 0/5</div>
         <div id="hud-log">Tactical Arena System Active. Grid environment synced.</div>
     </div>
 
@@ -119,7 +119,8 @@
         <div class="touch-group-left">
             <div class="huge-btn" id="pad-left">◀</div>
             <div class="huge-btn" id="pad-right">▶</div>
-            <div class="huge-btn" id="pad-jump">▲</div>
+            <div class="huge-btn" id="pad-up">▲</div>
+            <div class="huge-btn" id="pad-down">▼</div>
         </div>
         <div class="touch-group-right">
             <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">
@@ -135,17 +136,17 @@
 
     <div id="start-menu" class="overlay-screen">
         <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
-        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR OUTFIT CORE DESIGNATION:</p>
+        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR HAIR STYLE OUTFIT:</p>
         
         <div class="outfit-grid">
-            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22')">🩵 Cyber Neon</div>
-            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33')">💛 Gilded Armor</div>
-            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333')">❤️ Void Crimson</div>
-            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff')">💜 Shadow Elixir</div>
+            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b')">🩵 Brown Hair</div>
+            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111')">💛 Dark Hair</div>
+            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c')">❤️ Crimson Hair</div>
+            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff')">💜 Anime White</div>
         </div>
 
         <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 15px;">
-            Move Arena Base: [ARROW KEYS]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
+            Move Arena Base: [ARROW KEYS / WASD]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
         </p>
         <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
     </div>
@@ -230,22 +231,23 @@
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
     let weatherParticles;
-    let moveLeft = false, moveRight = false, doJump = false;
+    let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
     let lastMoveSoundTime = 0;
     let globalAmbushTimer = null, bossAttackTimer = null;
     let currentBossInstance = null, lastBossHitTime = 0; 
-    let keyF, keyE, keyL, keySpace;
+    let keyF, keyE, keyL, keySpace, keysWASD;
 
     let sysProgress = {
         stage: 1, level: 1, shield: 100, runtimeActive: false,
-        selectedOutfitColorStr: '#e67e22', coins: 0, currentEnv: 'Cyber Grid',
+        selectedOutfitColorStr: '#e67e22', selectedHairColorStr: '#4a2f1b', coins: 30, currentEnv: 'Cyber Grid',
         stageKills: 0, requiredKills: 5
     };
 
-    window.selectOutfit = function(id, hexStr) {
+    window.selectOutfit = function(id, hexShirt, hexHair) {
         document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`skin-${id}`).classList.add('active');
-        sysProgress.selectedOutfitColorStr = hexStr;
+        sysProgress.selectedOutfitColorStr = hexShirt;
+        sysProgress.selectedHairColorStr = hexHair;
     };
 
     function updateEnvironmentAssets() {
@@ -270,14 +272,36 @@
         }
     }
 
-    function generateHumanPlayerTexture(shirtColor) {
+    function generateHumanPlayerTexture(shirtColor, hairColor) {
         let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
         let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
         
-        // Exact block style colors matching image_16525d.jpg
-        ctx.fillStyle = '#000'; ctx.fillRect(10, 0, 16, 16); 
-        ctx.fillStyle = shirtColor; ctx.fillRect(2, 16, 32, 24); 
-        ctx.fillStyle = '#221100'; ctx.fillRect(6, 40, 10, 8); ctx.fillRect(20, 40, 10, 8); 
+        // Shirt/Body Core Design
+        ctx.fillStyle = shirtColor; ctx.fillRect(4, 20, 28, 20); 
+
+        // Real Face Details: Skin tone base layout
+        ctx.fillStyle = '#ffcc99'; ctx.fillRect(8, 6, 20, 14);
+
+        // Hair rendering
+        ctx.fillStyle = hairColor;
+        ctx.fillRect(6, 3, 24, 5); // Top Hair
+        ctx.fillRect(6, 6, 4, 8);  // Side hair drop left
+        ctx.fillRect(26, 6, 4, 8); // Side hair drop right
+
+        // Ears setup
+        ctx.fillStyle = '#f2b584';
+        ctx.fillRect(5, 10, 3, 5);  // Left Ear
+        ctx.fillRect(28, 10, 3, 5); // Right Ear
+
+        // Animated Eyes
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(11, 10, 4, 3); ctx.fillRect(21, 10, 4, 3); // Eye whites
+        ctx.fillStyle = '#111111'; ctx.fillRect(12, 10, 2, 3); ctx.fillRect(22, 10, 2, 3); // Pupils
+
+        // Mouth/Expression detail
+        ctx.fillStyle = '#e74c3c'; ctx.fillRect(15, 16, 6, 2);
+
+        // Legs/Boots block styling matching original positioning
+        ctx.fillStyle = '#111111'; ctx.fillRect(8, 40, 8, 8); ctx.fillRect(20, 40, 8, 8); 
         
         if (game.textures.exists('kali_humanoid')) {
             game.textures.get('kali_humanoid').source[0].image = canvas; game.textures.get('kali_humanoid').update();
@@ -291,7 +315,7 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        generateHumanPlayerTexture('#e67e22');
+        generateHumanPlayerTexture('#e67e22', '#4a2f1b');
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
             ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
         });
@@ -347,7 +371,6 @@
             }
         }
         
-        // Exact custom floating platform coordinates layout from image_16525d.jpg
         mapPlatforms.create(180, 290, 'cyber_platform').refreshBody();
         mapPlatforms.create(400, 290, 'cyber_platform').refreshBody();
         mapPlatforms.create(620, 290, 'cyber_platform').refreshBody();
@@ -400,6 +423,7 @@
         });
 
         cursors = this.input.keyboard.createCursorKeys();
+        keysWASD = this.input.keyboard.addKeys('W,A,S,D');
         keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyL = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
@@ -421,7 +445,8 @@
         };
         binding('pad-left', () => { moveLeft = true; }, () => { moveLeft = false; });
         binding('pad-right', () => { moveRight = true; }, () => { moveRight = false; });
-        binding('pad-jump', () => { doJump = true; }, () => { doJump = false; });
+        binding('pad-up', () => { moveUp = true; }, () => { moveUp = false; });
+        binding('pad-down', () => { moveDown = true; }, () => { moveDown = false; });
         binding('pad-light', () => { triggerElectricShockPower(); });
         binding('pad-fire', () => { triggerKaliFire(); });
     }
@@ -492,7 +517,7 @@
         sysProgress.runtimeActive = true;
 
         updateEnvironmentAssets();
-        generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr);
+        generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr, sysProgress.selectedHairColorStr);
         
         player.setPosition(280, 460); player.setVelocity(0, 0);
         enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
@@ -551,14 +576,11 @@
         let speed = 250; let isMoving = false;
         player.setVelocity(0, 0);
 
-        if (cursors.left.isDown || moveLeft) { player.setVelocityX(-speed); isMoving = true; }
-        else if (cursors.right.isDown || moveRight) { player.setVelocityX(speed); isMoving = true; }
+        if (cursors.left.isDown || keysWASD.A.isDown || moveLeft) { player.setVelocityX(-speed); isMoving = true; }
+        else if (cursors.right.isDown || keysWASD.D.isDown || moveRight) { player.setVelocityX(speed); isMoving = true; }
         
-        if (cursors.up.isDown || doJump) { 
-            if(player.body.velocity.y === 0) SoundFX.play('jump');
-            player.setVelocityY(-speed); isMoving = true; 
-        }
-        else if (cursors.down.isDown) { player.setVelocityY(speed); isMoving = true; }
+        if (cursors.up.isDown || keysWASD.W.isDown || moveUp) { player.setVelocityY(-speed); isMoving = true; }
+        else if (cursors.down.isDown || keysWASD.S.isDown || moveDown) { player.setVelocityY(speed); isMoving = true; }
 
         if (isMoving && this.time.now - lastMoveSoundTime > 220) {
             SoundFX.play('move'); lastMoveSoundTime = this.time.now;
