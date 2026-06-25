@@ -63,10 +63,12 @@
         }
         .huge-btn:active { background: #33ff33; color: #000; }
         
+        /* Custom Power Icons for Action Buttons */
         .huge-action-btn {
-            width: 60px; height: 60px; font-size: 11px; text-transform: uppercase;
+            width: 65px; height: 65px; font-size: 10px; text-transform: uppercase;
             border-radius: 50%; text-align: center;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 2px; font-weight: bold;
         }
         .btn-light-shock { background: rgba(102, 102, 0, 0.85); border-color: #ffff33; color: #ffff33; }
         .btn-light-shock:active { background: #ffff33; color: #000; }
@@ -129,8 +131,15 @@
             <div class="huge-btn" id="pad-jump">▲</div>
         </div>
         <div class="touch-group-right">
-            <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">Light</div>
-            <div class="huge-btn huge-action-btn btn-fire-burst" id="pad-fire">Fire</div>
+            <!-- UI Buttons with custom styled power actions -->
+            <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">
+                <span style="font-size: 16px;">⚡</span>
+                <span>Shock</span>
+            </div>
+            <div class="huge-btn huge-action-btn btn-fire-burst" id="pad-fire">
+                <span style="font-size: 16px;">🔥</span>
+                <span>Fire</span>
+            </div>
         </div>
     </div>
 
@@ -210,67 +219,64 @@
         sysProgress.selectedOutfitColorStr = hexStr;
     };
 
-    // Dynamically generates an actual human canvas sprite frame
     function generateHumanPlayerTexture(shirtColor) {
         let canvas = document.createElement('canvas');
         canvas.width = 36; canvas.height = 48;
         let ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, 36, 48);
 
-        // 1. Hair Profile (Realistic crop trim)
+        // Hair Profile
         ctx.fillStyle = '#221100'; 
         ctx.fillRect(11, 2, 14, 6);
-        ctx.fillRect(10, 5, 2, 5); // Left Sideburn
-        ctx.fillRect(24, 5, 2, 5); // Right Sideburn
+        ctx.fillRect(10, 5, 2, 5); 
+        ctx.fillRect(24, 5, 2, 5); 
 
-        // 2. Ears (Proportionate side skin nodes)
+        // Ears
         ctx.fillStyle = '#e8beac'; 
-        ctx.fillRect(9, 10, 2, 4);  // Left Ear
-        ctx.fillRect(25, 10, 2, 4); // Right Ear
+        ctx.fillRect(9, 10, 2, 4);  
+        ctx.fillRect(25, 10, 2, 4); 
 
-        // 3. Human Face/Head Tone Structure
+        // Face
         ctx.beginPath(); 
         ctx.arc(18, 12, 7, 0, Math.PI * 2); 
         ctx.fill();
 
-        // 4. Detailed Eyes (White sclera + dark pupils)
+        // Eyes
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(13, 10, 3, 2); // Left Sclera
-        ctx.fillRect(20, 10, 3, 2); // Right Sclera
+        ctx.fillRect(13, 10, 3, 2); 
+        ctx.fillRect(20, 10, 3, 2); 
         ctx.fillStyle = '#111111';
-        ctx.fillRect(14, 10, 1, 2); // Pupils
+        ctx.fillRect(14, 10, 1, 2); 
         ctx.fillRect(21, 10, 1, 2);
 
-        // 5. Mouth & Expression Line
+        // Mouth
         ctx.strokeStyle = '#b57c67';
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(16, 15); ctx.lineTo(20, 15); ctx.stroke();
 
-        // 6. Broad Neck Line
+        // Neck
         ctx.fillStyle = '#d1a390'; 
         ctx.fillRect(15, 18, 6, 3);
 
-        // 7. Muscular Torso Base Shirt (Only this layer reflects the menu choice!)
+        // Shirt
         ctx.fillStyle = shirtColor; 
         ctx.fillRect(7, 21, 22, 14); 
 
-        // 8. Human Skin Tone Arms
+        // Skin Arms
         ctx.fillStyle = '#e8beac';
-        ctx.fillRect(3, 21, 4, 12);  // Left Arm
-        ctx.fillRect(29, 21, 4, 12); // Right Arm
+        ctx.fillRect(3, 21, 4, 12);  
+        ctx.fillRect(29, 21, 4, 12); 
 
-        // 9. Denim Tactical Pants (Two separate distinct legs)
+        // Denim Pants
         ctx.fillStyle = '#1f3044'; 
-        ctx.fillRect(7, 35, 10, 11);  // Left leg jean
-        ctx.fillRect(19, 35, 10, 11); // Right leg jean
+        ctx.fillRect(7, 35, 10, 11);  
+        ctx.fillRect(19, 35, 10, 11); 
 
-        // 10. Heavy Leather Combat Boots
+        // Leather Boots
         ctx.fillStyle = '#2b1a0e';
-        ctx.fillRect(6, 46, 11, 2);   // Left shoe base
-        ctx.fillRect(19, 46, 2, 2);  // Right shoe base
+        ctx.fillRect(6, 46, 11, 2);   
         ctx.fillRect(19, 46, 11, 2); 
 
-        // Update texture buffer safely without crashing Phaser cache
         if (game.textures.exists('kali_humanoid')) {
             game.textures.get('kali_humanoid').source[0].image = canvas;
             game.textures.get('kali_humanoid').update();
@@ -289,7 +295,6 @@
             game.textures.addCanvas(key, canvas);
         };
 
-        // Initialize default human frame
         generateHumanPlayerTexture('#00ffff');
 
         generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
@@ -327,12 +332,20 @@
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
 
-        generateVectorGraphic('laser_fire', 16, 16, (ctx) => { 
-            ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(8, 8, 8, 0, Math.PI*2); ctx.fill();
+        // Refined glowing fire ball vector texture
+        generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
+            let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(0.3, '#ffaa00');
+            gradient.addColorStop(1, '#ff3300');
+            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
         });
 
-        generateVectorGraphic('laser_electric', 20, 20, (ctx) => { 
-            ctx.fillStyle = '#ffff33'; ctx.fillRect(2, 2, 16, 16);
+        // Refined lightning electric shock wave vector texture
+        generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
+            ctx.fillStyle = 'rgba(255, 255, 51, 0.3)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(11, 2); ctx.lineTo(6, 12); ctx.lineTo(15, 10); ctx.lineTo(11, 20); ctx.stroke();
         });
         
         generateVectorGraphic('laser_red', 12, 12, (ctx) => {
@@ -512,7 +525,6 @@
         scene.physics.resume();
         sysProgress.runtimeActive = true;
 
-        // Apply customization via texture layers instead of flattening it with player.setTint()
         generateHumanPlayerTexture(sysProgress.selectedOutfitColorStr);
         
         player.setPosition(400, 460); player.setVelocity(0, 0);
@@ -530,12 +542,28 @@
         cleanTimers();
         let scene = game.scene.scenes[0];
 
+        // Advanced Spawn and Target AI Engine
         globalAmbushTimer = scene.time.addEvent({
             delay: 1500, loop: true, callback: () => {
                 if (!sysProgress.runtimeActive) return;
-                let spawnX = Phaser.Math.Between(50, 750);
+                
+                // Monsters can randomly deploy from any edge border window seamlessly
+                let spawnX, spawnY;
+                let randomBorderSide = Phaser.Math.Between(0, 3);
+                if (randomBorderSide === 0) { // Top edge
+                    spawnX = Phaser.Math.Between(20, 780); spawnY = 30;
+                } else if (randomBorderSide === 1) { // Right side
+                    spawnX = 770; spawnY = Phaser.Math.Between(40, 500);
+                } else if (randomBorderSide === 2) { // Left side
+                    spawnX = 30; spawnY = Phaser.Math.Between(40, 500);
+                } else { // Below platforms
+                    spawnX = Phaser.Math.Between(20, 780); spawnY = 200;
+                }
+
                 let enemyKey = (Math.random() > 0.5) ? 'virus_hazard' : 'alien_hazard';
-                let subUnit = enemiesGroup.create(spawnX, 40, enemyKey);
+                let subUnit = enemiesGroup.create(spawnX, spawnY, enemyKey);
+                
+                // Continuous navigation targeting to hunt the player, even if stationary
                 scene.physics.moveToObject(subUnit, player, 90 + (sysProgress.stage * 10));
             }
         });
@@ -567,6 +595,13 @@
 
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
+
+        // Always calculate real-time tracker updating vectors for hazards
+        enemiesGroup.children.iterate((enemy) => {
+            if (enemy && enemy.active && enemy.body) {
+                this.physics.moveToObject(enemy, player, 90 + (sysProgress.stage * 10));
+            }
+        });
 
         if (currentBossInstance && currentBossInstance.active) {
             if (Math.abs(currentBossInstance.x - player.x) > 20) {
