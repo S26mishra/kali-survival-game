@@ -484,10 +484,18 @@
         SoundFX.play('fire');
         if (sysProgress.level === 1) {
             kaliLasers.create(player.x, player.y - 25, 'laser_fire').setVelocityY(-450);
-        } else {
+        } else if (sysProgress.level === 2) {
             let s1 = kaliLasers.create(player.x - 12, player.y - 25, 'laser_fire');
             let s2 = kaliLasers.create(player.x + 12, player.y - 25, 'laser_fire');
             s1.setVelocityY(-470); s2.setVelocityY(-470);
+        } else {
+            // Weapon Level 3+ gets an upgraded 3-projectile spread burst!
+            let s1 = kaliLasers.create(player.x - 15, player.y - 25, 'laser_fire');
+            let s2 = kaliLasers.create(player.x, player.y - 25, 'laser_fire');
+            let s3 = kaliLasers.create(player.x + 15, player.y - 25, 'laser_fire');
+            s1.setVelocity(-80, -480);
+            s2.setVelocity(0, -500);
+            s3.setVelocity(80, -480);
         }
     }
 
