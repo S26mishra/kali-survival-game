@@ -741,6 +741,13 @@
         sysProgress.shield = 100; sysProgress.stageKills = 0; initRuntimeLevel(); 
     };
 
+    window.restartStage = function() {
+        document.getElementById('victory-menu').style.display = 'none';
+        sysProgress.stage += 1;
+        sysProgress.stageKills = 0;
+        initRuntimeLevel();
+    };
+
     function updateEnvironmentAssets() {
         let envs = ['Cyber Grid', 'Snow Area', 'Rain Flood', 'Volcano Pit'];
         sysProgress.currentEnv = envs[(sysProgress.stage - 1) % envs.length];
