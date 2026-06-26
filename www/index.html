@@ -289,7 +289,7 @@
 
             <div class="warrior-display-panel">
                 <div class="warrior-avatar-frame">
-                    <img id="warrior-avatar-img" src="image_e5f84c.png" alt="Warrior Avatar">
+                    <img id="warrior-avatar-img" src="image_e5f84c.png" alt="Warrior Avatar" onerror="this.src='../image_e5f84c.png'">
                 </div>
                 <div class="warrior-panel-title" id="warrior-avatar-label">CHAMPION ROTATION</div>
             </div>
@@ -405,9 +405,9 @@
 
     function updateWarriorImageRotation() {
         const images = [
-            { url: "image_e5f84c.png", name: "Doom Hacker" },
-            { url: "image_e5f80f.png", name: "Chirp Commando" },
-            { url: "image_e5f53f.png", name: "Warzone Zero" }
+            { url: "image_e5f84c.png", fallback: "../image_e5f84c.png", name: "Doom Hacker" },
+            { url: "image_e5f80f.png", fallback: "../image_e5f80f.png", name: "Chirp Commando" },
+            { url: "image_e5f53f.png", fallback: "../image_e5f53f.png", name: "Warzone Zero" }
         ];
         
         const daysInMs = 10 * 24 * 60 * 60 * 1000;
@@ -417,6 +417,7 @@
         const labelElement = document.getElementById('warrior-avatar-label');
         if (imgElement && labelElement) {
             imgElement.src = images[currentIntervalIndex].url;
+            imgElement.setAttribute('onerror', `this.onerror=null; this.src='${images[currentIntervalIndex].fallback}';`);
             labelElement.innerText = images[currentIntervalIndex].name;
         }
     }
