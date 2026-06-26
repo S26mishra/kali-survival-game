@@ -731,19 +731,9 @@
     };
 
     window.handleAdRetrieval = function() {
-        document.getElementById('defeat-menu').style.none = 'none';
+        document.getElementById('defeat-menu').style.display = 'none';
         sysProgress.shield = 100; sysProgress.runtimeActive = true;
         game.scene.scenes[0].physics.resume(); startTimerLoops(); refreshTerminalHUD();
-    };
-
-    window.restartStage = function() {
-        document.getElementById('victory-menu').style.display = 'none';
-        sysProgress.stage += 1;
-        sysProgress.stageKills = 0; 
-        
-        document.getElementById('start-menu').style.display = 'flex';
-        updateOutfitLockStates();
-        game.scene.scenes[0].physics.pause();
     };
 
     window.resetToLevelBeginning = function() {
