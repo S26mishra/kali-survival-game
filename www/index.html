@@ -163,6 +163,12 @@
             color: #888888;
             letter-spacing: 0.5px;
             font-family: monospace;
+            text-align: center;
+        }
+        .new-cyber-menu .outfit-card .outfit-cost {
+            font-size: 8px;
+            color: #ffff33;
+            margin-top: 4px;
         }
         .new-cyber-menu .outfit-card.active {
             border: 1px solid #33ff33 !important;
@@ -175,8 +181,17 @@
         .new-cyber-menu .outfit-card.active .outfit-icon {
             transform: scale(1.15);
         }
+        .new-cyber-menu .outfit-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(40, 10, 10, 0.3) !important;
+            border-color: rgba(255, 51, 51, 0.3) !important;
+        }
+        .new-cyber-menu .outfit-card.locked .outfit-cost {
+            color: #ff3333;
+        }
 
-        /* Character Portrait side framework layout */
+        /* Character Portrait setup layout */
         .character-preview-side {
             width: 200px;
             height: 160px;
@@ -197,10 +212,10 @@
             align-items: center;
             overflow: hidden;
         }
-        .warrior-image-element {
+        .warrior-canvas-preview {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             z-index: 2;
             position: absolute;
         }
@@ -311,30 +326,34 @@
 
         <div class="menu-content-container">
             <div class="selection-side">
-                <p class="selection-title">SELECT WARRIOR OUTFIT:</p>
+                <p class="selection-title" id="outfit-menu-title">SELECT WARRIOR OUTFIT (COINS: 30):</p>
                 <div class="outfit-grid">
-                    <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b')">
-                        <span class="outfit-icon">🩵</span>
+                    <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b', 0)">
+                        <span class="outfit-icon" id="icon-cyan">🩵</span>
                         <span class="outfit-name">CYBER NEON</span>
+                        <span class="outfit-cost">FREE</span>
                     </div>
-                    <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111')">
-                        <span class="outfit-icon">💛</span>
+                    <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111', 20)">
+                        <span class="outfit-icon" id="icon-gold">🔒</span>
                         <span class="outfit-name">GILDED ARMOR</span>
+                        <span class="outfit-cost">20 COINS</span>
                     </div>
-                    <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c')">
-                        <span class="outfit-icon">❤️</span>
+                    <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c', 40)">
+                        <span class="outfit-icon" id="icon-crimson">🔒</span>
                         <span class="outfit-name">VOID CRIMSON</span>
+                        <span class="outfit-cost">40 COINS</span>
                     </div>
-                    <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff')">
-                        <span class="outfit-icon">💜</span>
+                    <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff', 60)">
+                        <span class="outfit-icon" id="icon-shadow">🔒</span>
                         <span class="outfit-name">SHADOW ELIXIR</span>
+                        <span class="outfit-cost">60 COINS</span>
                     </div>
                 </div>
             </div>
 
             <div class="character-preview-side">
                 <div class="character-portrait-frame">
-                    <img src="warrior_avatar.png" alt="Warrior Portrait" class="warrior-image-element" onerror="this.style.display='none';">
+                    <canvas id="warrior-portrait-view" class="warrior-canvas-preview" width="200" height="160"></canvas>
                     <div class="placeholder-avatar-graphics">⚡ CHOSEN CHAMPION ⚡</div>
                 </div>
             </div>
@@ -451,31 +470,95 @@
         sysProgress.highScore = parseInt(localStorage.getItem('kali_highscore'), 10);
     }
 
-    window.selectOutfit = function(id, hexShirt, hexHair) {
+    // Dynamic outfit selection processing based on user coin parameters
+    window.selectOutfit = function(id, hexShirt, hexHair, cost) {
+        if (sysProgress.coins < cost) {
+            return; 
+        }
         document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
         document.getElementById(`skin-${id}`).classList.add('active');
         sysProgress.selectedOutfitColorStr = hexShirt;
         sysProgress.selectedHairColorStr = hexHair;
+        drawWarriorIllustrationPortrait(hexShirt);
     };
 
-    function updateEnvironmentAssets() {
-        let st = sysProgress.stage;
-        if (st >= 12) sysProgress.currentEnv = 'Desert Airspace';
-        else if (st >= 8) sysProgress.currentEnv = 'Rain Flood';
-        else if (st >= 4) sysProgress.currentEnv = 'Snow Area';
-        else sysProgress.currentEnv = 'Cyber Grid';
+    // Update the lock visual graphics depending on current inventory state
+    function updateOutfitLockStates() {
+        document.getElementById('outfit-menu-title').innerText = `SELECT WARRIOR OUTFIT (COINS: ${sysProgress.coins}):`;
+        
+        let processLock = (id, cost, openIcon) => {
+            let element = document.getElementById(`skin-${id}`);
+            let iconElement = document.getElementById(`icon-${id}`);
+            if (sysProgress.coins >= cost) {
+                element.classList.remove('locked');
+                iconElement.innerText = openIcon;
+            } else {
+                element.classList.add('locked');
+                iconElement.innerText = "🔒";
+            }
+        };
 
-        let colorHex;
-        if (sysProgress.currentEnv === 'Snow Area') colorHex = 0x1e2d3d;
-        else if (sysProgress.currentEnv === 'Rain Flood') colorHex = 0x111b24;
-        else if (sysProgress.currentEnv === 'Desert Airspace') colorHex = 0x4a2f1b;
-        else colorHex = 0x1b3d1b;
+        processLock('cyan', 0, "🩵");
+        processLock('gold', 20, "💛");
+        processLock('crimson', 40, "❤️");
+        processLock('shadow', 60, "💜");
+    }
 
-        if (mapPlatforms) {
-            mapPlatforms.children.iterate((tile) => {
-                if (tile && tile.texture.key === 'matrix_floor') tile.setTint(colorHex);
-            });
-        }
+    // Render a high-tech warrior portrait using vector geometry operations
+    function drawWarriorIllustrationPortrait(suitColor) {
+        let cv = document.getElementById('warrior-portrait-view');
+        if (!cv) return;
+        let ctx = cv.getContext('2d');
+        ctx.clearRect(0, 0, cv.width, cv.height);
+
+        // Cyber Grid Background Lines
+        ctx.strokeStyle = 'rgba(51, 255, 170, 0.15)';
+        ctx.lineWidth = 1;
+        for(let i=0; i<cv.width; i+=20) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, cv.height); ctx.stroke(); }
+        for(let j=0; j<cv.height; j+=20) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(cv.width, j); ctx.stroke(); }
+
+        // Glowing Core Aura Effects
+        let auraGrad = ctx.createRadialGradient(100, 75, 5, 100, 75, 60);
+        auraGrad.addColorStop(0, 'rgba(51, 255, 170, 0.25)');
+        auraGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = auraGrad; ctx.beginPath(); ctx.arc(100, 75, 60, 0, Math.PI*2); ctx.fill();
+
+        // Shoulders & Armor Torso
+        ctx.fillStyle = suitColor;
+        ctx.beginPath();
+        ctx.moveTo(50, 150);
+        ctx.lineTo(70, 110);
+        ctx.lineTo(130, 110);
+        ctx.lineTo(150, 150);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+        // Neon Tech Plates
+        ctx.fillStyle = '#111111';
+        ctx.beginPath(); ctx.moveTo(85, 115); ctx.lineTo(115, 115); ctx.lineTo(107, 145); ctx.lineTo(93, 145); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#33ffaa'; ctx.lineWidth = 1; ctx.stroke();
+
+        // Cybernetic Helmet Visor Frame
+        ctx.fillStyle = '#222222';
+        ctx.beginPath();
+        ctx.moveTo(75, 95); ctx.lineTo(125, 95); ctx.lineTo(120, 50); ctx.lineTo(80, 50);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = suitColor; ctx.stroke();
+
+        // Glowing Tactical Visor Light Strip
+        let laserGrad = ctx.createLinearGradient(85, 70, 115, 70);
+        laserGrad.addColorStop(0, '#33ffff'); laserGrad.addColorStop(0.5, '#ffffff'); laserGrad.addColorStop(1, '#33ffff');
+        ctx.fillStyle = laserGrad;
+        ctx.shadowColor = '#33ffff'; ctx.shadowBlur = 8;
+        ctx.fillRect(85, 68, 30, 7);
+        ctx.shadowBlur = 0; // Reset canvas effects shadow configuration
+
+        // Helmet Antenna arrays
+        ctx.strokeStyle = '#555555'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(76, 70); ctx.lineTo(66, 60); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(124, 70); ctx.lineTo(134, 60); ctx.stroke();
+        ctx.fillStyle = '#ff3333'; ctx.fillRect(64, 58, 3, 3); ctx.fillRect(133, 58, 3, 3);
     }
 
     function generateHumanPlayerTexture(shirtColor, hairColor) {
@@ -645,7 +728,12 @@
         keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
         setupMobileInputListeners();
+        
+        // Show start menu with updated configuration tracking logic
         document.getElementById('start-menu').style.display = 'flex';
+        updateOutfitLockStates();
+        drawWarriorIllustrationPortrait(sysProgress.selectedOutfitColorStr);
+        
         this.physics.pause();
     }
 
@@ -760,7 +848,12 @@
         document.getElementById('victory-menu').style.display = 'none';
         sysProgress.stage += 1;
         sysProgress.stageKills = 0; 
-        initRuntimeLevel();
+        
+        // Show start selection screen before next match to let player choose new skins using earned coins
+        document.getElementById('start-menu').style.display = 'flex';
+        updateOutfitLockStates();
+        drawWarriorIllustrationPortrait(sysProgress.selectedOutfitColorStr);
+        game.scene.scenes[0].physics.pause();
     };
 
     window.resetToLevelBeginning = function() {
