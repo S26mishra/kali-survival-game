@@ -111,14 +111,18 @@
         .menu-content-container {
             display: flex;
             width: 100%;
-            justify-content: center;
-            margin-top: 10px;
+            max-width: 740px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
             z-index: 5;
+            gap: 20px;
         }
         .selection-side {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
+            flex: 1;
         }
         .selection-title {
             color: #ffffff;
@@ -129,15 +133,15 @@
         }
         .new-cyber-menu .outfit-grid {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             margin: 0;
         }
         .new-cyber-menu .outfit-card {
             position: relative;
             border: 1px dashed rgba(51, 255, 51, 0.3) !important;
             background: rgba(0, 20, 10, 0.4) !important;
-            width: 120px;
-            height: 150px;
+            width: 110px;
+            height: 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -149,12 +153,12 @@
             cursor: pointer;
         }
         .new-cyber-menu .outfit-card .outfit-icon {
-            font-size: 44px;
+            font-size: 40px;
             margin-bottom: 15px;
             transition: transform 0.2s ease;
         }
         .new-cyber-menu .outfit-card .outfit-name {
-            font-size: 10px !important;
+            font-size: 9px !important;
             font-weight: bold;
             color: #888888;
             letter-spacing: 0.5px;
@@ -171,6 +175,44 @@
         .new-cyber-menu .outfit-card.active .outfit-icon {
             transform: scale(1.15);
         }
+
+        /* Character Portrait side framework layout */
+        .character-preview-side {
+            width: 200px;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .character-portrait-frame {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(51, 255, 170, 0.4);
+            background: linear-gradient(180deg, rgba(5, 36, 22, 0.3) 0%, rgba(2, 10, 6, 0.7) 100%);
+            border-radius: 6px;
+            box-shadow: inset 0 0 15px rgba(51, 255, 170, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .warrior-image-element {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 2;
+            position: absolute;
+        }
+        .placeholder-avatar-graphics {
+            color: rgba(51, 255, 170, 0.4);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1;
+            text-shadow: 0 0 5px rgba(51, 255, 170, 0.3);
+        }
+
         .action-footer {
             display: flex;
             gap: 20px;
@@ -209,7 +251,6 @@
             letter-spacing: 1px;
         }
 
-        /* Generic game screen menus */
         .menu-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
             background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 14px; color: #33ff33;
@@ -288,6 +329,13 @@
                         <span class="outfit-icon">💜</span>
                         <span class="outfit-name">SHADOW ELIXIR</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="character-preview-side">
+                <div class="character-portrait-frame">
+                    <img src="warrior_avatar.png" alt="Warrior Portrait" class="warrior-image-element" onerror="this.style.display='none';">
+                    <div class="placeholder-avatar-graphics">⚡ CHOSEN CHAMPION ⚡</div>
                 </div>
             </div>
         </div>
@@ -432,7 +480,7 @@
 
     function generateHumanPlayerTexture(shirtColor, hairColor) {
         let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
-        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36; 48);
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
         
         ctx.fillStyle = shirtColor; ctx.fillRect(4, 20, 28, 20); 
         ctx.fillStyle = '#ffcc99'; ctx.fillRect(8, 6, 20, 14);
