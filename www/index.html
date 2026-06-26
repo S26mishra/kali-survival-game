@@ -35,7 +35,7 @@
         #game-container canvas {
             display: block;
             border: 2px solid #33ff33;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.45);
         }
         .hud-overlay {
             position: absolute; top: 10px; left: 10px; right: 10px; pointer-events: none; color: #33ff33;
@@ -254,7 +254,7 @@
     const game = new Phaser.Game(config);
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let weatherParticles, fireParticleEmitter;
+    let weatherParticles, fireParticleEmitter, explosionEmitter, droneEmitter;
     let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
     let lastMoveSoundTime = 0, lastFireTime = 0;
     let globalAmbushTimer = null, bossAttackTimer = null;
@@ -360,24 +360,18 @@
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
         
-        // Realistic Multi-Layer Hot Plasma Fireball Texture
         generateVectorGraphic('laser_fire', 24, 24, (ctx) => { 
             let grad = ctx.createRadialGradient(12, 12, 2, 12, 12, 12);
-            grad.addColorStop(0, '#ffffff');
-            grad.addColorStop(0.2, '#ffff33');
-            grad.addColorStop(0.5, '#ff6600');
-            grad.addColorStop(0.9, '#cc0000');
+            grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.2, '#ffff33');
+            grad.addColorStop(0.5, '#ff6600'); grad.addColorStop(0.9, '#cc0000');
             grad.addColorStop(1, 'rgba(200,0,0,0)');
             ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(12, 12, 12, 0, Math.PI*2); ctx.fill();
         });
         
-        // Realistic Electric Blast Core
         generateVectorGraphic('laser_electric', 30, 30, (ctx) => { 
             let grad = ctx.createRadialGradient(15, 15, 3, 15, 15, 15);
-            grad.addColorStop(0, '#ffffff');
-            grad.addColorStop(0.4, '#33ffff');
-            grad.addColorStop(0.8, '#0000ff');
-            grad.addColorStop(1, 'rgba(0,0,255,0)');
+            grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.4, '#33ffff');
+            grad.addColorStop(0.8, '#0000ff'); grad.addColorStop(1, 'rgba(0,0,255,0)');
             ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(15, 15, 15, 0, Math.PI*2); ctx.fill();
         });
         
@@ -392,10 +386,22 @@
         generateVectorGraphic('rain_drop', 2, 10, (ctx) => {
             ctx.fillStyle = '#6699ff'; ctx.fillRect(0, 0, 2, 10);
         });
-        
-        // Particle particle texture block for projectile trailing sparkles
         generateVectorGraphic('sparkle_dot', 6, 6, (ctx) => {
             ctx.fillStyle = '#ffaa44'; ctx.fillRect(0, 0, 6, 6);
+        });
+        generateVectorGraphic('neon_dot', 4, 4, (ctx) => {
+            ctx.fillStyle = '#00ffcc'; ctx.fillRect(0, 0, 4, 4);
+        });
+        generateVectorGraphic('debris_chunk', 5, 5, (ctx) => {
+            ctx.fillStyle = '#ff3333'; ctx.fillRect(0, 0, 5, 5);
+        });
+        
+        // Vignette Ambient Layout Shadow Overlay
+        generateVectorGraphic('vignette_mask', 800, 550, (ctx) => {
+            let grad = ctx.createRadialGradient(400, 275, 250, 400, 275, 455);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.65)');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, 800, 550);
         });
     }
 
@@ -417,10 +423,15 @@
         });
         weatherParticles.stop();
 
-        // Fire particle trail engine
+        // Advanced Visual Particle Engines
         fireParticleEmitter = this.add.particles(0, 0, 'sparkle_dot', {
-            lifespan: 350, speedY: { min: 40, max: 120 }, speedX: { min: -30, max: 30 },
-            scale: { start: 1.5, end: 0 }, blendMode: 'ADD', frequency: -1
+            lifespan: 350, speedY: { min: 40, max: 120 }, speedX: { min: -30, max: 30 }, scale: { start: 1.5, end: 0 }, blendMode: 'ADD', frequency: -1
+        });
+        explosionEmitter = this.add.particles(0, 0, 'debris_chunk', {
+            lifespan: 400, speed: { min: 80, max: 180 }, scale: { start: 1.6, end: 0 }, blendMode: 'ADD', frequency: -1
+        });
+        droneEmitter = this.add.particles(0, 0, 'neon_dot', {
+            lifespan: 450, speed: { min: 10, max: 40 }, scale: { start: 1.2, end: 0 }, blendMode: 'ADD', frequency: -1
         });
 
         enemiesGroup = this.physics.add.group();
@@ -433,8 +444,14 @@
         partnerSusi.body.allowGravity = false;
         targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
+        // Frame Vignette overlay placement
+        this.add.image(400, 275, 'vignette_mask').setDepth(10).setScrollFactor(0);
+
         this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
             if (!sysProgress.runtimeActive) return;
+            explosionEmitter.emitParticleAt(enemy.x, enemy.y, 12);
+            this.cameras.main.shake(120, 0.007); // Impact Screen Shake Action
+            
             p.destroy(); enemy.destroy(); SoundFX.play('monster_hit');
             sysProgress.coins += 10;
             
@@ -449,6 +466,8 @@
 
         this.physics.add.overlap(kaliLasers, bossGroup, (p, boss) => {
             if (!sysProgress.runtimeActive) return;
+            explosionEmitter.emitParticleAt(p.x, p.y, 6);
+            this.cameras.main.shake(100, 0.005);
             p.destroy(); boss.health -= 5; SoundFX.play('monster_hit');
             if (boss.health <= 0) { boss.destroy(); currentBossInstance = null; triggerVictorySequence(); }
             refreshTerminalHUD();
@@ -459,12 +478,14 @@
             let now = this.time.now;
             if (now - lastBossHitTime > 1500) { 
                 lastBossHitTime = now; sysProgress.shield -= 40;
+                this.cameras.main.shake(300, 0.02); // Heavy damage shake
                 SoundFX.play('monster_hit'); refreshTerminalHUD(); checkPlayerMortality();
             }
         });
 
         this.physics.add.overlap(enemyLasers, player, (pl, laser) => {
             if (!sysProgress.runtimeActive) return;
+            this.cameras.main.shake(150, 0.012);
             laser.destroy(); sysProgress.shield -= 15; SoundFX.play('monster_hit');
             refreshTerminalHUD(); checkPlayerMortality();
         });
@@ -511,7 +532,7 @@
         let createFireball = (x, y, vx, vy) => {
             let fb = kaliLasers.create(x, y, 'laser_fire');
             fb.setVelocity(vx, vy);
-            fb.isFireBall = true; // flag to process trail emission in update loop
+            fb.isFireBall = true;
             return fb;
         };
 
@@ -534,7 +555,7 @@
         let bolt = kaliLasers.create(player.x, player.y - 25, 'laser_electric');
         bolt.setVelocity(Phaser.Math.Between(-180, 180), -520);
         bolt.isLightning = true;
-        bolt.lightningPoints = []; // Stores point historical offset for custom render layout
+        bolt.lightningPoints = [];
     }
 
     function checkPlayerMortality() {
@@ -659,6 +680,7 @@
                     let projectile = enemyLasers.create(currentBossInstance.x, currentBossInstance.y + 25, 'laser_red');
                     scene.physics.moveToObject(projectile, player, 280);
                     SoundFX.play('boss_shoot');
+                    scene.cameras.main.shake(80, 0.003); // Subtle rumble on boss volley
                 }
             }
         });
@@ -669,6 +691,9 @@
 
         partnerSusi.x = Phaser.Math.Linear(partnerSusi.x, player.x - 30, 0.15);
         partnerSusi.y = Phaser.Math.Linear(partnerSusi.y, player.y + 15, 0.15);
+
+        // Continuous particle jet track trail for helper drone
+        droneEmitter.emitParticleAt(partnerSusi.x, partnerSusi.y, 1);
 
         let speed = 250; let isMoving = false;
         player.setVelocity(0, 0);
@@ -686,29 +711,23 @@
         if (Phaser.Input.Keyboard.JustDown(keySpace) || Phaser.Input.Keyboard.JustDown(keyF)) triggerKaliFire();
         if (Phaser.Input.Keyboard.JustDown(keyL) || Phaser.Input.Keyboard.JustDown(keyE)) triggerElectricShockPower();
 
-        // Process advanced projectile particle rendering pipeline loops
         kaliLasers.children.iterate((projectile) => {
             if (!projectile || !projectile.active) return;
             
-            // Fireball realistic smoke trailing effect
             if (projectile.isFireBall) {
                 fireParticleEmitter.emitParticleAt(projectile.x, projectile.y + 4, 1);
                 projectile.alpha = Phaser.Math.Between(8, 10) / 10;
             }
             
-            // Electric Shock crackling lightning logic
             if (projectile.isLightning) {
-                // Periodically save dynamic offsets to draw jagged lightning paths
                 if (!projectile.lightningPoints || projectile.lightningPoints.length < 5) {
                     projectile.lightningPoints = [];
                     for(let i = 0; i < 4; i++) {
                         projectile.lightningPoints.push({
-                            dx: Phaser.Math.Between(-14, 14),
-                            dy: Phaser.Math.Between(-10, 10)
+                            dx: Phaser.Math.Between(-14, 14), dy: Phaser.Math.Between(-10, 10)
                         });
                     }
                 }
-                // Rapid flicker behavior
                 projectile.tint = (Math.random() > 0.4) ? 0xffff00 : 0x00ffff;
                 projectile.scaleX = Phaser.Math.FloatBetween(1.0, 1.4);
             }
