@@ -74,11 +74,142 @@
 
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 15, 0.96);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 999; color: #33ff33; border: 2px solid #33ff33; box-sizing: border-box;
             padding: 20px;
         }
+
+        /* --- UPGRADED CYBERPUNK START MENU STYLING --- */
+        .new-cyber-menu {
+            background: radial-gradient(circle at center, #06140e 0%, #020705 100%) !important;
+            border: 3px solid #33ff33 !important;
+            box-shadow: inset 0 0 30px rgba(51, 255, 51, 0.2), 0 0 25px rgba(51, 255, 51, 0.4) !important;
+            justify-content: flex-start !important;
+            padding: 40px 20px !important;
+            overflow: hidden;
+        }
+        .main-title-logo {
+            font-size: 52px !important;
+            font-weight: 900;
+            margin: 20px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(to bottom, #ffffff 0%, #9be2ff 45%, #297293 55%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 12px rgba(0, 243, 255, 0.6));
+            font-family: 'Arial Black', Impact, sans-serif;
+        }
+        .subtitle-logo {
+            color: #33ff33;
+            font-size: 14px;
+            letter-spacing: 6px;
+            margin: 5px 0 25px 0;
+            text-shadow: 0 0 8px #33ff33;
+            font-weight: bold;
+        }
+        .menu-content-container {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+            z-index: 5;
+        }
+        .selection-side {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .selection-title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .new-cyber-menu .outfit-grid {
+            display: flex;
+            gap: 16px;
+            margin: 0;
+        }
+        .new-cyber-menu .outfit-card {
+            position: relative;
+            border: 1px dashed rgba(51, 255, 51, 0.3) !important;
+            background: rgba(0, 20, 10, 0.4) !important;
+            width: 120px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .new-cyber-menu .outfit-card .outfit-icon {
+            font-size: 44px;
+            margin-bottom: 15px;
+            transition: transform 0.2s ease;
+        }
+        .new-cyber-menu .outfit-card .outfit-name {
+            font-size: 10px !important;
+            font-weight: bold;
+            color: #888888;
+            letter-spacing: 0.5px;
+            font-family: monospace;
+        }
+        .new-cyber-menu .outfit-card.active {
+            border: 1px solid #33ff33 !important;
+            background: rgba(0, 40, 20, 0.6) !important;
+            box-shadow: 0 0 15px rgba(51, 255, 51, 0.3);
+        }
+        .new-cyber-menu .outfit-card.active .outfit-name {
+            color: #33ff33 !important;
+        }
+        .new-cyber-menu .outfit-card.active .outfit-icon {
+            transform: scale(1.15);
+        }
+        .action-footer {
+            display: flex;
+            gap: 20px;
+            margin-top: auto;
+            margin-bottom: 15px;
+            z-index: 5;
+        }
+        .btn-action-primary {
+            background: #052416;
+            border: 2px solid #33ffaa;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 20px;
+            padding: 12px 45px;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(51, 255, 170, 0.3);
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-action-primary:hover {
+            background: #33ffaa;
+            color: #000000;
+            box-shadow: 0 0 25px #33ffaa;
+        }
+        .btn-action-secondary {
+            background: transparent;
+            border: 2px solid #1a5c3a;
+            color: #33ffaa;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        /* Generic game screen menus */
         .menu-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
         .btn-action {
             background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 14px; color: #33ff33;
@@ -89,12 +220,11 @@
         #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
         #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
 
-        .outfit-grid { display: flex; gap: 15px; margin: 15px 0; }
-        .outfit-card {
-            border: 2px dashed #33ff33; padding: 10px; font-size: 11px; cursor: pointer; text-align: center; min-width: 90px;
-            background: rgba(0,20,0,0.4);
+        .shop-shelf { display: flex; gap: 15px; margin: 15px 0; }
+        .shop-item-btn {
+            background: #112211; border: 1px solid #33ff33; padding: 10px; color: #fff; font-size: 11px; cursor: pointer; border-radius: 4px;
         }
-        .outfit-card.active { border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33; }
+        .shop-item-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         @media screen and (max-width: 1024px) {
             #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
@@ -134,21 +264,38 @@
         </div>
     </div>
 
-    <div id="start-menu" class="overlay-screen">
-        <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
-        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR HAIR STYLE OUTFIT:</p>
-        
-        <div class="outfit-grid">
-            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b')">🩵 Brown Hair</div>
-            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111')">💛 Dark Hair</div>
-            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c')">❤️ Crimson Hair</div>
-            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff')">💜 Anime White</div>
+    <div id="start-menu" class="overlay-screen new-cyber-menu">
+        <h1 class="main-title-logo">CALI'S LEGEND</h1>
+        <h3 class="subtitle-logo">BATTLE ARENA</h3>
+
+        <div class="menu-content-container">
+            <div class="selection-side">
+                <p class="selection-title">SELECT WARRIOR OUTFIT:</p>
+                <div class="outfit-grid">
+                    <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b')">
+                        <span class="outfit-icon">🩵</span>
+                        <span class="outfit-name">CYBER NEON</span>
+                    </div>
+                    <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111')">
+                        <span class="outfit-icon">💛</span>
+                        <span class="outfit-name">GILDED ARMOR</span>
+                    </div>
+                    <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c')">
+                        <span class="outfit-icon">❤️</span>
+                        <span class="outfit-name">VOID CRIMSON</span>
+                    </div>
+                    <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff')">
+                        <span class="outfit-icon">💜</span>
+                        <span class="outfit-name">SHADOW ELIXIR</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 15px;">
-            Move Arena Base: [ARROW KEYS / WASD]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
-        </p>
-        <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
+        <div class="action-footer">
+            <button class="btn-action-primary" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
+            <button class="btn-action-secondary">HIGHSCORES</button>
+        </div>
     </div>
 
     <div id="defeat-menu" class="overlay-screen">
@@ -239,7 +386,7 @@
     const game = new Phaser.Game(config);
 
     let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let weatherParticles;
+    let weatherParticles, fireParticleEmitter;
     let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
     let lastMoveSoundTime = 0, lastFireTime = 0;
     let globalAmbushTimer = null, bossAttackTimer = null;
@@ -276,7 +423,6 @@
         else if (sysProgress.currentEnv === 'Desert Airspace') colorHex = 0x4a2f1b;
         else colorHex = 0x1b3d1b;
 
-        // Visual fix: only tint 'matrix_floor' texture tiles, not custom 'cyber_platform' overlays.
         if (mapPlatforms) {
             mapPlatforms.children.iterate((tile) => {
                 if (tile && tile.texture.key === 'matrix_floor') tile.setTint(colorHex);
@@ -286,7 +432,7 @@
 
     function generateHumanPlayerTexture(shirtColor, hairColor) {
         let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
-        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
+        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36; 48);
         
         ctx.fillStyle = shirtColor; ctx.fillRect(4, 20, 28, 20); 
         ctx.fillStyle = '#ffcc99'; ctx.fillRect(8, 6, 20, 14);
@@ -345,359 +491,6 @@
         generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
             ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
         });
-        generateVectorGraphic('laser_fire', 18, 18, (ctx) => { 
-            let gradient = ctx.createRadialGradient(9, 9, 2, 9, 9, 9);
-            gradient.addColorStop(0, '#ffffff'); gradient.addColorStop(1, '#ff3300');
-            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(9, 9, 9, 0, Math.PI*2); ctx.fill();
-        });
-        generateVectorGraphic('laser_electric', 22, 22, (ctx) => { 
-            ctx.fillStyle = 'rgba(255, 255, 51, 0.4)'; ctx.beginPath(); ctx.arc(11, 11, 11, 0, Math.PI*2); ctx.fill();
-        });
-        generateVectorGraphic('laser_red', 16, 16, (ctx) => {
-            let gradient = ctx.createRadialGradient(8, 8, 2, 8, 8, 8);
-            gradient.addColorStop(0, '#ffff99'); gradient.addColorStop(1, '#ff0000');
-            ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(8, 8, 8, 0, Math.PI * 2```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kali's Legend: Battle Arena (Optimized)</title>
-    <script src="[https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js](https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js)"></script>
-    <style>
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: #000;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            box-sizing: border-box;
-        }
-        #game-wrapper {
-            position: relative; 
-            width: 800px;
-            height: 550px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #game-container {
-            width: 100%;
-            height: 100%;
-        }
-        #game-container canvas {
-            display: block;
-            border: 2px solid #33ff33;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-        .hud-overlay {
-            position: absolute; top: 10px; left: 10px; right: 10px; pointer-events: none; color: #33ff33;
-            z-index: 4; display: flex; flex-direction: column; gap: 6px;
-        }
-        #hud-lvl { font-size: 12px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #hud-log { font-size: 10px; background: rgba(0,0,0,0.85); padding: 5px 8px; border: 1px solid #33ff33; border-radius: 4px; width: fit-content; max-width: 100%; }
-        
-        .mobile-touch-bar {
-            position: absolute; bottom: 20px; left: 15px; right: 15px;
-            pointer-events: none; z-index: 99; display: flex; justify-content: space-between;
-            box-sizing: border-box;
-        }
-        .touch-group-left, .touch-group-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
-        
-        .huge-btn {
-            width: 53px; height: 53px; background: rgba(0, 44, 0, 0.85); border: 2px solid #33ff33;
-            border-radius: 50%; color: #fff; font-size: 20px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 10px rgba(51, 255, 51, 0.4);
-            cursor: pointer;
-            box-sizing: border-box;
-        }
-        .huge-btn:active { background: #33ff33; color: #000; }
-        
-        .huge-action-btn {
-            width: 64px; height: 64px; font-size: 10px; text-transform: uppercase;
-            border-radius: 50%; text-align: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 2px; font-weight: bold;
-        }
-        .btn-light-shock { background: rgba(102, 102, 0, 0.85); border-color: #ffff33; color: #ffff33; }
-        .btn-light-shock:active { background: #ffff33; color: #000; }
-        .btn-fire-burst { background: rgba(102, 0, 0, 0.85); border-color: #ff3333; color: #ff3333; }
-        .btn-fire-burst:active { background: #ff3333; color: #000; }
-
-        .overlay-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 5, 15, 0.96);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 999; color: #33ff33; border: 2px solid #33ff33; box-sizing: border-box;
-            padding: 20px;
-        }
-        .menu-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #33ff33; text-align: center; }
-        .btn-action {
-            background: #004400; border: 2px solid #33ff33; padding: 12px 35px; font-size: 14px; color: #33ff33;
-            cursor: pointer; font-weight: bold; text-transform: uppercase; margin: 10px;
-            border-radius: 4px; min-width: 220px; text-align: center;
-        }
-        .btn-action:hover { background: #33ff33; color: #000; }
-        #defeat-menu { display: none; background: rgba(20, 0, 0, 0.98); border-color: #ff3333; color: #ff3333; }
-        #victory-menu { display: none; background: rgba(0, 20, 0, 0.98); border-color: #33ff33; color: #33ff33; }
-
-        .outfit-grid { display: flex; gap: 15px; margin: 15px 0; }
-        .outfit-card {
-            border: 2px dashed #33ff33; padding: 10px; font-size: 11px; cursor: pointer; text-align: center; min-width: 90px;
-            background: rgba(0,20,0,0.4);
-        }
-        .outfit-card.active { border-style: solid; background: #004400; box-shadow: 0 0 10px #33ff33; }
-
-        @media screen and (max-width: 1024px) {
-            #game-wrapper { width: 100vw; height: 100vh; max-width: 100%; max-height: 100%; }
-            .mobile-touch-bar {
-                position: fixed;
-                bottom: calc(15px + env(safe-area-inset-bottom));
-                left: calc(15px + env(safe-area-inset-left));
-                right: calc(15px + env(safe-area-inset-right));
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-wrapper">
-    <div class="hud-overlay">
-        <div id="hud-lvl">Arena Stage: 1 | Environment: Cyber Grid | Shield: 100% | Coins: 30 | Weapon: Lv.1 | Kills: 0/10</div>
-        <div id="hud-log">Tactical Arena System Active. Grid environment synced.</div>
-    </div>
-
-    <div class="mobile-touch-bar">
-        <div class="touch-group-left">
-            <div class="huge-btn" id="pad-left">◀</div>
-            <div class="huge-btn" id="pad-right">▶</div>
-            <div class="huge-btn" id="pad-up">▲</div>
-            <div class="huge-btn" id="pad-down">▼</div>
-        </div>
-        <div class="touch-group-right">
-            <div class="huge-btn huge-action-btn btn-light-shock" id="pad-light">
-                <span style="font-size: 16px;">⚡</span>
-                <span>Shock</span>
-            </div>
-            <div class="huge-btn huge-action-btn btn-fire-burst" id="pad-fire">
-                <span style="font-size: 16px;">🔥</span>
-                <span>Fire</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="start-menu" class="overlay-screen">
-        <div class="menu-title">⚔️ CALIBRATE CHRONO OUTPOST ⚔️</div>
-        <p style="text-align:center; font-size:12px; margin:0;">SELECT WARRIOR HAIR STYLE OUTFIT:</p>
-        
-        <div class="outfit-grid">
-            <div class="outfit-card active" id="skin-cyan" onclick="selectOutfit('cyan', '#e67e22', '#4a2f1b')">🩵 Brown Hair</div>
-            <div class="outfit-card" id="skin-gold" onclick="selectOutfit('gold', '#ffff33', '#111111')">💛 Dark Hair</div>
-            <div class="outfit-card" id="skin-crimson" onclick="selectOutfit('crimson', '#ff3333', '#e74c3c')">❤️ Crimson Hair</div>
-            <div class="outfit-card" id="skin-shadow" onclick="selectOutfit('shadow', '#bb33ff', '#ffffff')">💜 Anime White</div>
-        </div>
-
-        <p style="text-align:center; max-width:400px; font-size:12px; line-height:1.5; margin-bottom: 15px;">
-            Move Arena Base: [ARROW KEYS / WASD]<br>Fire Projectiles: [SPACE / F] | Shockwave: [L / E]
-        </p>
-        <button class="btn-action" onclick="initRuntimeLevel()">ENGAGE IN ARENA</button>
-    </div>
-
-    <div id="defeat-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #ff3333;">💀 ARENA CORE DESTROYED 💀</div>
-        <button class="btn-action" style="border-color:#ffff33; color:#ffff33; background:#333300;" onclick="handleAdRetrieval()">📺 WATCH AD TO REVIVE</button>
-        <button class="btn-action" style="border-color:#ff3333; color:#ff3333; background:#220000;" onclick="resetToLevelBeginning()">🔄 RETRY BATTLE</button>
-    </div>
-
-    <div id="victory-menu" class="overlay-screen">
-        <div class="menu-title" style="text-shadow: 0 0 10px #33ff33;">🏆 ARENA CROWN SECURED 🏆</div>
-        <button class="btn-action" onclick="restartStage()">NEXT COMBAT MATCH</button>
-    </div>
-
-    <div id="game-container"></div>
-</div>
-
-<script>
-    const SoundFX = {
-        ctx: null,
-        init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-        play(type) {
-            this.init(); if (!this.ctx) return;
-            let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            let now = this.ctx.currentTime;
-            switch(type) {
-                case 'move':
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(110, now);
-                    gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1); break;
-                case 'jump':
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'fire':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(350, now);
-                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2); break;
-                case 'shock':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.linearRampToValueAtTime(200, now + 0.25); osc.frequency.setValueAtTime(600, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25); break;
-                case 'monster_hit':
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now);
-                    osc.frequency.linearRampToValueAtTime(44, now + 0.15);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'boss_shoot':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(550, now);
-                    osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
-                    gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15); break;
-                case 'gameover':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.linearRampToValueAtTime(110, now + 0.6);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6); break;
-                case 'win':
-                    osc.type = 'square'; osc.frequency.setValueAtTime(293.66, now);
-                    osc.frequency.setValueAtTime(392.00, now + 0.1); osc.frequency.setValueAtTime(493.88, now + 0.2);
-                    osc.frequency.setValueAtTime(587.33, now + 0.3); gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.2, now + 0.3); gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
-                    osc.start(now); osc.stop(now + 0.55); break;
-            }
-        }
-    };
-
-    const config = {
-        type: Phaser.AUTO,
-        width: 800, height: 550, parent: 'game-container',
-        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-        physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
-        scene: { preload: preload, create: create, update: update }
-    };
-
-    const game = new Phaser.Game(config);
-
-    let player, partnerSusi, targetKitty, mapPlatforms, cursors, enemiesGroup, bossGroup, kaliLasers, enemyLasers;
-    let weatherParticles;
-    let moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
-    let lastMoveSoundTime = 0, lastFireTime = 0;
-    let globalAmbushTimer = null, bossAttackTimer = null;
-    let currentBossInstance = null, lastBossHitTime = 0; 
-    let keyF, keyE, keyL, keySpace, keysWASD;
-
-    let sysProgress = {
-        stage: 1, level: 1, shield: 100, runtimeActive: false,
-        selectedOutfitColorStr: '#e67e22', selectedHairColorStr: '#4a2f1b', coins: 30, currentEnv: 'Cyber Grid',
-        stageKills: 0, requiredKills: 5, highScore: 1
-    };
-
-    if (localStorage.getItem('kali_highscore')) {
-        sysProgress.highScore = parseInt(localStorage.getItem('kali_highscore'), 10);
-    }
-
-    window.selectOutfit = function(id, hexShirt, hexHair) {
-        document.querySelectorAll('.outfit-card').forEach(card => card.classList.remove('active'));
-        document.getElementById(`skin-${id}`).classList.add('active');
-        sysProgress.selectedOutfitColorStr = hexShirt;
-        sysProgress.selectedHairColorStr = hexHair;
-    };
-
-    function updateEnvironmentAssets() {
-        let st = sysProgress.stage;
-        if (st >= 12) sysProgress.currentEnv = 'Desert Airspace';
-        else if (st >= 8) sysProgress.currentEnv = 'Rain Flood';
-        else if (st >= 4) sysProgress.currentEnv = 'Snow Area';
-        else sysProgress.currentEnv = 'Cyber Grid';
-
-        let colorHex;
-        if (sysProgress.currentEnv === 'Snow Area') colorHex = 0x1e2d3d;
-        else if (sysProgress.currentEnv === 'Rain Flood') colorHex = 0x111b24;
-        else if (sysProgress.currentEnv === 'Desert Airspace') colorHex = 0x4a2f1b;
-        else colorHex = 0x1b3d1b;
-
-        if (mapPlatforms) {
-            mapPlatforms.children.iterate((tile) => {
-                // BUG FIX: only tint 'matrix_floor' tiles, not custom platforms.
-                if (tile && tile.texture.key === 'matrix_floor') tile.setTint(colorHex);
-            });
-        }
-    }
-
-    function generateHumanPlayerTexture(shirtColor, hairColor) {
-        let canvas = document.createElement('canvas'); canvas.width = 36; canvas.height = 48;
-        let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 36, 48);
-        
-        ctx.fillStyle = shirtColor; ctx.fillRect(4, 20, 28, 20); 
-        ctx.fillStyle = '#ffcc99'; ctx.fillRect(8, 6, 20, 14);
-
-        ctx.fillStyle = hairColor;
-        ctx.fillRect(6, 3, 24, 5); 
-        ctx.fillRect(6, 6, 4, 8);  
-        ctx.fillRect(26, 6, 4, 8); 
-
-        ctx.fillStyle = '#f2b584';
-        ctx.fillRect(5, 10, 3, 5);  
-        ctx.fillRect(28, 10, 3, 5); 
-
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(11, 10, 4, 3); ctx.fillRect(21, 10, 4, 3); 
-        ctx.fillStyle = '#111111'; ctx.fillRect(12, 10, 2, 3); ctx.fillRect(22, 10, 2, 3); 
-
-        ctx.fillStyle = '#e74c3c'; ctx.fillRect(15, 16, 6, 2);
-        ctx.fillStyle = '#111111'; ctx.fillRect(8, 40, 8, 8); ctx.fillRect(20, 40, 8, 8); 
-        
-        if (game.textures.exists('kali_humanoid')) {
-            game.textures.get('kali_humanoid').source[0].image = canvas; game.textures.get('kali_humanoid').update();
-        } else { game.textures.addCanvas('kali_humanoid', canvas); }
-    }
-
-    function preload() {
-        let generateVectorGraphic = (key, w, h, drawCallback) => {
-            let canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
-            let ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, w, h); drawCallback(ctx);
-            game.textures.addCanvas(key, canvas);
-        };
-
-        generateHumanPlayerTexture('#e67e22', '#4a2f1b');
-        generateVectorGraphic('kitty_node', 32, 32, (ctx) => {
-            ctx.strokeStyle = '#33ff33'; ctx.lineWidth = 3; ctx.strokeRect(2, 2, 28, 28);
-        });
-        generateVectorGraphic('susi_drone', 28, 28, (ctx) => {
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(4, 10, 20, 10);
-        });
-        
-        // OPTIMIZATION: White base floor for tinting (prevents cumulative tint decay)
-        let canvasFloor = document.createElement('canvas'); canvasFloor.width = 40; canvasFloor.height = 40;
-        let ctxFloor = canvasFloor.getContext('2d'); ctxFloor.fillStyle = '#ffffff'; ctxFloor.fillRect(0, 0, 40, 40);
-        ctxFloor.strokeStyle = '#224422'; ctxFloor.lineWidth = 1; ctxFloor.strokeRect(0, 0, 40, 40);
-        game.textures.addCanvas('matrix_floor', canvasFloor);
-
-        generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
-            ctx.fillStyle = '#3a2212'; ctx.fillRect(0, 0, 80, 24);
-            ctx.strokeStyle = '#ffff33'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
-        });
-        generateVectorGraphic('humanoid_boss', 60, 80, (ctx) => {
-            ctx.fillStyle = '#5c2c91'; ctx.fillRect(5, 15, 50, 60);
-            ctx.fillStyle = '#ff0055'; ctx.fillRect(15, 25, 8, 8); ctx.fillRect(37, 25, 8, 8);
-        });
-        generateVectorGraphic('virus_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(16, 16, 14, 0, Math.PI * 2); ctx.fill();
-        });
-        generateVectorGraphic('alien_hazard', 32, 32, (ctx) => {
-            ctx.fillStyle = '#e67e22'; ctx.fillRect(4, 4, 24, 24);
-        });
-        
-        // Realistic Hot Plasma Fireball Texture
         generateVectorGraphic('laser_fire', 24, 24, (ctx) => { 
             let grad = ctx.createRadialGradient(12, 12, 2, 12, 12, 12);
             grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.2, '#ffff33');
@@ -705,15 +498,12 @@
             grad.addColorStop(1, 'rgba(200,0,0,0)');
             ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(12, 12, 12, 0, Math.PI*2); ctx.fill();
         });
-        
-        // Realistic Electric Blast Core
         generateVectorGraphic('laser_electric', 30, 30, (ctx) => { 
             let grad = ctx.createRadialGradient(15, 15, 3, 15, 15, 15);
             grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.4, '#33ffff');
             grad.addColorStop(0.8, '#0000ff'); grad.addColorStop(1, 'rgba(0,0,255,0)');
             ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(15, 15, 15, 0, Math.PI*2); ctx.fill();
         });
-        
         generateVectorGraphic('laser_red', 16, 16, (ctx) => {
             let gradient = ctx.createRadialGradient(8, 8, 2, 8, 8, 8);
             gradient.addColorStop(0, '#ffff99'); gradient.addColorStop(1, '#ff0000');
@@ -733,7 +523,6 @@
     function create() {
         this.physics.world.setBounds(0, 0, 800, 550);
         
-        // OPTIMIZATION: Reuse mapPlatforms group. DO NOT clear and destroy static bodies.
         mapPlatforms = this.physics.add.staticGroup();
         for (let x = 0; x < 800; x += 40) {
             for(let y = 0; y < 550; y += 40) {
@@ -745,13 +534,11 @@
         mapPlatforms.create(400, 290, 'cyber_platform').refreshBody();
         mapPlatforms.create(620, 290, 'cyber_platform').refreshBody();
 
-        // OPTIMIZATION: Reuse Weather particle systems
         weatherParticles = this.add.particles(0, 0, 'snow_flake', {
             x: { min: 0, max: 800 }, y: 0, lifespan: 3000, speedY: { min: 100, max: 200 }, scale: { start: 0.5, end: 1 }, quantity: 2, frequency: 100
         });
         weatherParticles.stop();
 
-        // Projectile particle trails
         fireParticleEmitter = this.add.particles(0, 0, 'sparkle_dot', {
             lifespan: 350, speedY: { min: 40, max: 120 }, speedX: { min: -30, max: 30 }, scale: { start: 1.5, end: 0 }, blendMode: 'ADD', frequency: -1
         });
@@ -766,7 +553,6 @@
         partnerSusi.body.allowGravity = false;
         targetKitty = this.physics.add.sprite(400, 510, 'kitty_node').setCollideWorldBounds(true);
 
-        // OPTIMIZATION: Colliders stay bound between restarts
         this.physics.add.overlap(kaliLasers, enemiesGroup, (p, enemy) => { 
             if (!sysProgress.runtimeActive) return;
             p.destroy(); enemy.destroy(); SoundFX.play('monster_hit');
@@ -949,7 +735,6 @@
         player.setPosition(280, 460); player.setVelocity(0, 0);
         enemiesGroup.clear(true, true); bossGroup.clear(true, true); enemyLasers.clear(true, true);
 
-        // OPTIMIZATION: Stop old weather
         weatherParticles.stop();
         if (sysProgress.currentEnv === 'Snow Area') {
             weatherParticles.setTexture('snow_flake'); weatherParticles.start();
