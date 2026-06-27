@@ -165,7 +165,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 70px; /* Big emoji sizes */
+            font-size: 70px;
         }
         .warrior-panel-title {
             font-family: 'Orbitron', sans-serif;
@@ -430,7 +430,7 @@
             { art: "🐱", name: "Warzone Kitty" }
         ];
         
-        const changeInterval = Math.floor(Date.now() / 6000) % emojis.length; // Alternates every few seconds smoothly
+        const changeInterval = Math.floor(Date.now() / 3000) % emojis.length;
         
         const emojiFrame = document.getElementById('warrior-emoji-avatar');
         const labelElement = document.getElementById('warrior-avatar-label');
@@ -469,8 +469,6 @@
         checkAndLock('shadow', 60, "💜");
         checkAndLock('emerald', 2000, "💚");
         checkAndLock('solar', 3000, "🧡");
-        
-        setInterval(updateWarriorEmojiRotation, 3000);
     }
 
     function generateHumanPlayerTexture(shirtColor, hairColor) {
@@ -522,7 +520,7 @@
 
         generateVectorGraphic('cyber_platform', 80, 24, (ctx) => {
             ctx.fillStyle = '#1a2942'; ctx.fillRect(0, 0, 80, 24);
-            ctx.strokeStyle = '#33ff77'; ctx.lineWidth = 2; strokeRect(0, 0, 80, 24);
+            ctx.strokeStyle = '#33ff77'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, 80, 24);
         });
         generateVectorGraphic('humanoid_boss', 60, 80, (ctx) => {
             ctx.fillStyle = '#5c2c91'; ctx.fillRect(5, 15, 50, 60);
@@ -643,6 +641,7 @@
         
         document.getElementById('start-menu').style.display = 'flex';
         updateOutfitLockStates();
+        setInterval(updateWarriorEmojiRotation, 3000);
         
         this.physics.pause();
     }
